@@ -14,7 +14,8 @@ import * as ProgressPrimitive from '@radix-ui/react-progress';
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import * as SeparatorPrimitive from '@radix-ui/react-separator';
-import * as SheetPrimitive from '@radix-ui/react-sheet';
+// Note: @radix-ui/react-sheet doesn't exist, using Dialog as replacement
+import * as SheetPrimitive from '@radix-ui/react-dialog';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import * as ToastPrimitive from '@radix-ui/react-toast';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';

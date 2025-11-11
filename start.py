@@ -69,14 +69,12 @@ class IODDManagerLauncher:
     def start_api(self):
         """Start the FastAPI backend"""
         logger.info(f"Starting API server on port {self.api_port}...")
-        
+
         api_process = subprocess.Popen(
             [sys.executable, 'api.py'],
-            cwd=self.project_root,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            cwd=self.project_root
         )
-        
+
         self.processes.append(api_process)
         
         # Wait for API to be ready
@@ -98,20 +96,51 @@ class IODDManagerLauncher:
     def start_frontend(self):
         """Start the frontend web server"""
         logger.info(f"Starting frontend server on port {self.frontend_port}...")
-        
-        # Use Python's built-in HTTP server for the Vue.js app
+
+        # Check if node_modules exists, install dependencies if not
+        node_modules_path = self.frontend_dir / 'node_modules'
+        if not node_modules_path.exists():
+            logger.info("Installing frontend dependencies (this may take a minute)...")
+            try:
+                install_result = subprocess.run(
+                    'npm install',
+                    cwd=self.frontend_dir,
+                    capture_output=True,
+                    text=True,
+                    shell=True  # Required for Windows to find npm.cmd
+                )
+                if install_result.returncode != 0:
+                    logger.error(f"Failed to install frontend dependencies: {install_result.stderr}")
+                    return False
+                logger.info("✅ Frontend dependencies installed")
+            except Exception as e:
+                logger.error(f"Failed to install frontend dependencies: {e}")
+                return False
+
+        # Check if npm is available
+        try:
+            subprocess.run('npm --version', capture_output=True, check=True, shell=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            logger.error("npm is not installed. Please install Node.js and npm first.")
+            return False
+
+        # Set Vite port via environment variable
+        env = os.environ.copy()
+        env['VITE_PORT'] = str(self.frontend_port)
+
+        # Use Vite dev server for the React app
         frontend_process = subprocess.Popen(
-            [sys.executable, '-m', 'http.server', str(self.frontend_port)],
+            f'npm run dev -- --port {self.frontend_port} --host',
             cwd=self.frontend_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            env=env,
+            shell=True  # Required for Windows to find npm.cmd
         )
-        
+
         self.processes.append(frontend_process)
-        
+
         # Wait for frontend to be ready
-        time.sleep(1)
-        
+        time.sleep(3)
+
         logger.info(f"✅ Frontend server is running on http://localhost:{self.frontend_port}")
         return True
     

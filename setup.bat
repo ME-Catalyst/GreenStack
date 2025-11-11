@@ -44,7 +44,7 @@ echo.
 echo ══════════════════════════════════════════════════════════════
 echo   The application will start in a moment...
 echo   • API Server: http://localhost:8000
-echo   • Web Interface: http://localhost:3000
+echo   • Web Interface: http://localhost:5173
 echo   • API Documentation: http://localhost:8000/docs
 echo ══════════════════════════════════════════════════════════════
 echo.
@@ -52,4 +52,4 @@ echo Press Ctrl+C to stop the application
 echo.
 
 :: Start the application
-python start.py
+python start.py --frontend-port 5173

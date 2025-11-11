@@ -517,10 +517,7 @@ class AdapterGenerator(ABC):
 
 class NodeREDGenerator(AdapterGenerator):
     """Generate Node-RED nodes from IODD profiles"""
-    
-    def __init__(self):
-        self.platform_name = "node-red"
-        
+
     @property
     def platform_name(self) -> str:
         return "node-red"
