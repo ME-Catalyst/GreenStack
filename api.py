@@ -18,9 +18,10 @@ from pydantic import BaseModel, Field
 import uvicorn
 
 from iodd_manager import (
-    IODDManager, DeviceProfile, Parameter, 
+    IODDManager, DeviceProfile, Parameter,
     IODDDataType, AccessRights
 )
+import config
 
 # ============================================================================
 # API Models
@@ -80,23 +81,19 @@ class ErrorResponse(BaseModel):
 # ============================================================================
 
 app = FastAPI(
-    title="IODD Manager API",
+    title=config.APP_NAME + " API",
     description="API for managing IODD files and generating device adapters",
-    version="1.0.0"
+    version=config.APP_VERSION,
+    docs_url="/docs" if config.ENABLE_DOCS else None,
+    redoc_url="/redoc" if config.ENABLE_DOCS else None,
 )
 
 # Add CORS middleware
-# Restrict to localhost origins for security
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",  # Vite dev server default port
-        "http://127.0.0.1:5173"
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_origins=config.CORS_ORIGINS,
+    allow_credentials=config.CORS_CREDENTIALS,
+    allow_methods=config.CORS_METHODS,
     allow_headers=["*"],
 )
 
@@ -608,10 +605,11 @@ def main():
     """Run the API server"""
     uvicorn.run(
         "api:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
+        host=config.API_HOST,
+        port=config.API_PORT,
+        reload=config.API_RELOAD and config.ENVIRONMENT == 'development',
+        log_level=config.LOG_LEVEL.lower(),
+        workers=config.API_WORKERS if config.ENVIRONMENT == 'production' else 1
     )
 
 if __name__ == "__main__":
