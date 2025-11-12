@@ -133,8 +133,6 @@ This project is licensed under the MIT License - see [LICENSE.md](LICENSE.md) fo
 
 <div align="center">
 
-**Made with ❤️ by the IODD Manager Team**
-
 ![GitHub Stars](https://img.shields.io/github/stars/ME-Catalyst/iodd-manager?style=social)
 ![GitHub Issues](https://img.shields.io/github/issues/ME-Catalyst/iodd-manager)
 
