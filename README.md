@@ -39,13 +39,35 @@ IODD Manager is a comprehensive solution for importing, managing, and analyzing 
 
 ## Quick Start
 
-### 🪟 Windows Users
+### 📦 PyPI Package (Recommended)
+
+```bash
+pip install iodd-manager
+iodd-api
+```
+
+Access the application at http://localhost:8000
+
+→ **[PyPI Installation Guide](docs/user/getting-started/installation.md#pypi-package-recommended)**
+
+### 🐳 Docker
+
+```bash
+docker pull ghcr.io/me-catalyst/iodd-manager:latest
+docker run -d -p 8000:8000 -v iodd-data:/data ghcr.io/me-catalyst/iodd-manager:latest
+```
+
+Access the application at http://localhost:8000
+
+→ **[Docker Installation Guide](docs/user/getting-started/installation.md#docker-production-ready)**
+
+### 🪟 Windows Source Install
 
 **Double-click `setup.bat`** and you're done!
 
 → **[Complete Windows Installation Guide](docs/user/getting-started/windows-installation.md)**
 
-### 🐧 Linux / 🍎 macOS Users
+### 🐧 Linux / 🍎 macOS Source Install
 
 ```bash
 git clone https://github.com/ME-Catalyst/iodd-manager.git
@@ -54,15 +76,7 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-→ **[Complete Installation Guide](docs/user/getting-started/installation.md)**
-
-### 🐳 Docker
-
-```bash
-docker-compose up -d
-```
-
-→ **[Docker Setup Guide](docs/user/getting-started/docker.md)**
+→ **[Complete Installation Guide](docs/user/getting-started/installation.md#from-source)**
 
 **Access the application:**
 - Web Interface: http://localhost:5173

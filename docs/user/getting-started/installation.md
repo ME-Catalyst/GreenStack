@@ -45,7 +45,76 @@ git --version
 
 ## Installation Methods
 
-=== "Standard Installation"
+=== "PyPI Package (Recommended)"
+
+    **Install from PyPI** - Easiest method for most users:
+
+    ```bash
+    # Install via pip
+    pip install iodd-manager
+
+    # Create working directory
+    mkdir iodd-manager-workspace
+    cd iodd-manager-workspace
+
+    # Initialize database
+    alembic upgrade head
+
+    # Start the application
+    iodd-api
+    ```
+
+    The application will start on http://localhost:8000
+
+    **With optional dependencies:**
+
+    ```bash
+    # Install with all features
+    pip install iodd-manager[all]
+
+    # Or install specific extras:
+    pip install iodd-manager[dev]       # Development tools
+    pip install iodd-manager[docs]      # Documentation tools
+    pip install iodd-manager[advanced]  # Advanced features
+    pip install iodd-manager[security]  # Security features
+    ```
+
+=== "Docker (Production Ready)"
+
+    **Run with Docker** - Best for production deployments:
+
+    ```bash
+    # Pull the latest image
+    docker pull ghcr.io/me-catalyst/iodd-manager:latest
+
+    # Run container
+    docker run -d \
+      --name iodd-manager \
+      -p 8000:8000 \
+      -v iodd-data:/data \
+      ghcr.io/me-catalyst/iodd-manager:latest
+    ```
+
+    Access the application at http://localhost:8000
+
+    **With Docker Compose:**
+
+    ```bash
+    # Clone repository for docker-compose.yml
+    git clone https://github.com/ME-Catalyst/iodd-manager.git
+    cd iodd-manager
+
+    # Start services
+    docker-compose up -d
+    ```
+
+    **Available Docker tags:**
+    - `latest` - Latest stable release
+    - `2.0.1` - Specific version
+    - `2.0` - Latest 2.0.x release
+    - `2` - Latest 2.x release
+
+=== "From Source"
 
     ### 1. Clone the Repository
 
@@ -95,9 +164,6 @@ git --version
     - Start the frontend on http://localhost:3000
     - Automatically open your browser
 
-=== "Docker Installation"
-
-    See the [Docker Deployment Guide](docker.md) for containerized installation.
 
 === "Development Installation"
 
