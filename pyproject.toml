@@ -87,10 +87,12 @@ iodd-api = "api:main"
 
 [tool.setuptools]
 py-modules = ["iodd_manager", "api", "config", "start"]
+packages = ["alembic", "alembic.versions"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-"*" = ["alembic/**/*", "*.ini"]
+"alembic" = ["*.mako", "*.ini"]
+"alembic.versions" = ["*.py"]
 
 # ============================================================================
 # Black - Code Formatter
