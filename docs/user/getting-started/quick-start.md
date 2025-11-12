@@ -185,13 +185,12 @@ Now that you have IODD Manager running:
 ### Explore Features
 
 - **[Web Interface Guide](../user-guide/web-interface.md)** - Learn all web UI features
-- **[API Documentation](../api/overview.md)** - Explore REST API capabilities
-- **[Adapter Generation](../user-guide/adapters.md)** - Generate adapters for different platforms
+- **[API Documentation](../../developer/api/overview.md)** - Explore REST API capabilities
 
 ### Customize Configuration
 
-- **[Configuration Guide](configuration.md)** - Customize ports, storage, logging
-- **[Environment Variables](../deployment/environment.md)** - Production configuration
+- **[Configuration Guide](../CONFIGURATION.md)** - Customize ports, storage, logging
+- **[Environment Variables](../../deployment/environment.md)** - Production configuration
 
 ### Development Setup
 

@@ -4,7 +4,7 @@ Managing environment-specific configuration for different deployment scenarios.
 
 ## Configuration Overview
 
-IODD Manager uses environment variables for configuration. See the complete **[Configuration Guide](../getting-started/configuration.md)** for all available options.
+IODD Manager uses environment variables for configuration. See the complete **[Configuration Guide](../user/CONFIGURATION.md)** for all available options.
 
 ## Environment Profiles
 
@@ -458,6 +458,6 @@ python api.py
 
 ## Next Steps
 
-- **[Configuration Guide](../getting-started/configuration.md)** - Complete configuration reference
+- **[Configuration Guide](../user/CONFIGURATION.md)** - Complete configuration reference
 - **[Production Deployment](production.md)** - Production deployment guide
 - **[Docker Deployment](docker.md)** - Container configuration

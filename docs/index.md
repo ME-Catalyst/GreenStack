@@ -58,7 +58,6 @@ This is the complete documentation for IODD Manager, a professional tool for man
 - **[Nested ZIP Import](user/NESTED_ZIP_IMPORT.md)** - Import packages with multiple devices
 - **[Command Line Interface](user/user-guide/cli.md)** - CLI commands and scripts
 - **[API Usage](user/user-guide/api.md)** - Using the REST API
-- **[Adapter Generation](user/user-guide/adapters.md)** - Generate platform-specific code
 
 ---
 
@@ -136,9 +135,6 @@ This is the complete documentation for IODD Manager, a professional tool for man
 
 **Use the REST API**
 → [API Specification](developer/API_SPECIFICATION.md)
-
-**Generate platform adapters**
-→ [Adapter Generation Guide](user/user-guide/adapters.md)
 
 **Contribute code**
 → [Contributing Guide](/CONTRIBUTING.md)

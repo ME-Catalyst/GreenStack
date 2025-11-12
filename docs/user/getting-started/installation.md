@@ -252,7 +252,7 @@ pip install -r requirements.txt
 ## Next Steps
 
 - **[Quick Start Guide](quick-start.md)** - Learn basic usage
-- **[Configuration](configuration.md)** - Customize your setup
+- **[Configuration](../CONFIGURATION.md)** - Customize your setup
 - **[User Guide](../user-guide/web-interface.md)** - Explore features
 
 ## Uninstallation

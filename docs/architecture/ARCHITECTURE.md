@@ -731,4 +731,3 @@ IODD Manager is a production-ready system for managing IO-Link device descriptio
 - [Developer Reference](../developer/DEVELOPER_REFERENCE.md)
 - [API Specification](../developer/API_SPECIFICATION.md)
 - [User Manual](../user/USER_MANUAL.md)
-- [Visual Diagrams](../visuals/ARCHITECTURE_DIAGRAMS.md) (ASCII art version)

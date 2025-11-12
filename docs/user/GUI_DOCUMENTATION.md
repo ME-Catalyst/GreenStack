@@ -25,7 +25,7 @@ python start.py --frontend-only    # Start only frontend
 The system will:
 1. Check and install dependencies
 2. Start the API server (port 8000)
-3. Start the web server (port 3000)
+3. Start the web server (port 5173)
 4. Open your browser automatically
 
 ## 🖥️ Interface Features
@@ -35,18 +35,15 @@ The system will:
 #### Key Metrics Cards
 - **Total Devices**: Live count with trend indicator
 - **Parameters**: Total parameters across all devices
-- **Generated Adapters**: Count of created adapters
-- **Supported Platforms**: Available target platforms
+- **Storage Size**: Total storage used by IODD files
 
 #### Visualizations
-- **Activity Chart**: Line graph showing device imports and adapter generation over time
+- **Activity Chart**: Line graph showing device imports over time
 - **3D Device Preview**: Interactive 3D model of selected device
 - **Network Topology**: Visual representation of device connections
-- **Platform Distribution**: Radar chart of adapter distribution
 
 #### Quick Actions Panel
 - One-click upload button
-- Instant adapter generation
 - Device browser shortcut
 - System refresh control
 
@@ -54,7 +51,7 @@ The system will:
 
 #### Advanced Search & Filtering
 - Real-time search across device names, manufacturers, and IDs
-- Platform-based filtering
+- Category-based filtering
 - Sort by import date, name, or ID
 
 #### Device Cards
@@ -65,32 +62,27 @@ Each device displays:
 - Device and Vendor IDs
 - Import date
 - Parameter count
-- Quick action buttons (View, Generate, Export)
+- Quick action buttons (View, Export, Delete)
 
 #### Device Details Modal
 - **Information Tab**: Complete device specifications
 - **Parameters Tab**: Interactive table with access rights badges
-- **Actions Tab**: Export, generate, and delete options
+- **Menus Tab**: Interactive configuration interface with parameter controls
+- **Actions Tab**: Export and delete options
 
-### Generator Interface
+### Interactive Menus Interface
 
-#### Platform Selection Grid
-Visual cards for each platform:
-- **Node-RED**: Fully implemented with icon
-- **Python**: Coming soon with status badge
-- **MQTT Bridge**: Future implementation
-- **OPC UA**: Planned feature
-
-#### Code Preview
-- Syntax-highlighted code display
-- Multi-file tab navigation
-- One-click copy functionality
-- Direct download as ZIP package
+#### Configuration Features
+- Full IODD menu structure rendering
+- Type-specific controls (dropdowns, sliders, checkboxes, text inputs)
+- Real-time validation with inline error display
+- Parameter details panel with copy-to-clipboard support
+- Configuration export as JSON files
 
 ### Analytics Dashboard
 
 #### Advanced Charts
-- **Platform Distribution Radar**: Visual comparison of adapter usage
+- **Device Distribution**: Visual comparison of device types
 - **Network Topology 3D**: Interactive device network visualization
 - **Heat Map**: Parameter distribution across devices
 - **Time Series**: Historical activity tracking
@@ -142,32 +134,30 @@ Advanced implementation featuring:
 
 ```
 frontend/
-├── index.html              # Vue.js complete application
-├── IODDDashboard.jsx       # React dashboard component
-├── package.json            # Dependencies and scripts
-├── tailwind.config.js      # Tailwind configuration
-└── assets/
-    ├── styles/            # Additional CSS files
-    └── images/            # Icons and graphics
+├── src/
+│   ├── App.jsx                # Main React application
+│   ├── components/            # Reusable UI components
+│   ├── main.jsx              # Application entry point
+│   └── index.css             # Styles
+├── package.json              # Dependencies and scripts
+└── vite.config.js            # Vite configuration
 ```
 
 ## 🔧 Configuration
 
 ### API Connection
-Edit the API base URL in the frontend files:
+The frontend automatically connects to the API server. The API base URL can be configured:
 
 ```javascript
-// Vue.js version (index.html)
-apiBaseUrl: 'http://localhost:8000'
-
-// React version (IODDDashboard.jsx)
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Default configuration
+const API_BASE = 'http://localhost:8000';
 ```
 
 ### Port Configuration
 ```bash
-# Custom ports
-python start.py --api-port 8080 --frontend-port 3001
+# Custom ports via environment variables
+API_PORT=8080
+FRONTEND_PORT=3001
 ```
 
 ## 🎨 Customization
@@ -175,13 +165,12 @@ python start.py --api-port 8080 --frontend-port 3001
 ### Theme Customization
 
 #### Colors
-Edit the CSS variables in the style section:
+Edit the CSS variables in your stylesheet:
 ```css
 :root {
     --primary: #00d4ff;        /* Your primary color */
     --primary-dark: #00a8cc;    /* Darker variant */
     --secondary: #ff6b6b;       /* Secondary color */
-    /* ... */
 }
 ```
 
@@ -252,7 +241,7 @@ The interface is fully responsive with breakpoints:
 
 - **Input Sanitization**: All user inputs are validated
 - **CORS Configuration**: Proper cross-origin setup
-- **File Type Validation**: Only .xml and .iodd files accepted
+- **File Type Validation**: Only .xml, .iodd, and .zip files accepted
 - **Size Limits**: Maximum upload size enforced
 - **Rate Limiting**: API call throttling
 
@@ -260,15 +249,13 @@ The interface is fully responsive with breakpoints:
 
 The dashboard tracks:
 - Device import frequency
-- Most used platforms
-- Generation success rates
 - User activity patterns
 - System performance metrics
+- Storage utilization
 
 ## 🎯 Keyboard Shortcuts
 
 - `Ctrl/Cmd + U`: Upload new IODD
-- `Ctrl/Cmd + G`: Open generator
 - `Ctrl/Cmd + D`: View devices
 - `Ctrl/Cmd + /`: Search focus
 - `Esc`: Close modals
@@ -295,29 +282,9 @@ The dashboard tracks:
    - Check GPU acceleration settings
 
 3. **Upload Failing**
-   - Verify file format (.xml or .iodd)
+   - Verify file format (.xml, .iodd, or .zip)
    - Check file size (< 10MB)
    - Ensure API has write permissions
-
-## 🚀 Advanced Features
-
-### Real-time Collaboration (Planned)
-- Multi-user support
-- Live device updates
-- Shared adapter generation
-- Team workspaces
-
-### AI-Powered Suggestions (Future)
-- Automatic parameter optimization
-- Platform recommendation
-- Code quality analysis
-- Performance predictions
-
-### Cloud Integration (Roadmap)
-- Cloud storage for IODDs
-- Remote adapter deployment
-- Distributed processing
-- Global device library
 
 ## 📝 Development
 
@@ -345,10 +312,9 @@ npm run build
 ## 🎉 Tips & Tricks
 
 1. **Quick Device Import**: Drag multiple IODD files directly onto the upload area
-2. **Batch Generation**: Select multiple devices with Ctrl+Click
-3. **Export All**: Use the API endpoint `/api/iodd/export-all`
-4. **Theme Toggle**: Click logo 5 times for easter egg theme
-5. **Performance Mode**: Add `?perf=true` to URL for simplified graphics
+2. **Multi-File Upload**: Select multiple files in the file picker
+3. **Export Device**: Download devices as properly formatted ZIP packages
+4. **Performance Mode**: Add `?perf=true` to URL for simplified graphics
 
 ---
 
@@ -358,6 +324,6 @@ For issues or questions about the web interface:
 1. Check browser console for errors
 2. Review API logs
 3. Verify network connectivity
-4. Contact support with screenshots
+4. Consult the [Troubleshooting Guide](../troubleshooting/TROUBLESHOOTING.md)
 
 The web interface is designed to provide a professional, intuitive experience for managing IO-Link devices. Enjoy the beautiful visualizations and powerful features!
