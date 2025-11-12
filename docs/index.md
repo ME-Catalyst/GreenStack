@@ -44,6 +44,7 @@ This is the complete documentation for IODD Manager, a professional tool for man
 ### Getting Started
 - **[Quick Start (5 min)](user/getting-started/quick-start.md)** - Install and run your first import
 - **[Installation Guide](user/getting-started/installation.md)** - Detailed setup instructions
+- **[Windows Installation](user/getting-started/windows-installation.md)** 🪟 - Complete Windows 10/11 guide with setup.bat
 - **[Docker Setup](user/getting-started/docker.md)** - Run with Docker containers
 
 ### User Guides
