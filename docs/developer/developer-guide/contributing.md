@@ -6,7 +6,6 @@ Thank you for your interest in contributing to IODD Manager! This guide will hel
 
 - **Repository**: [https://github.com/ME-Catalyst/iodd-manager](https://github.com/ME-Catalyst/iodd-manager)
 - **Issues**: [Report bugs or request features](https://github.com/ME-Catalyst/iodd-manager/issues)
-- **Discussions**: [Ask questions](https://github.com/ME-Catalyst/iodd-manager/discussions)
 
 ## Ways to Contribute
 
@@ -572,8 +571,6 @@ By contributing, you agree that your contributions will be licensed under the MI
 ## Questions?
 
 - **GitHub Issues**: [Report issues](https://github.com/ME-Catalyst/iodd-manager/issues)
-- **GitHub Discussions**: [Ask questions](https://github.com/ME-Catalyst/iodd-manager/discussions)
-- **Email**: [Contact maintainers](mailto:support@iodd-manager.example.com)
 
 ## Next Steps
 

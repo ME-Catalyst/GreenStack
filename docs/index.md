@@ -173,6 +173,6 @@ This documentation follows these principles:
 
 **Made with ❤️ by the IODD Manager Team**
 
-[GitHub](https://github.com/ME-Catalyst/iodd-manager) • [Issues](https://github.com/ME-Catalyst/iodd-manager/issues) • [Discussions](https://github.com/ME-Catalyst/iodd-manager/discussions)
+[GitHub](https://github.com/ME-Catalyst/iodd-manager) • [Issues](https://github.com/ME-Catalyst/iodd-manager/issues)
 
 </div>

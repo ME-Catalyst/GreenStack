@@ -112,7 +112,6 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 - 📖 **Documentation**: [Complete Docs](docs/INDEX.md)
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/ME-Catalyst/iodd-manager/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/ME-Catalyst/iodd-manager/discussions)
 
 ## License
 
