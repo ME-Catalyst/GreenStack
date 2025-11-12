@@ -2,6 +2,23 @@
 
 This guide will walk you through installing IODD Manager on your system.
 
+---
+
+## 🪟 Windows Users - Quick Start!
+
+**Running on Windows?** We have a dedicated guide for you:
+
+👉 **[Windows Installation Guide](windows-installation.md)** - Complete step-by-step instructions for Windows 10/11
+
+Includes:
+- One-click setup with `setup.bat`
+- Desktop shortcut creation
+- Windows-specific troubleshooting
+- PATH configuration help
+- Firewall and permissions guidance
+
+---
+
 ## Prerequisites
 
 Before installing IODD Manager, ensure you have:

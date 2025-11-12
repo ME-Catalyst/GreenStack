@@ -50,41 +50,37 @@ IODD Manager is a comprehensive solution for importing, managing, and generating
 
 ## Quick Start
 
-### Prerequisites
+### 🪟 Windows Users
 
-- Python 3.10 or higher
-- Node.js 18 or higher (for frontend)
-- Git
+**Double-click `setup.bat`** and you're done! See complete guide: **[Windows Installation](docs/user/getting-started/windows-installation.md)**
 
-### Installation
+### 🐧 Linux / 🍎 macOS Users
 
 ```bash
 # Clone the repository
 git clone https://github.com/ME-Catalyst/iodd-manager.git
 cd iodd-manager
 
-# Create and configure environment
-cp .env.example .env
-# Edit .env with your preferred settings (optional - defaults work fine)
+# Run setup script
+chmod +x setup.sh
+./setup.sh
 
-# Install Python dependencies
+# Or install manually:
 pip install -r requirements.txt
-
-# Install frontend dependencies
-cd frontend
-npm install
-cd ..
-
-# Run database migrations
+cd frontend && npm install && cd ..
 alembic upgrade head
-
-# Start the application (API + Frontend)
 python start.py
 ```
 
+### Prerequisites
+
+- Python 3.10+ ([Download](https://www.python.org/downloads/))
+- Node.js 18+ ([Download](https://nodejs.org/)) - Optional, for frontend development
+- Git ([Download](https://git-scm.com/downloads))
+
 The application will automatically:
 - Start the API server on http://localhost:8000
-- Start the frontend on http://localhost:3000
+- Start the frontend on http://localhost:5173
 - Open your browser to the dashboard
 
 ### Docker Quick Start
