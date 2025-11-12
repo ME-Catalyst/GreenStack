@@ -407,13 +407,23 @@ ENVIRONMENT=production python start.py
 
 ## Documentation
 
-- **[Configuration Guide](CONFIGURATION.md)** - Complete configuration reference
-- **[API Documentation](http://localhost:8000/docs)** - Interactive API docs (when running)
-- **[Database Migrations](alembic/README.md)** - Migration guide and best practices
-- **[Frontend Guide](frontend/README.md)** - Frontend architecture and development
-- **[Contributing Guide](CONTRIBUTING.md)** - Development guidelines and workflow
-- **[Test Documentation](tests/README.md)** - Testing guide and examples
-- **[Full Documentation](https://iodd-manager.readthedocs.io)** - Complete docs (MkDocs)
+📚 **[Complete Documentation Index](docs/INDEX.md)** - Start here for all documentation
+
+###  User Documentation
+- **[Quick Start Guide](docs/user/getting-started/quick-start.md)** - Get running in 5 minutes
+- **[User Manual](docs/user/USER_MANUAL.md)** - Complete feature guide
+- **[Configuration Reference](docs/user/CONFIGURATION.md)** - All configuration options
+- **[Troubleshooting Guide](docs/troubleshooting/TROUBLESHOOTING.md)** - Common issues and solutions
+
+### Developer Documentation
+- **[Developer Reference](docs/developer/DEVELOPER_REFERENCE.md)** - Architecture, API, database
+- **[API Specification](docs/developer/API_SPECIFICATION.md)** - Complete REST API docs
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
+- **[Interactive API Docs](http://localhost:8000/docs)** - Live API documentation (when running)
+
+### Architecture
+- **[System Architecture](docs/architecture/ARCHITECTURE.md)** - System design and data flows
+- **[Architecture Diagrams](docs/visuals/ARCHITECTURE_DIAGRAMS.md)** - Visual system documentation
 
 ## Technology Stack
 

@@ -1,140 +1,181 @@
 # IODD Manager Documentation
 
-Welcome to the IODD Manager documentation! This comprehensive guide will help you get started with managing IO-Link Device Description (IODD) files and generating platform-specific adapters.
+**Version 2.0** | **Status: Production Ready** | [GitHub Repository](https://github.com/ME-Catalyst/iodd-manager)
 
-## What is IODD Manager?
+---
 
-IODD Manager is a modern, full-stack industrial automation tool designed to simplify the management of IO-Link Device Description files. It provides a powerful REST API backend with a beautiful React frontend for device management and automated adapter generation.
+## 📚 Documentation Overview
 
-## Key Features
+This is the complete documentation for IODD Manager, a professional tool for managing IO-Link Device Description (IODD) files.
 
-<div class="grid cards" markdown>
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  IODD Manager Documentation Structure                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  👤 For Users          │  👨‍💻 For Developers    │  🏗️ Architecture  │
+│  • Quick Start         │  • API Reference      │  • System Design  │
+│  • User Manual         │  • Code Guide         │  • Data Flow      │
+│  • Configuration       │  • Best Practices     │  • Components     │
+│  • Troubleshooting     │  • Contributing       │                  │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
--   :material-folder-upload:{ .lg .middle } __IODD File Management__
+---
 
-    ---
+## 🚀 Getting Started (5 Minutes)
 
-    Import, parse, and store IODD XML files and packages with intelligent metadata extraction
+**New to IODD Manager?** Start here:
 
-    [:octicons-arrow-right-24: Learn more](user-guide/web-interface.md)
+1. **[Quick Start Guide](user/getting-started/quick-start.md)** ⚡
+   Get running in 5 minutes with step-by-step instructions
 
--   :material-code-braces:{ .lg .middle } __Adapter Generation__
+2. **[Installation Guide](user/getting-started/installation.md)** 📦
+   Detailed installation for Windows, macOS, and Linux
 
-    ---
+3. **[Configuration Guide](user/CONFIGURATION.md)** ⚙️
+   Configure ports, storage, logging, and security
 
-    Automatically generate platform-specific code for Node-RED, Python, MQTT, and more
+---
 
-    [:octicons-arrow-right-24: Explore adapters](user-guide/adapters.md)
+## 👤 User Documentation
 
--   :material-api:{ .lg .middle } __REST API__
+### Getting Started
+- **[Quick Start (5 min)](user/getting-started/quick-start.md)** - Install and run your first import
+- **[Installation Guide](user/getting-started/installation.md)** - Detailed setup instructions
+- **[Docker Setup](user/getting-started/docker.md)** - Run with Docker containers
 
-    ---
+### User Guides
+- **[User Manual](user/USER_MANUAL.md)** - Complete feature guide
+- **[Web Interface Guide](user/user-guide/web-interface.md)** - Dashboard, library, and device management
+- **[Configuration Reference](user/CONFIGURATION.md)** - All configuration options explained
+- **[GUI Features](user/GUI_DOCUMENTATION.md)** - Interactive interface documentation
+- **[Visual Features](user/VISUAL_FEATURES.md)** - 3D visualizations and charts
 
-    Full-featured FastAPI backend with OpenAPI documentation and comprehensive endpoints
+### Advanced Features
+- **[Nested ZIP Import](user/NESTED_ZIP_IMPORT.md)** - Import packages with multiple devices
+- **[Command Line Interface](user/user-guide/cli.md)** - CLI commands and scripts
+- **[API Usage](user/user-guide/api.md)** - Using the REST API
+- **[Adapter Generation](user/user-guide/adapters.md)** - Generate platform-specific code
 
-    [:octicons-arrow-right-24: API Reference](api/overview.md)
+---
 
--   :material-react:{ .lg .middle } __Modern Web UI__
+## 👨‍💻 Developer Documentation
 
-    ---
+### Core References
+- **[Developer Reference](developer/DEVELOPER_REFERENCE.md)** - Architecture, API, database, conventions
+- **[API Specification](developer/API_SPECIFICATION.md)** - Complete REST API documentation
+- **[Best Practices](developer/BEST_PRACTICES.md)** - UI generation and development patterns
 
-    React-based dashboard with 3D visualizations, analytics, and intuitive device management
+### Guides
+- **[Development Setup](developer/developer-guide/setup.md)** - Environment configuration
+- **[Code Quality](developer/developer-guide/code-quality.md)** - Linting, formatting, testing
+- **[Testing Guide](developer/developer-guide/testing.md)** - Writing and running tests
+- **[Contributing Guide](developer/developer-guide/contributing.md)** - How to contribute
 
-    [:octicons-arrow-right-24: Web Interface](user-guide/web-interface.md)
+### API & Database
+- **[API Overview](developer/api/overview.md)** - API architecture and design
+- **[API Endpoints](developer/api/endpoints.md)** - All available endpoints
+- **[API Errors](developer/api/errors.md)** - Error codes and handling
+- **[Database Schema](developer/database/schema.md)** - Tables and relationships
+- **[Database Migrations](developer/database/migrations.md)** - Schema versioning
 
--   :material-database:{ .lg .middle } __Database Migrations__
+### Feature Documentation
+- **[Interactive Menus](developer/ENHANCED_MENUS_SUMMARY.md)** - Menu system implementation
+- **[Config Page Guide](developer/CONFIG_PAGE_DEVELOPER_GUIDE.md)** - Building configuration UIs
 
-    ---
+---
 
-    Alembic-powered schema versioning for safe database evolution
+## 🏗️ Architecture Documentation
 
-    [:octicons-arrow-right-24: Database Guide](database/migrations.md)
+- **[System Architecture](architecture/ARCHITECTURE.md)** - High-level system design, components, data flows
+- **[Technology Stack](architecture/ARCHITECTURE.md#technology-stack)** - Backend, frontend, database
+- **[Data Flow](architecture/ARCHITECTURE.md#data-flow)** - Request/response patterns
 
--   :material-cog:{ .lg .middle } __Configuration__
+---
 
-    ---
+## 🔧 Troubleshooting
 
-    Environment-based configuration with .env support for flexible deployments
+- **[Troubleshooting Guide](troubleshooting/TROUBLESHOOTING.md)** - Common issues and solutions
+  - Installation issues
+  - Runtime errors
+  - Import problems
+  - Performance issues
+  - Database errors
+  - API issues
 
-    [:octicons-arrow-right-24: Configuration](getting-started/configuration.md)
+---
 
--   :material-test-tube:{ .lg .middle } __Comprehensive Testing__
+## 📋 Project Information
 
-    ---
+### Essential Files
+- **[README](/README.md)** - Project overview and quick start
+- **[LICENSE](/LICENSE.md)** - MIT License © ME-Catalyst 2025
+- **[CHANGELOG](/CHANGELOG.md)** - Version history and changes
+- **[CONTRIBUTING](/CONTRIBUTING.md)** - How to contribute to the project
 
-    65+ tests covering API, parsing, and storage with pytest
+### Project Management
+- **[Cleanup Summary](project/CLEANUP_SUMMARY.md)** - Recent codebase improvements
 
-    [:octicons-arrow-right-24: Testing Guide](developer-guide/testing.md)
+---
 
--   :material-docker:{ .lg .middle } __Docker Ready__
+## 🎯 Documentation by Task
 
-    ---
+### I want to...
 
-    Containerized deployment with docker-compose for easy production deployment
+**Install and run IODD Manager**
+→ [Quick Start Guide](user/getting-started/quick-start.md)
 
-    [:octicons-arrow-right-24: Docker Guide](getting-started/docker.md)
+**Import my first IODD file**
+→ [Quick Start - First Import](user/getting-started/quick-start.md#your-first-iodd-import)
 
-</div>
+**Configure for production**
+→ [Configuration Guide](user/CONFIGURATION.md) + [Production Deployment](deployment/production.md)
 
-## Quick Links
+**Use the REST API**
+→ [API Specification](developer/API_SPECIFICATION.md)
 
-- **[Installation Guide](getting-started/installation.md)** - Get IODD Manager running
-- **[Quick Start](getting-started/quick-start.md)** - 5-minute tutorial
-- **[API Documentation](api/overview.md)** - REST API reference
-- **[Developer Guide](developer-guide/setup.md)** - Contributing to IODD Manager
-- **[Changelog](about/changelog.md)** - Version history
+**Generate platform adapters**
+→ [Adapter Generation Guide](user/user-guide/adapters.md)
 
-## Technology Stack
+**Contribute code**
+→ [Contributing Guide](/CONTRIBUTING.md)
 
-### Backend
-- **Python 3.10+** - Core language
-- **FastAPI** - Modern async web framework
-- **SQLAlchemy** - SQL toolkit and ORM
-- **Alembic** - Database migration tool
-- **Pydantic** - Data validation using type hints
+**Understand the architecture**
+→ [Architecture Documentation](architecture/ARCHITECTURE.md)
 
-### Frontend
-- **React 18** - UI library
-- **Vite** - Next generation frontend tooling
-- **Tailwind CSS** - Utility-first CSS framework
-- **Three.js** - 3D visualizations
-- **Nivo** - Data visualization library
+**Fix an error**
+→ [Troubleshooting Guide](troubleshooting/TROUBLESHOOTING.md)
 
-### Development
-- **pytest** - Testing framework
-- **Black** - Code formatter
-- **Ruff** - Fast Python linter
-- **MyPy** - Static type checker
-- **GitHub Actions** - CI/CD pipeline
+---
 
-## Getting Help
+## 📊 Documentation Standards
 
-- :fontawesome-brands-github: **GitHub Issues**: [Report bugs](https://github.com/ME-Catalyst/iodd-manager/issues)
-- :material-forum: **Discussions**: [Ask questions](https://github.com/ME-Catalyst/iodd-manager/discussions)
-- :material-email: **Email**: support@example.com
+This documentation follows these principles:
 
-## License
+✅ **Clear Structure** - Organized by audience (users, developers, architects)  
+✅ **Progressive Disclosure** - Start simple, get detailed as needed  
+✅ **Examples Everywhere** - Code samples, screenshots, and diagrams  
+✅ **Search-Friendly** - Clear headings and consistent formatting  
+✅ **Up-to-Date** - Updated with each release
 
-IODD Manager is open source software licensed under the [MIT License](about/license.md).
+---
 
-## Next Steps
+## 🆘 Getting Help
 
-<div class="grid cards" markdown>
+**Found an issue?** [Report it on GitHub](https://github.com/ME-Catalyst/iodd-manager/issues)
 
--   **New Users**
+**Have a question?** Check the [Troubleshooting Guide](troubleshooting/TROUBLESHOOTING.md)
 
-    Start with the [Installation Guide](getting-started/installation.md) to set up IODD Manager
+**Want to contribute?** See [Contributing Guide](/CONTRIBUTING.md)
 
--   **Developers**
+---
 
-    Check out the [Developer Guide](developer-guide/setup.md) to contribute
+<div align="center">
 
--   **Deploying**
+**Made with ❤️ by the IODD Manager Team**
 
-    See the [Production Setup](deployment/production.md) for deployment instructions
-
--   **API Users**
-
-    Explore the [API Reference](api/overview.md) for integration
+[GitHub](https://github.com/ME-Catalyst/iodd-manager) • [Issues](https://github.com/ME-Catalyst/iodd-manager/issues) • [Discussions](https://github.com/ME-Catalyst/iodd-manager/discussions)
 
 </div>
