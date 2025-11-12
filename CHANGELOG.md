@@ -5,54 +5,83 @@ All notable changes to IODD Manager will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.1] - 2025-11-12
+## [2.0.1] - 2025-01-12
 
 ### Repository Audit and Documentation Update
 
-This release focuses on repository structure, documentation completeness, and legal clarity.
+This release focuses on repository structure, documentation completeness, accuracy, and legal clarity. Major improvements include Windows installation support, professional Mermaid diagrams, and comprehensive documentation cleanup.
 
 ### Added
 
 #### Documentation
 - Added `LICENSE.md` with MIT license and ME-Catalyst copyright (© 2025)
-- Added comprehensive `ROADMAP.md` with versioned milestones (v1.0-v3.0 and future considerations)
 - Added complete `USER_MANUAL.md` (installation, quick start, configuration, usage, advanced features)
 - Added detailed `DEVELOPER_REFERENCE.md` (architecture, API, frontend, database, IODD parsing, conventions, testing)
 - Added comprehensive `TROUBLESHOOTING.md` (installation, runtime, import, web interface, performance, database, API, Docker issues)
 - Added no-warranty disclaimer to README.md: "Provided 'as-is,' without warranty of any kind"
+- Added `docs/user/getting-started/windows-installation.md` - 600+ line comprehensive Windows guide with setup.bat documentation
+- Added `docs/INDEX.md` - Complete documentation navigation hub
+- Added 13 professional Mermaid diagrams to `ARCHITECTURE.md` (system architecture, component diagrams, sequence diagrams, ERD, flowcharts)
 
 #### Repository Structure
 - Restructured `/docs` directory to recommended organization:
-  - `/docs/architecture/` - Contains ARCHITECTURE.md
-  - `/docs/user/` - Contains USER_MANUAL.md and user guides
+  - `/docs/architecture/` - Contains ARCHITECTURE.md with Mermaid diagrams
+  - `/docs/user/` - Contains USER_MANUAL.md, CONFIGURATION.md, GUI_DOCUMENTATION.md, VISUAL_FEATURES.md, and user guides
   - `/docs/developer/` - Contains DEVELOPER_REFERENCE.md, API_SPECIFICATION.md, BEST_PRACTICES.md, CONFIG_PAGE_DEVELOPER_GUIDE.md, ENHANCED_MENUS_SUMMARY.md
   - `/docs/troubleshooting/` - Contains TROUBLESHOOTING.md
-  - `/docs/visuals/` - For images and diagrams (empty for now)
+  - `/docs/project/` - Contains CLEANUP_SUMMARY.md
 
 ### Changed
 
+#### README Cleanup
+- Reduced README.md from 589 to 144 lines (75% reduction)
+- Transformed into concise introduction and launching point
+- Moved detailed content (usage, configuration, development, deployment) to /docs
+- Removed all adapter generation references (not implemented)
+
+#### Documentation Accuracy
+- Removed all roadmap and future/planned statements across all documentation
+- Removed all adapter generation and Node-RED references (not implemented)
+- Fixed 7 broken documentation links (ARCHITECTURE_DIAGRAMS.md, configuration.md paths)
+- Removed 4 broken GitHub Discussions links (feature not enabled)
+- Updated GUI_DOCUMENTATION.md to reflect actual current features only
+
+#### Architecture Documentation
+- Complete rewrite of ARCHITECTURE.md with 13 Mermaid diagrams replacing ASCII art
+- Removed "& Roadmap" from title and all future/planned content
+- Added professional GitHub-native diagram rendering
+- Updated with accurate endpoints, components, and workflows
+
+#### Other Changes
 - Updated README.md LICENSE link to point to LICENSE.md
 - Renamed old LICENSE file to LICENSE.md with proper formatting
 - Verified all code has proper docstrings (api.py, iodd_manager.py)
 
 ### Removed
 
+- Removed all roadmap statements and future/planned content from documentation
+- Removed all adapter generation references (not implemented)
+- Removed all Node-RED adapter content from documentation
+- Removed `ROADMAP.md` (focus on current release only)
 - Removed `.claude/` directory (user-specific Claude Code settings)
 - Removed `claude/` directory (temporary analysis files)
 - Removed `nul` file (accidental creation)
 - Removed `temp_iodd_large.xml` (temporary test file)
 - Removed `temp_iodd_sample.xml` (temporary test file)
 - Removed old `LICENSE` file (replaced with LICENSE.md)
+- Removed broken GitHub Discussions links (4 locations)
+- Removed duplicate and redundant documentation (eliminated 1,436 lines)
 
 ### Documentation
 
-This release completes the minimum documentation set:
-- ✅ README.md - Project overview with no-warranty disclaimer
-- ✅ ROADMAP.md - Versioned milestones and future plans
-- ✅ ARCHITECTURE.md - System structure and data flows
+This release completes the production-ready documentation set:
+- ✅ README.md - Concise project overview (144 lines)
+- ✅ docs/INDEX.md - Complete documentation navigation hub
+- ✅ ARCHITECTURE.md - System structure with 13 Mermaid diagrams
 - ✅ USER_MANUAL.md - Installation and usage guide
 - ✅ DEVELOPER_REFERENCE.md - Code and API reference
 - ✅ TROUBLESHOOTING.md - Common issues and solutions
+- ✅ windows-installation.md - 600+ line Windows setup guide
 - ✅ CHANGELOG.md - Version history
 - ✅ LICENSE.md - MIT License with ME-Catalyst copyright
 
@@ -60,11 +89,14 @@ This release completes the minimum documentation set:
 
 - ✅ Required docs exist and are current
 - ✅ `/docs` directory matches recommended structure
-- ✅ Redundant and outdated files removed
+- ✅ Redundant and outdated files removed (eliminated 1,436 lines)
 - ✅ LICENSE present and correct (MIT)
 - ✅ CHANGELOG updated with version and summary
 - ✅ Code fully documented and consistent
-- ✅ Root directory clean and minimal
+- ✅ Root directory clean and minimal (4 essential files only)
+- ✅ All documentation links verified and working
+- ✅ No roadmap or future/planned content
+- ✅ Accurate reflection of current capabilities
 
 ---
 
