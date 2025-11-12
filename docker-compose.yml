@@ -41,7 +41,7 @@ services:
       - iodd-network
     labels:
       - "com.iodd-manager.description=IODD Manager API Server"
-      - "com.iodd-manager.version=2.0.0"
+      - "com.iodd-manager.version=2.0.1"
 
   # ============================================================================
   # Optional: Nginx Reverse Proxy

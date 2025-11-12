@@ -1,0 +1,40 @@
+# MANIFEST.in - Package data inclusion rules for PyPI distribution
+
+# Include documentation
+include README.md
+include LICENSE.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+
+# Include configuration files
+include .env.example
+include alembic.ini
+include requirements.txt
+
+# Include alembic migrations
+recursive-include alembic *.py *.mako
+recursive-include alembic/versions *.py
+
+# Exclude unnecessary files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude __pycache__
+global-exclude *.so
+global-exclude *.dylib
+
+# Exclude development and test files
+exclude .gitignore
+exclude .pylintrc
+exclude Makefile
+exclude setup.bat
+recursive-exclude tests *
+recursive-exclude .github *
+recursive-exclude .claude *
+recursive-exclude frontend *
+recursive-exclude docs *
+recursive-exclude iodd_storage *
+recursive-exclude generated *
+recursive-exclude htmlcov *
+recursive-exclude .pytest_cache *
+recursive-exclude .mypy_cache *
