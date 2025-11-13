@@ -77,10 +77,22 @@ generated/
 *.db-shm
 *.db-wal
 
+# Test data (exclude test files but keep structure)
+test-data/eds-files/*
+test-data/iodd-files/*
+test-data/output/*
+!test-data/eds-files/.gitkeep
+!test-data/iodd-files/.gitkeep
+!test-data/output/.gitkeep
+!test-data/README.md
+
 # Environment variables
 .env
 .env.local
 .env.*.local
+
+# Setup preferences
+.setup_prefs
 
 # Logs
 *.log
@@ -95,4 +107,22 @@ Thumbs.db
 *.bak
 *.swp
 *~.nib
-*.bak
+nul
+
+# Database backups
+*.db.backup_*
+
+# Test files
+test_*.html
+test_*.zip
+test_*.py
+!test_eds_package.py
+!test_db_eds.py
+
+# Utility scripts (keep in repo for debugging)
+# audit_*.py
+# debug_*.py
+# check_*.py
+# fix_*.py
+# reimport_*.py
+# clear_and_*.py

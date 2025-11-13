@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 title IODD Manager - Quick Setup
 
 echo ╔══════════════════════════════════════════════════════════════╗
@@ -30,13 +31,6 @@ if %errorlevel% equ 0 (
 )
 echo.
 
-:: Create desktop shortcut
-set /p CREATE_SHORTCUT="Would you like to create a desktop shortcut? (y/n): "
-if /i "%CREATE_SHORTCUT%"=="y" (
-    python start.py --create-shortcut
-    echo   Desktop shortcut created!
-)
-echo.
 
 :: Launch the application
 echo √ Launching IODD Manager...

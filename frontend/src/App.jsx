@@ -15,13 +15,15 @@ import {
   Grid3x3, List, Image as ImageIcon, ArrowLeft, ExternalLink, Copy,
   AlertTriangle, Radio, ArrowRightLeft, FileText, Lock, Wrench, Monitor,
   Wifi, Menu, ChevronDown, Info, Type, Hash, ToggleLeft, Command, RotateCcw,
-  AlertCircle
+  AlertCircle, Network, Server, Gauge, Cable, Clock, Tag, Layers, GitBranch,
+  ArrowUpRight, ArrowDownRight, Users, HardDrive, CheckCircle, XCircle, AlertOctagon, FolderOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import axios from 'axios';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
+import EDSDetailsView from './components/EDSDetailsView';
 
 // ============================================================================
 // Helper Functions
@@ -39,7 +41,7 @@ const formatVersion = (version) => {
 // Sidebar Component
 // ============================================================================
 
-const Sidebar = ({ activeView, setActiveView, devices, onDeviceSelect, recentDevices }) => {
+const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect, onEdsSelect, recentDevices, recentEdsFiles }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -75,11 +77,19 @@ const Sidebar = ({ activeView, setActiveView, devices, onDeviceSelect, recentDev
             collapsed={collapsed}
           />
           <NavItem
-            icon={<Package className="w-5 h-5" />}
-            label={`Devices`}
+            icon={<Radio className="w-5 h-5" />}
+            label={`IO Link Devices`}
             badge={devices.length}
             active={activeView === 'devices'}
             onClick={() => setActiveView('devices')}
+            collapsed={collapsed}
+          />
+          <NavItem
+            icon={<FileText className="w-5 h-5" />}
+            label={`EDS Files`}
+            badge={edsFiles.length}
+            active={activeView === 'eds-files'}
+            onClick={() => setActiveView('eds-files')}
             collapsed={collapsed}
           />
           <NavItem
@@ -100,7 +110,7 @@ const Sidebar = ({ activeView, setActiveView, devices, onDeviceSelect, recentDev
           {!collapsed && recentDevices.length > 0 && (
             <>
               <div className="px-3 pt-4 pb-2">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Recent</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Recent IO Link</p>
               </div>
               {recentDevices.slice(0, 5).map((device) => (
                 <button
@@ -110,6 +120,35 @@ const Sidebar = ({ activeView, setActiveView, devices, onDeviceSelect, recentDev
                 >
                   <ChevronRight className="w-3 h-3" />
                   <span className="truncate">{device.product_name}</span>
+                </button>
+              ))}
+            </>
+          )}
+
+          {!collapsed && recentEdsFiles.length > 0 && (
+            <>
+              <div className="px-3 pt-4 pb-2">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Recent EDS</p>
+              </div>
+              {recentEdsFiles.slice(0, 5).map((eds) => (
+                <button
+                  key={eds.id}
+                  onClick={() => onEdsSelect(eds)}
+                  className="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-800 rounded-md transition-colors flex items-center space-x-2"
+                >
+                  <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                    <img
+                      src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/eds/${eds.id}/icon`}
+                      alt=""
+                      className="w-4 h-4 object-contain"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                    <ChevronRight className="w-3 h-3" style={{display: 'none'}} />
+                  </div>
+                  <span className="truncate">{eds.product_name || eds.deviceName}</span>
                 </button>
               ))}
             </>
@@ -248,6 +287,257 @@ const StatCard = ({ title, value, icon, color, change, subtitle }) => {
         {subtitle && <p className="text-sm text-slate-400">{subtitle}</p>}
       </CardContent>
     </Card>
+  );
+};
+
+// ============================================================================
+// EDS Files List Page
+// ============================================================================
+
+const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API_BASE, toast, onEdsFilesChange }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('list');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    vendors: [],
+  });
+  const [selectedEdsFiles, setSelectedEdsFiles] = useState([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const filteredEdsFiles = useMemo(() => {
+    let result = edsFiles;
+
+    if (searchQuery) {
+      result = result.filter(e =>
+        (e.product_name && e.product_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (e.vendor_name && e.vendor_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (e.catalog_number && e.catalog_number.toString().includes(searchQuery))
+      );
+    }
+
+    if (filters.vendors.length > 0) {
+      result = result.filter(e => filters.vendors.includes(e.vendor_name));
+    }
+
+    return result;
+  }, [edsFiles, searchQuery, filters]);
+
+  const vendors = useMemo(() => {
+    const uniqueVendors = [...new Set(edsFiles.map(e => e.vendor_name).filter(Boolean))];
+    return uniqueVendors.sort();
+  }, [edsFiles]);
+
+  const toggleEdsSelection = (edsId) => {
+    setSelectedEdsFiles(prev =>
+      prev.includes(edsId)
+        ? prev.filter(id => id !== edsId)
+        : [...prev, edsId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedEdsFiles.length === filteredEdsFiles.length) {
+      setSelectedEdsFiles([]);
+    } else {
+      setSelectedEdsFiles(filteredEdsFiles.map(e => e.id));
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    setDeleting(true);
+    try {
+      await axios.post(`${API_BASE}/api/eds/bulk-delete`, {
+        eds_ids: selectedEdsFiles
+      });
+      toast({
+        title: 'EDS files deleted',
+        description: `Successfully deleted ${selectedEdsFiles.length} EDS file(s).`,
+      });
+      setSelectedEdsFiles([]);
+      setDeleteDialogOpen(false);
+      if (onEdsFilesChange) onEdsFilesChange();
+    } catch (error) {
+      console.error('Failed to delete EDS files:', error);
+      toast({
+        title: 'Delete failed',
+        description: error.response?.data?.error || 'Failed to delete EDS files',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div>
+            <h2 className="text-2xl font-bold text-white">EDS Files</h2>
+            <p className="text-slate-400 mt-1">
+              {selectedEdsFiles.length > 0 ? (
+                <span>{selectedEdsFiles.length} selected of {filteredEdsFiles.length} file{filteredEdsFiles.length !== 1 ? 's' : ''}</span>
+              ) : (
+                <span>{filteredEdsFiles.length} EDS file{filteredEdsFiles.length !== 1 ? 's' : ''} found</span>
+              )}
+            </p>
+          </div>
+          {filteredEdsFiles.length > 0 && (
+            <label className="flex items-center space-x-2 text-slate-300 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedEdsFiles.length === filteredEdsFiles.length && filteredEdsFiles.length > 0}
+                onChange={toggleSelectAll}
+                className="rounded border-slate-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
+              />
+              <span className="text-sm">Select all</span>
+            </label>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          {selectedEdsFiles.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={() => setDeleteDialogOpen(true)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected
+            </Button>
+          )}
+          <Button onClick={onUpload} className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600">
+            <Upload className="w-4 h-4 mr-2" />
+            Upload Files
+          </Button>
+          <Button onClick={onUploadFolder} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+            <FolderOpen className="w-4 h-4 mr-2" />
+            Upload Folder
+          </Button>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex items-center space-x-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Input
+            placeholder="Search EDS files..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-slate-900 border-slate-700 text-white placeholder:text-slate-400"
+          />
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setShowFilters(!showFilters)}
+          className="border-slate-700 text-slate-300"
+        >
+          <Filter className="w-4 h-4 mr-2" />
+          Filters
+        </Button>
+      </div>
+
+      {/* EDS Files List */}
+      <div className="space-y-2">
+        {filteredEdsFiles.map((eds) => (
+          <Card key={eds.id} className="bg-slate-900 border-slate-800 hover:border-slate-700 transition-colors">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4 flex-1">
+                  <input
+                    type="checkbox"
+                    checked={selectedEdsFiles.includes(eds.id)}
+                    onChange={() => toggleEdsSelection(eds.id)}
+                    className="rounded border-slate-600 bg-slate-800 text-cyan-500"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <div className="w-12 h-12 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={`${API_BASE}/api/eds/${eds.id}/icon`}
+                      alt={eds.product_name || 'Device'}
+                      className="w-8 h-8 object-contain"
+                      onError={(e) => {
+                        // Fallback to FileText icon if image fails to load
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                    <FileText className="w-6 h-6 text-purple-400" style={{display: 'none'}} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-white truncate">
+                      {eds.product_name || 'Unknown Product'}
+                    </h3>
+                    <p className="text-sm text-slate-400">
+                      {eds.vendor_name || 'Unknown Vendor'}
+                      {eds.catalog_number && ` • Cat# ${eds.catalog_number}`}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdsSelect(eds)}
+                  className="text-cyan-400 hover:text-cyan-300"
+                >
+                  View Details
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredEdsFiles.length === 0 && (
+        <Card className="bg-slate-900 border-slate-800">
+          <CardContent className="p-12 text-center">
+            <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No EDS files found</h3>
+            <p className="text-slate-400 mb-4">
+              {searchQuery ? 'Try adjusting your search criteria' : 'Upload your first EDS file to get started'}
+            </p>
+            {!searchQuery && (
+              <Button onClick={onUpload} className="bg-gradient-to-r from-cyan-500 to-blue-500">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload EDS File
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800">
+          <DialogHeader>
+            <DialogTitle className="text-white">Delete EDS Files</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Are you sure you want to delete {selectedEdsFiles.length} EDS file(s)? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleting}
+              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBatchDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? 'Deleting...' : 'Delete Files'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 
@@ -665,7 +955,11 @@ const DeviceGridCard = ({ device, onClick, selected, onToggleSelect, API_BASE })
 
 const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRecentDevices }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [ioddResetDialogOpen, setIoddResetDialogOpen] = useState(false);
+  const [edsResetDialogOpen, setEdsResetDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [resettingIodd, setResettingIodd] = useState(false);
+  const [resettingEds, setResettingEds] = useState(false);
   const [resettingRecent, setResettingRecent] = useState(false);
 
   const handleResetDatabase = async () => {
@@ -688,6 +982,50 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
       });
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleResetIoddDatabase = async () => {
+    setResettingIodd(true);
+    try {
+      const response = await axios.post(`${API_BASE}/api/admin/reset-iodd-database`);
+      toast({
+        title: 'IODD database reset',
+        description: response.data.message || 'All IODD devices have been deleted successfully.',
+      });
+      setIoddResetDialogOpen(false);
+      if (onDevicesChange) onDevicesChange();
+    } catch (error) {
+      console.error('Failed to reset IODD database:', error);
+      toast({
+        title: 'Reset failed',
+        description: error.response?.data?.error || 'Failed to reset IODD database',
+        variant: 'destructive',
+      });
+    } finally {
+      setResettingIodd(false);
+    }
+  };
+
+  const handleResetEdsDatabase = async () => {
+    setResettingEds(true);
+    try {
+      const response = await axios.post(`${API_BASE}/api/admin/reset-eds-database`);
+      toast({
+        title: 'EDS database reset',
+        description: response.data.message || 'All EDS files have been deleted successfully.',
+      });
+      setEdsResetDialogOpen(false);
+      window.location.reload(); // Reload to refresh EDS list
+    } catch (error) {
+      console.error('Failed to reset EDS database:', error);
+      toast({
+        title: 'Reset failed',
+        description: error.response?.data?.error || 'Failed to reset EDS database',
+        variant: 'destructive',
+      });
+    } finally {
+      setResettingEds(false);
     }
   };
 
@@ -767,9 +1105,49 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
           <div className="p-4 border border-red-700/50 rounded-lg bg-red-950/20">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="text-white font-semibold mb-1">Reset Database</h3>
+                <h3 className="text-white font-semibold mb-1">Reset IODD Database</h3>
                 <p className="text-sm text-slate-300 mb-3">
-                  Delete all devices, parameters, and assets from the database.
+                  Delete all IODD devices, parameters, and assets from the database.
+                  <br />
+                  <span className="text-red-400 font-medium">This action cannot be undone!</span>
+                </p>
+              </div>
+              <Button
+                onClick={() => setIoddResetDialogOpen(true)}
+                className="bg-red-600 hover:bg-red-700 text-white ml-4"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Reset IODD DB
+              </Button>
+            </div>
+          </div>
+
+          <div className="p-4 border border-orange-700/50 rounded-lg bg-orange-950/20">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-white font-semibold mb-1">Reset EDS Database</h3>
+                <p className="text-sm text-slate-300 mb-3">
+                  Delete all EDS files, packages, and related data from the database.
+                  <br />
+                  <span className="text-orange-400 font-medium">This action cannot be undone!</span>
+                </p>
+              </div>
+              <Button
+                onClick={() => setEdsResetDialogOpen(true)}
+                className="bg-orange-600 hover:bg-orange-700 text-white ml-4"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Reset EDS DB
+              </Button>
+            </div>
+          </div>
+
+          <div className="p-4 border border-red-700/50 rounded-lg bg-red-950/20">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-white font-semibold mb-1">Reset All Databases</h3>
+                <p className="text-sm text-slate-300 mb-3">
+                  Delete ALL data including IODD devices, EDS files, parameters, and assets.
                   <br />
                   <span className="text-red-400 font-medium">This action cannot be undone!</span>
                 </p>
@@ -779,7 +1157,7 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
                 className="bg-red-600 hover:bg-red-700 text-white ml-4"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Reset Database
+                Reset All
               </Button>
             </div>
           </div>
@@ -819,6 +1197,94 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               {deleting ? 'Resetting...' : 'Yes, Reset Database'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* IODD Database Reset Confirmation Dialog */}
+      <Dialog open={ioddResetDialogOpen} onOpenChange={setIoddResetDialogOpen}>
+        <DialogContent className="bg-slate-800 border-red-700/50">
+          <DialogHeader>
+            <DialogTitle className="text-white text-xl flex items-center gap-2">
+              <AlertTriangle className="w-6 h-6 text-red-400" />
+              Reset IODD Database?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-slate-300">
+              This will permanently delete <span className="text-red-400 font-semibold">ALL IODD devices</span> and related data from the system, including:
+            </p>
+            <ul className="list-disc list-inside text-slate-300 space-y-1 ml-4">
+              <li>All IODD device definitions</li>
+              <li>Parameters and process data</li>
+              <li>Events and errors</li>
+              <li>Device assets and icons</li>
+              <li>UI menu configurations</li>
+            </ul>
+            <p className="text-red-400 font-semibold">
+              This action cannot be undone!
+            </p>
+          </div>
+          <div className="flex justify-end gap-3 mt-4">
+            <Button
+              onClick={() => setIoddResetDialogOpen(false)}
+              variant="outline"
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              disabled={resettingIodd}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleResetIoddDatabase}
+              disabled={resettingIodd}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {resettingIodd ? 'Resetting...' : 'Yes, Reset IODD Database'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDS Database Reset Confirmation Dialog */}
+      <Dialog open={edsResetDialogOpen} onOpenChange={setEdsResetDialogOpen}>
+        <DialogContent className="bg-slate-800 border-orange-700/50">
+          <DialogHeader>
+            <DialogTitle className="text-white text-xl flex items-center gap-2">
+              <AlertTriangle className="w-6 h-6 text-orange-400" />
+              Reset EDS Database?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-slate-300">
+              This will permanently delete <span className="text-orange-400 font-semibold">ALL EDS files</span> and related data from the system, including:
+            </p>
+            <ul className="list-disc list-inside text-slate-300 space-y-1 ml-4">
+              <li>All EDS file definitions</li>
+              <li>EDS packages and metadata</li>
+              <li>Parameters and connections</li>
+              <li>Ports and capacity data</li>
+              <li>Parsing diagnostics</li>
+            </ul>
+            <p className="text-orange-400 font-semibold">
+              This action cannot be undone!
+            </p>
+          </div>
+          <div className="flex justify-end gap-3 mt-4">
+            <Button
+              onClick={() => setEdsResetDialogOpen(false)}
+              variant="outline"
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              disabled={resettingEds}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleResetEdsDatabase}
+              disabled={resettingEds}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              {resettingEds ? 'Resetting...' : 'Yes, Reset EDS Database'}
             </Button>
           </div>
         </DialogContent>
@@ -3356,6 +3822,8 @@ const IODDManager = () => {
   const [activeView, setActiveView] = useState('devices');
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
+  const [edsFiles, setEdsFiles] = useState([]);
+  const [selectedEds, setSelectedEds] = useState(null);
   const [stats, setStats] = useState({
     total_devices: 0,
     total_parameters: 0,
@@ -3365,29 +3833,189 @@ const IODDManager = () => {
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [recentDevices, setRecentDevices] = useState([]);
+  const [recentEdsFiles, setRecentEdsFiles] = useState([]);
   const { toast } = useToast();
   const fileInputRef = React.useRef();
+  const edsFileInputRef = React.useRef();
+  const edsFolderInputRef = React.useRef();
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     fetchDevices();
+    fetchEdsFiles();
     fetchStats();
+    loadRecentDevicesFromStorage();
+    loadRecentEdsFilesFromStorage();
   }, []);
+
+  const loadRecentDevicesFromStorage = () => {
+    try {
+      const stored = localStorage.getItem('recentDevices');
+      if (stored) {
+        const recentIds = JSON.parse(stored);
+        // recentIds is array of {id, lastViewed} objects
+        // We'll populate full device objects after fetchDevices completes
+        return recentIds;
+      }
+    } catch (error) {
+      console.error('Failed to load recent devices from localStorage:', error);
+    }
+    return [];
+  };
+
+  const updateRecentDevicesFromStorage = (allDevices) => {
+    try {
+      const stored = localStorage.getItem('recentDevices');
+      if (!stored) {
+        setRecentDevices([]);
+        return;
+      }
+
+      const recentIds = JSON.parse(stored);
+      // Map stored IDs to actual device objects
+      const recentDeviceObjects = recentIds
+        .map(item => allDevices.find(d => d.id === item.id))
+        .filter(d => d !== undefined); // Filter out devices that no longer exist
+
+      setRecentDevices(recentDeviceObjects);
+
+      // Update localStorage to remove any deleted devices
+      if (recentDeviceObjects.length !== recentIds.length) {
+        const updatedIds = recentDeviceObjects.map(d => ({
+          id: d.id,
+          lastViewed: recentIds.find(item => item.id === d.id)?.lastViewed || new Date().toISOString()
+        }));
+        localStorage.setItem('recentDevices', JSON.stringify(updatedIds));
+      }
+    } catch (error) {
+      console.error('Failed to update recent devices:', error);
+    }
+  };
+
+  const addToRecentDevices = (device) => {
+    try {
+      // Get current recent device IDs from localStorage
+      const stored = localStorage.getItem('recentDevices');
+      let recentIds = stored ? JSON.parse(stored) : [];
+
+      // Remove device if already in list
+      recentIds = recentIds.filter(item => item.id !== device.id);
+
+      // Add device to front of list
+      recentIds.unshift({
+        id: device.id,
+        lastViewed: new Date().toISOString()
+      });
+
+      // Keep only the 5 most recent
+      recentIds = recentIds.slice(0, 5);
+
+      // Save to localStorage
+      localStorage.setItem('recentDevices', JSON.stringify(recentIds));
+
+      // Update state with full device objects
+      const recentDeviceObjects = recentIds
+        .map(item => devices.find(d => d.id === item.id))
+        .filter(d => d !== undefined);
+
+      setRecentDevices(recentDeviceObjects);
+    } catch (error) {
+      console.error('Failed to update recent devices:', error);
+    }
+  };
 
   const fetchDevices = async () => {
     try {
       const response = await axios.get(`${API_BASE}/api/iodd`);
       setDevices(response.data);
-      // Update recent devices (last 5 imported)
-      const sorted = [...response.data].sort((a, b) =>
-        new Date(b.import_date) - new Date(a.import_date)
-      );
-      setRecentDevices(sorted.slice(0, 5));
+      // Update recent devices with full device objects after fetch
+      updateRecentDevicesFromStorage(response.data);
     } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to fetch devices',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // EDS Files functions
+  const loadRecentEdsFilesFromStorage = () => {
+    try {
+      const stored = localStorage.getItem('recentEdsFiles');
+      if (stored) {
+        const recentIds = JSON.parse(stored);
+        return recentIds;
+      }
+    } catch (error) {
+      console.error('Failed to load recent EDS files from localStorage:', error);
+    }
+    return [];
+  };
+
+  const updateRecentEdsFilesFromStorage = (allEdsFiles) => {
+    try {
+      const stored = localStorage.getItem('recentEdsFiles');
+      if (!stored) {
+        setRecentEdsFiles([]);
+        return;
+      }
+
+      const recentIds = JSON.parse(stored);
+      const recentEdsObjects = recentIds
+        .map(item => allEdsFiles.find(e => e.id === item.id))
+        .filter(e => e !== undefined);
+
+      setRecentEdsFiles(recentEdsObjects);
+
+      if (recentEdsObjects.length !== recentIds.length) {
+        const updatedIds = recentEdsObjects.map(e => ({
+          id: e.id,
+          lastViewed: recentIds.find(item => item.id === e.id)?.lastViewed || new Date().toISOString()
+        }));
+        localStorage.setItem('recentEdsFiles', JSON.stringify(updatedIds));
+      }
+    } catch (error) {
+      console.error('Failed to update recent EDS files:', error);
+    }
+  };
+
+  const addToRecentEdsFiles = (eds) => {
+    try {
+      const stored = localStorage.getItem('recentEdsFiles');
+      let recentIds = stored ? JSON.parse(stored) : [];
+
+      recentIds = recentIds.filter(item => item.id !== eds.id);
+
+      recentIds.unshift({
+        id: eds.id,
+        lastViewed: new Date().toISOString()
+      });
+
+      recentIds = recentIds.slice(0, 5);
+
+      localStorage.setItem('recentEdsFiles', JSON.stringify(recentIds));
+
+      const recentEdsObjects = recentIds
+        .map(item => edsFiles.find(e => e.id === item.id))
+        .filter(e => e !== undefined);
+
+      setRecentEdsFiles(recentEdsObjects);
+    } catch (error) {
+      console.error('Failed to update recent EDS files:', error);
+    }
+  };
+
+  const fetchEdsFiles = async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/api/eds`);
+      setEdsFiles(response.data);
+      updateRecentEdsFilesFromStorage(response.data);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch EDS files',
         variant: 'destructive',
       });
     }
@@ -3514,9 +4142,101 @@ const IODDManager = () => {
     fetchStats();
   };
 
+  const handleEdsFileUpload = async (files) => {
+    if (!files || files.length === 0) {
+      console.log('handleEdsFileUpload: No files provided');
+      return;
+    }
+
+    console.log(`handleEdsFileUpload: Processing ${files.length} file(s)`, files);
+    setLoading(true);
+    let successCount = 0;
+    let failCount = 0;
+    let totalEdsImported = 0;
+    const totalFiles = files.length;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      console.log(`Processing file ${i + 1}/${totalFiles}: ${file.name}`);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        setUploadProgress(Math.round(((i + 1) / totalFiles) * 100));
+
+        // Determine endpoint based on file extension
+        const isZipFile = file.name.toLowerCase().endsWith('.zip');
+        const endpoint = isZipFile
+          ? `${API_BASE}/api/eds/upload-package`
+          : `${API_BASE}/api/eds/upload`;
+
+        console.log(`Uploading to: ${endpoint}`);
+
+        const response = await axios.post(
+          endpoint,
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          }
+        );
+
+        console.log(`Upload response for ${file.name}:`, response.data);
+
+        // Handle package response (multiple EDS files)
+        if (response.data.total_eds_files) {
+          totalEdsImported += response.data.total_eds_files;
+          successCount += 1;
+        } else {
+          // Single EDS file
+          totalEdsImported += 1;
+          successCount += 1;
+        }
+      } catch (error) {
+        console.error(`Failed to upload ${file.name}:`, error);
+        console.error('Error response:', error.response?.data);
+        console.error('Error status:', error.response?.status);
+
+        // Handle duplicate packages (409 Conflict) - don't count as failure
+        if (error.response?.status === 409) {
+          console.log(`Package ${file.name} already exists, skipping`);
+          // Don't increment failCount for duplicates
+        } else {
+          failCount += 1;
+        }
+      }
+    }
+
+    setLoading(false);
+    setUploadProgress(0);
+
+    // Show summary toast
+    if (successCount > 0 && failCount === 0) {
+      toast({
+        title: 'All imports successful',
+        description: `Successfully imported ${totalEdsImported} EDS file(s) from ${successCount} package(s)`,
+      });
+    } else if (successCount > 0 && failCount > 0) {
+      toast({
+        title: 'Partial success',
+        description: `Imported ${totalEdsImported} EDS file(s) from ${successCount} package(s), ${failCount} file(s) failed`,
+        variant: 'warning',
+      });
+    } else {
+      toast({
+        title: 'Import failed',
+        description: `Failed to import ${failCount} file(s)`,
+        variant: 'destructive',
+      });
+    }
+
+    fetchEdsFiles();
+    fetchStats();
+  };
+
   const handleDeviceSelect = (device) => {
     setSelectedDevice(device);
     setActiveView('device-details');
+    addToRecentDevices(device);
   };
 
   const handleBackToDevices = () => {
@@ -3525,16 +4245,156 @@ const IODDManager = () => {
     fetchDevices(); // Refresh devices list when returning from details
   };
 
+  const handleEdsSelect = async (eds) => {
+    // Fetch full EDS details including parameters, connections, capacity, etc.
+    try {
+      const [detailsResponse, diagnosticsResponse] = await Promise.all([
+        fetch(`${API_BASE}/api/eds/${eds.id}`),
+        fetch(`${API_BASE}/api/eds/${eds.id}/diagnostics`)
+      ]);
+
+      const fullEdsData = await detailsResponse.json();
+      const diagnosticsData = await diagnosticsResponse.json();
+
+      // Add diagnostics to EDS data
+      fullEdsData.diagnostics_details = diagnosticsData;
+
+      setSelectedEds(fullEdsData);
+      setActiveView('eds-details');
+      addToRecentEdsFiles(eds);
+    } catch (error) {
+      console.error('Failed to fetch EDS details:', error);
+      setSelectedEds(eds); // Fallback to summary data
+      setActiveView('eds-details');
+      addToRecentEdsFiles(eds);
+    }
+  };
+
+  const handleBackToEdsFiles = () => {
+    setSelectedEds(null);
+    setActiveView('eds-files');
+    fetchEdsFiles();
+  };
+
+  const handleExportEdsJson = () => {
+    if (!selectedEds) return;
+
+    // Create a clean export object with all EDS data
+    const exportData = {
+      file_info: {
+        product_name: selectedEds.product_name,
+        vendor_name: selectedEds.vendor_name,
+        catalog_number: selectedEds.catalog_number,
+        product_code: selectedEds.product_code,
+        vendor_code: selectedEds.vendor_code,
+        revision: `${selectedEds.major_revision}.${selectedEds.minor_revision}`,
+        description: selectedEds.description,
+        home_url: selectedEds.home_url,
+        create_date: selectedEds.create_date,
+        create_time: selectedEds.create_time,
+        mod_date: selectedEds.mod_date,
+        mod_time: selectedEds.mod_time,
+        file_revision: selectedEds.file_revision
+      },
+      device_classification: {
+        class1: selectedEds.class1,
+        class2: selectedEds.class2,
+        class3: selectedEds.class3,
+        class4: selectedEds.class4
+      },
+      parameters: selectedEds.parameters || [],
+      connections: selectedEds.connections || [],
+      ports: selectedEds.ports || [],
+      capacity: selectedEds.capacity || null,
+      diagnostics: selectedEds.diagnostics_details || null,
+      export_metadata: {
+        exported_at: new Date().toISOString(),
+        exported_from: 'IODD Manager',
+        eds_id: selectedEds.id
+      }
+    };
+
+    // Create blob and download
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${selectedEds.product_name || 'eds'}_export_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: 'Export successful',
+      description: 'EDS data exported to JSON file',
+    });
+  };
+
+  const handleExportZIP = async () => {
+    if (!selectedEds) return;
+
+    try {
+      const response = await axios.get(`${API_BASE}/api/eds/${selectedEds.id}/export-zip`, {
+        responseType: 'blob'
+      });
+
+      // Create blob URL and download
+      const url = URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Extract filename from Content-Disposition header if available
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `${selectedEds.vendor_name?.replace(/\s+/g, '_')}_${selectedEds.product_name?.replace(/\s+/g, '_')}_${selectedEds.product_code}_v${selectedEds.major_revision}.${selectedEds.minor_revision}.zip`;
+
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Export successful',
+        description: 'EDS package exported as ZIP file',
+      });
+    } catch (error) {
+      console.error('Export ZIP error:', error);
+      toast({
+        title: 'Export failed',
+        description: 'Failed to export EDS package',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleNavigate = (view, device = null) => {
     setActiveView(view);
     if (device) {
       setSelectedDevice(device);
       setActiveView('device-details');
+      addToRecentDevices(device);
     }
   };
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleEdsUploadClick = () => {
+    edsFileInputRef.current?.click();
+  };
+
+  const handleEdsFolderUploadClick = () => {
+    edsFolderInputRef.current?.click();
   };
 
   const sidebarWidth = 'w-64';
@@ -3545,8 +4405,11 @@ const IODDManager = () => {
         activeView={activeView}
         setActiveView={setActiveView}
         devices={devices}
+        edsFiles={edsFiles}
         onDeviceSelect={handleDeviceSelect}
+        onEdsSelect={handleEdsSelect}
         recentDevices={recentDevices}
+        recentEdsFiles={recentEdsFiles}
       />
 
       <div className="ml-64 min-h-screen">
@@ -3604,6 +4467,36 @@ const IODDManager = () => {
               </motion.div>
             )}
 
+            {activeView === 'eds-files' && (
+              <motion.div
+                key="eds-files"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <EdsFilesListPage
+                  edsFiles={edsFiles}
+                  onEdsSelect={handleEdsSelect}
+                  onUpload={handleEdsUploadClick}
+                  onUploadFolder={handleEdsFolderUploadClick}
+                  API_BASE={API_BASE}
+                  toast={toast}
+                  onEdsFilesChange={fetchEdsFiles}
+                />
+              </motion.div>
+            )}
+
+            {activeView === 'eds-details' && selectedEds && (
+              <EDSDetailsView
+                selectedEds={selectedEds}
+                API_BASE={API_BASE}
+                onBack={handleBackToEdsFiles}
+                onExportJSON={handleExportEdsJson}
+                onExportZIP={handleExportZIP}
+              />
+            )}
+
             {activeView === 'generators' && (
               <motion.div
                 key="generators"
@@ -3655,7 +4548,7 @@ const IODDManager = () => {
         </div>
       </div>
 
-      {/* Hidden File Input */}
+      {/* Hidden File Input for IODD */}
       <input
         ref={fileInputRef}
         type="file"
@@ -3670,6 +4563,52 @@ const IODDManager = () => {
               handleMultiFileUpload(Array.from(e.target.files));
             }
             // Reset input so same files can be selected again
+            e.target.value = '';
+          }
+        }}
+      />
+
+      {/* Hidden File Input for EDS - Supports .eds and .zip files, multiple selection */}
+      <input
+        ref={edsFileInputRef}
+        type="file"
+        accept=".eds,.zip"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleEdsFileUpload(Array.from(e.target.files));
+            // Reset input so same files can be selected again
+            e.target.value = '';
+          }
+        }}
+      />
+
+      {/* Hidden Folder Input for EDS - Supports folder selection */}
+      <input
+        ref={edsFolderInputRef}
+        type="file"
+        webkitdirectory=""
+        directory=""
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            // Filter to only .eds and .zip files from the folder
+            const validFiles = Array.from(e.target.files).filter(file =>
+              file.name.toLowerCase().endsWith('.eds') ||
+              file.name.toLowerCase().endsWith('.zip')
+            );
+            if (validFiles.length > 0) {
+              handleEdsFileUpload(validFiles);
+            } else {
+              toast({
+                title: 'No EDS files found',
+                description: 'The selected folder does not contain any .eds or .zip files',
+                variant: 'warning',
+              });
+            }
+            // Reset input
             e.target.value = '';
           }
         }}

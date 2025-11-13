@@ -22,6 +22,7 @@ from iodd_manager import (
     IODDDataType, AccessRights
 )
 import config
+from eds_parser import parse_eds_file
 
 # ============================================================================
 # API Models
@@ -201,6 +202,34 @@ class UserInterfaceMenusModel(BaseModel):
     specialist_role_menus: Dict[str, str] = {}
 
 # ============================================================================
+# EDS API Models
+# ============================================================================
+
+class EDSFileInfo(BaseModel):
+    """EDS file information model"""
+    id: int
+    vendor_code: Optional[int] = None
+    vendor_name: Optional[str] = None
+    product_code: Optional[int] = None
+    product_type: Optional[int] = None
+    product_type_str: Optional[str] = None
+    product_name: Optional[str] = None
+    catalog_number: Optional[str] = None
+    major_revision: Optional[int] = None
+    minor_revision: Optional[int] = None
+    description: Optional[str] = None
+    import_date: Optional[datetime] = None
+    home_url: Optional[str] = None
+
+class EDSUploadResponse(BaseModel):
+    """EDS file upload response model"""
+    eds_id: int
+    product_name: str
+    vendor_name: str
+    catalog_number: str
+    message: str = "EDS file successfully imported"
+
+# ============================================================================
 # API Application
 # ============================================================================
 
@@ -219,10 +248,16 @@ app.add_middleware(
     allow_credentials=config.CORS_CREDENTIALS,
     allow_methods=config.CORS_METHODS,
     allow_headers=["*"],
+    expose_headers=["content-disposition"],  # Allow frontend to read Content-Disposition header
 )
 
 # Initialize IODD Manager
 manager = IODDManager()
+
+# Include EDS routes
+import eds_routes
+eds_routes.db_path = manager.storage.db_path
+app.include_router(eds_routes.router)
 
 # ============================================================================
 # API Endpoints
@@ -958,6 +993,80 @@ async def reset_database():
         "message": f"Database reset successfully. Deleted {device_count} device(s) and all related data.",
         "deleted_count": device_count
     }
+
+
+@app.post("/api/admin/reset-iodd-database")
+async def reset_iodd_database():
+    """Delete all IODD devices and related data from the system"""
+    import sqlite3
+    conn = sqlite3.connect(manager.storage.db_path)
+    cursor = conn.cursor()
+
+    # Get count before deletion
+    cursor.execute("SELECT COUNT(*) FROM devices")
+    device_count = cursor.fetchone()[0]
+
+    # Delete all IODD data from all tables
+    cursor.execute("DELETE FROM ui_menu_roles")
+    cursor.execute("DELETE FROM ui_menu_items")
+    cursor.execute("DELETE FROM ui_menus")
+    cursor.execute("DELETE FROM communication_profile")
+    cursor.execute("DELETE FROM device_features")
+    cursor.execute("DELETE FROM document_info")
+    cursor.execute("DELETE FROM process_data_single_values")
+    cursor.execute("DELETE FROM parameter_single_values")
+    cursor.execute("DELETE FROM process_data_record_items")
+    cursor.execute("DELETE FROM process_data")
+    cursor.execute("DELETE FROM error_types")
+    cursor.execute("DELETE FROM events")
+    cursor.execute("DELETE FROM parameters")
+    cursor.execute("DELETE FROM iodd_files")
+    cursor.execute("DELETE FROM iodd_assets")
+    cursor.execute("DELETE FROM generated_adapters")
+    cursor.execute("DELETE FROM devices")
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "message": f"IODD database reset successfully. Deleted {device_count} device(s) and all related data.",
+        "deleted_count": device_count
+    }
+
+
+@app.post("/api/admin/reset-eds-database")
+async def reset_eds_database():
+    """Delete all EDS files and related data from the system"""
+    import sqlite3
+    conn = sqlite3.connect(manager.storage.db_path)
+    cursor = conn.cursor()
+
+    # Get counts before deletion
+    cursor.execute("SELECT COUNT(*) FROM eds_files")
+    eds_count = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM eds_packages")
+    package_count = cursor.fetchone()[0]
+
+    # Delete all EDS data from all tables
+    cursor.execute("DELETE FROM eds_diagnostics")
+    cursor.execute("DELETE FROM eds_tspecs")
+    cursor.execute("DELETE FROM eds_capacity")
+    cursor.execute("DELETE FROM eds_ports")
+    cursor.execute("DELETE FROM eds_connections")
+    cursor.execute("DELETE FROM eds_parameters")
+    cursor.execute("DELETE FROM eds_package_metadata")
+    cursor.execute("DELETE FROM eds_files")
+    cursor.execute("DELETE FROM eds_packages")
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "message": f"EDS database reset successfully. Deleted {eds_count} EDS file(s) and {package_count} package(s).",
+        "deleted_eds_count": eds_count,
+        "deleted_package_count": package_count
+    }
+
 
 class BulkDeleteRequest(BaseModel):
     """Bulk delete request model"""
