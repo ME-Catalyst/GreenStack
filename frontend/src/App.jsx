@@ -1364,6 +1364,9 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [paramSearchQuery, setParamSearchQuery] = useState('');
+  const [paramAccessFilter, setParamAccessFilter] = useState('all');
+  const [paramDataTypeFilter, setParamDataTypeFilter] = useState('all');
+  const [paramShowFilters, setParamShowFilters] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -2268,12 +2271,27 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
   }));
 
   const filteredParameters = useMemo(() => {
-    if (!paramSearchQuery) return parameters;
-    return parameters.filter(p =>
-      p.name.toLowerCase().includes(paramSearchQuery.toLowerCase()) ||
-      p.index.toString().includes(paramSearchQuery)
-    );
-  }, [parameters, paramSearchQuery]);
+    return parameters.filter(p => {
+      // Text search filter
+      if (paramSearchQuery) {
+        const matchesSearch = p.name.toLowerCase().includes(paramSearchQuery.toLowerCase()) ||
+                            p.index.toString().includes(paramSearchQuery);
+        if (!matchesSearch) return false;
+      }
+
+      // Access rights filter
+      if (paramAccessFilter !== 'all') {
+        if (p.access_rights !== paramAccessFilter) return false;
+      }
+
+      // Data type filter
+      if (paramDataTypeFilter !== 'all') {
+        if (!p.data_type || !p.data_type.toLowerCase().includes(paramDataTypeFilter.toLowerCase())) return false;
+      }
+
+      return true;
+    });
+  }, [parameters, paramSearchQuery, paramAccessFilter, paramDataTypeFilter]);
 
   // Find the main device image (device-pic like *symbol-pic.png)
   // Priority: device-pic > any non-icon image > icon as last resort
