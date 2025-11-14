@@ -27,6 +27,9 @@ import EDSDetailsView from './components/EDSDetailsView';
 import TicketButton from './components/TicketButton';
 import TicketModal from './components/TicketModal';
 import TicketsPage from './components/TicketsPage';
+import SearchPage from './components/SearchPage';
+import ComparisonView from './components/ComparisonView';
+import AdminConsole from './components/AdminConsole';
 
 // ============================================================================
 // Helper Functions
@@ -103,17 +106,17 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
             collapsed={collapsed}
           />
           <NavItem
-            icon={<BarChart3 className="w-5 h-5" />}
-            label="Analytics"
-            active={activeView === 'analytics'}
-            onClick={() => setActiveView('analytics')}
+            icon={<Search className="w-5 h-5" />}
+            label="Search"
+            active={activeView === 'search'}
+            onClick={() => setActiveView('search')}
             collapsed={collapsed}
           />
           <NavItem
-            icon={<Bug className="w-5 h-5" />}
-            label="Tickets"
-            active={activeView === 'tickets'}
-            onClick={() => setActiveView('tickets')}
+            icon={<GitBranch className="w-5 h-5" />}
+            label="Compare"
+            active={activeView === 'compare'}
+            onClick={() => setActiveView('compare')}
             collapsed={collapsed}
           />
 
@@ -4547,32 +4550,40 @@ const IODDManager = () => {
               </motion.div>
             )}
 
-            {activeView === 'analytics' && (
+            {activeView === 'search' && (
               <motion.div
-                key="analytics"
+                key="search"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="text-white">
-                  <h2 className="text-2xl font-bold mb-4">Analytics</h2>
-                  <p className="text-slate-400">Coming soon...</p>
-                </div>
+                <SearchPage
+                  API_BASE={API_BASE}
+                  onNavigate={(type, id) => {
+                    if (type === 'eds') {
+                      const eds = edsFiles.find(e => e.id === id);
+                      if (eds) handleEdsSelect(eds);
+                    } else if (type === 'iodd') {
+                      const device = devices.find(d => d.id === id);
+                      if (device) handleDeviceSelect(device);
+                    }
+                  }}
+                />
               </motion.div>
             )}
 
-            {activeView === 'tickets' && (
+            {activeView === 'compare' && (
               <motion.div
-                key="tickets"
+                key="compare"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                <TicketsPage
+                <ComparisonView
                   API_BASE={API_BASE}
-                  toast={toast}
+                  onBack={() => setActiveView('overview')}
                 />
               </motion.div>
             )}
@@ -4585,12 +4596,10 @@ const IODDManager = () => {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                <SettingsPage
+                <AdminConsole
                   API_BASE={API_BASE}
                   toast={toast}
-                  onDevicesChange={fetchDevices}
-                  recentDevices={recentDevices}
-                  setRecentDevices={setRecentDevices}
+                  onNavigate={setActiveView}
                 />
               </motion.div>
             )}

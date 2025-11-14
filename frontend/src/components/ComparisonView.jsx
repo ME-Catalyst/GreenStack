@@ -1,0 +1,496 @@
+import React, { useState, useEffect } from 'react';
+import { Plus, X, GitCompare, ArrowLeft, ChevronRight, Check, AlertCircle, Info } from 'lucide-react';
+import axios from 'axios';
+import { Card, CardContent, CardHeader, CardTitle } from './ui';
+import { Button } from './ui';
+
+/**
+ * Device Comparison View - Compare multiple devices side by side
+ * Supports comparing different versions, vendors, or entirely different devices
+ */
+const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
+  const [selectedDevices, setSelectedDevices] = useState(initialDevices);
+  const [deviceDetails, setDeviceDetails] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [availableDevices, setAvailableDevices] = useState([]);
+  const [availableEds, setAvailableEds] = useState([]);
+  const [showDeviceSelector, setShowDeviceSelector] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [compareMode, setCompareMode] = useState('parameters'); // parameters, specs, all
+
+  // Fetch available devices on mount
+  useEffect(() => {
+    fetchAvailableDevices();
+  }, []);
+
+  // Fetch device details when selection changes
+  useEffect(() => {
+    if (selectedDevices.length > 0) {
+      fetchDeviceDetails();
+    }
+  }, [selectedDevices]);
+
+  const fetchAvailableDevices = async () => {
+    try {
+      const [ioddResponse, edsResponse] = await Promise.all([
+        axios.get(`${API_BASE}/api/iodd`),
+        axios.get(`${API_BASE}/api/eds`)
+      ]);
+
+      setAvailableDevices(
+        ioddResponse.data.map(d => ({ ...d, type: 'IODD' }))
+      );
+      setAvailableEds(
+        edsResponse.data.map(e => ({ ...e, type: 'EDS' }))
+      );
+    } catch (error) {
+      console.error('Failed to fetch devices:', error);
+    }
+  };
+
+  const fetchDeviceDetails = async () => {
+    setLoading(true);
+    const details = {};
+
+    try {
+      for (const device of selectedDevices) {
+        if (device.type === 'IODD') {
+          const response = await axios.get(`${API_BASE}/api/iodd/${device.id}`);
+          details[device.id] = { ...response.data, type: 'IODD' };
+        } else if (device.type === 'EDS') {
+          const response = await axios.get(`${API_BASE}/api/eds/${device.id}`);
+          details[device.id] = { ...response.data, type: 'EDS' };
+        }
+      }
+
+      setDeviceDetails(details);
+    } catch (error) {
+      console.error('Failed to fetch device details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addDevice = (device) => {
+    if (selectedDevices.length >= 4) {
+      alert('Maximum 4 devices can be compared at once');
+      return;
+    }
+
+    if (selectedDevices.find(d => d.id === device.id && d.type === device.type)) {
+      alert('Device already added');
+      return;
+    }
+
+    setSelectedDevices([...selectedDevices, device]);
+    setShowDeviceSelector(false);
+    setSearchQuery('');
+  };
+
+  const removeDevice = (deviceToRemove) => {
+    setSelectedDevices(selectedDevices.filter(
+      d => !(d.id === deviceToRemove.id && d.type === deviceToRemove.type)
+    ));
+
+    const newDetails = { ...deviceDetails };
+    delete newDetails[deviceToRemove.id];
+    setDeviceDetails(newDetails);
+  };
+
+  const getParameterValue = (device, paramName) => {
+    if (!device || !device.parameters) return null;
+    return device.parameters.find(p =>
+      p.name?.toLowerCase() === paramName.toLowerCase() ||
+      p.param_name?.toLowerCase() === paramName.toLowerCase()
+    );
+  };
+
+  const getAllParameterNames = () => {
+    const names = new Set();
+
+    Object.values(deviceDetails).forEach(device => {
+      if (device.parameters) {
+        device.parameters.forEach(p => {
+          names.add(p.name || p.param_name);
+        });
+      }
+    });
+
+    return Array.from(names).sort();
+  };
+
+  const renderParameterComparison = () => {
+    const paramNames = getAllParameterNames();
+
+    if (paramNames.length === 0) {
+      return (
+        <div className="text-center py-12 text-slate-500">
+          <Info className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p>No parameters to compare</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-slate-800 border-b border-slate-700">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300 sticky left-0 bg-slate-800 z-10">
+                Parameter
+              </th>
+              {selectedDevices.map(device => (
+                <th key={`${device.type}-${device.id}`} className="px-4 py-3 text-left text-sm font-semibold text-slate-300 min-w-[200px]">
+                  <div className="flex items-center justify-between">
+                    <span className="truncate">
+                      {device.product_name}
+                    </span>
+                    <button
+                      onClick={() => removeDevice(device)}
+                      className="ml-2 text-slate-500 hover:text-red-400"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800">
+            {paramNames.map((paramName, index) => {
+              const values = selectedDevices.map(device => {
+                const detail = deviceDetails[device.id];
+                return getParameterValue(detail, paramName);
+              });
+
+              // Check if values differ
+              const allSame = values.every((v, i, arr) =>
+                JSON.stringify(v?.default_value) === JSON.stringify(arr[0]?.default_value)
+              );
+
+              return (
+                <tr key={index} className={`hover:bg-slate-800/50 ${!allSame ? 'bg-orange-500/5' : ''}`}>
+                  <td className="px-4 py-3 text-sm text-white font-medium sticky left-0 bg-slate-900 z-10">
+                    {paramName}
+                    {!allSame && (
+                      <AlertCircle className="inline-block w-3 h-3 ml-2 text-orange-400" />
+                    )}
+                  </td>
+                  {values.map((param, i) => (
+                    <td key={i} className="px-4 py-3 text-sm text-slate-300">
+                      {param ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{param.default_value ?? 'N/A'}</span>
+                            {param.unit && (
+                              <span className="text-xs text-slate-500">{param.unit}</span>
+                            )}
+                          </div>
+                          {param.data_type && (
+                            <div className="text-xs text-slate-500">
+                              Type: {param.data_type}
+                            </div>
+                          )}
+                          {(param.min_value != null || param.max_value != null) && (
+                            <div className="text-xs text-slate-500">
+                              Range: {param.min_value ?? '?'} - {param.max_value ?? '?'}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-slate-600 italic">Not available</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const renderSpecsComparison = () => {
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-slate-800 border-b border-slate-700">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300 sticky left-0 bg-slate-800 z-10">
+                Specification
+              </th>
+              {selectedDevices.map(device => (
+                <th key={`${device.type}-${device.id}`} className="px-4 py-3 text-left text-sm font-semibold text-slate-300 min-w-[200px]">
+                  {device.product_name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800">
+            <tr className="hover:bg-slate-800/50">
+              <td className="px-4 py-3 text-sm text-white font-medium sticky left-0 bg-slate-900">Device Type</td>
+              {selectedDevices.map((device, i) => (
+                <td key={i} className="px-4 py-3 text-sm">
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    device.type === 'EDS' ? 'bg-blue-500/20 text-blue-300' : 'bg-green-500/20 text-green-300'
+                  }`}>
+                    {device.type}
+                  </span>
+                </td>
+              ))}
+            </tr>
+            <tr className="hover:bg-slate-800/50">
+              <td className="px-4 py-3 text-sm text-white font-medium sticky left-0 bg-slate-900">Vendor</td>
+              {selectedDevices.map((device, i) => {
+                const detail = deviceDetails[device.id];
+                return (
+                  <td key={i} className="px-4 py-3 text-sm text-slate-300">
+                    {detail?.manufacturer || detail?.vendor_name || 'N/A'}
+                  </td>
+                );
+              })}
+            </tr>
+            <tr className="hover:bg-slate-800/50">
+              <td className="px-4 py-3 text-sm text-white font-medium sticky left-0 bg-slate-900">Product Name</td>
+              {selectedDevices.map((device, i) => (
+                <td key={i} className="px-4 py-3 text-sm text-slate-300">{device.product_name}</td>
+              ))}
+            </tr>
+            <tr className="hover:bg-slate-800/50">
+              <td className="px-4 py-3 text-sm text-white font-medium sticky left-0 bg-slate-900">Device/Product ID</td>
+              {selectedDevices.map((device, i) => {
+                const detail = deviceDetails[device.id];
+                return (
+                  <td key={i} className="px-4 py-3 text-sm text-slate-300">
+                    {detail?.device_id || detail?.product_code || 'N/A'}
+                  </td>
+                );
+              })}
+            </tr>
+            <tr className="hover:bg-slate-800/50">
+              <td className="px-4 py-3 text-sm text-white font-medium sticky left-0 bg-slate-900">Version/Revision</td>
+              {selectedDevices.map((device, i) => {
+                const detail = deviceDetails[device.id];
+                return (
+                  <td key={i} className="px-4 py-3 text-sm text-slate-300">
+                    {detail?.iodd_version || `${detail?.major_revision}.${detail?.minor_revision}` || 'N/A'}
+                  </td>
+                );
+              })}
+            </tr>
+            <tr className="hover:bg-slate-800/50">
+              <td className="px-4 py-3 text-sm text-white font-medium sticky left-0 bg-slate-900">Parameter Count</td>
+              {selectedDevices.map((device, i) => {
+                const detail = deviceDetails[device.id];
+                return (
+                  <td key={i} className="px-4 py-3 text-sm text-slate-300">
+                    {detail?.parameters?.length || 0}
+                  </td>
+                );
+              })}
+            </tr>
+            <tr className="hover:bg-slate-800/50">
+              <td className="px-4 py-3 text-sm text-white font-medium sticky left-0 bg-slate-900">Description</td>
+              {selectedDevices.map((device, i) => {
+                const detail = deviceDetails[device.id];
+                return (
+                  <td key={i} className="px-4 py-3 text-sm text-slate-300">
+                    {detail?.description || 'N/A'}
+                  </td>
+                );
+              })}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const filteredDevices = [...availableDevices, ...availableEds].filter(device =>
+    device.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    device.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    device.vendor_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <button
+            onClick={onBack}
+            className="mb-4 flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                <GitCompare className="w-8 h-8 text-orange-500" />
+                Device Comparison
+              </h1>
+              <p className="text-slate-400">
+                Compare up to 4 devices side-by-side
+              </p>
+            </div>
+
+            {selectedDevices.length < 4 && (
+              <Button
+                onClick={() => setShowDeviceSelector(!showDeviceSelector)}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Device
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Device Selector */}
+        {showDeviceSelector && (
+          <Card className="bg-slate-900 border-slate-800 mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white">Select Device to Add</CardTitle>
+                <button
+                  onClick={() => setShowDeviceSelector(false)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search devices..."
+                className="w-full mb-4 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+              />
+
+              <div className="max-h-96 overflow-y-auto space-y-2">
+                {filteredDevices.map(device => (
+                  <div
+                    key={`${device.type}-${device.id}`}
+                    onClick={() => addDevice(device)}
+                    className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg hover:bg-slate-800 hover:border-orange-500/50 cursor-pointer transition-all group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="text-white font-medium mb-1">{device.product_name}</h4>
+                        <p className="text-sm text-slate-400">
+                          {device.manufacturer || device.vendor_name}
+                          <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                            device.type === 'EDS' ? 'bg-blue-500/20 text-blue-300' : 'bg-green-500/20 text-green-300'
+                          }`}>
+                            {device.type}
+                          </span>
+                        </p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-orange-400" />
+                    </div>
+                  </div>
+                ))}
+
+                {filteredDevices.length === 0 && (
+                  <div className="text-center py-8 text-slate-500">
+                    <p>No devices found</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* No Devices Selected */}
+        {selectedDevices.length === 0 && (
+          <Card className="bg-slate-900 border-slate-800">
+            <CardContent className="p-12 text-center">
+              <GitCompare className="w-16 h-16 mx-auto mb-4 text-slate-600" />
+              <h3 className="text-xl font-semibold mb-2">No devices selected</h3>
+              <p className="text-slate-400 mb-4">
+                Add at least 2 devices to start comparing
+              </p>
+              <Button
+                onClick={() => setShowDeviceSelector(true)}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add First Device
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Comparison View */}
+        {selectedDevices.length > 0 && (
+          <>
+            {/* Mode Selector */}
+            <div className="mb-4 flex items-center gap-3">
+              <span className="text-sm text-slate-400">Compare:</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCompareMode('specs')}
+                  className={`px-4 py-2 text-sm rounded ${
+                    compareMode === 'specs'
+                      ? 'bg-orange-600 text-white'
+                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  }`}
+                >
+                  Specifications
+                </button>
+                <button
+                  onClick={() => setCompareMode('parameters')}
+                  className={`px-4 py-2 text-sm rounded ${
+                    compareMode === 'parameters'
+                      ? 'bg-orange-600 text-white'
+                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  }`}
+                >
+                  Parameters
+                </button>
+              </div>
+            </div>
+
+            {/* Comparison Table */}
+            <Card className="bg-slate-900 border-slate-800">
+              <CardContent className="p-0">
+                {loading ? (
+                  <div className="p-12 text-center">
+                    <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p className="text-slate-400">Loading device details...</p>
+                  </div>
+                ) : (
+                  <>
+                    {compareMode === 'specs' && renderSpecsComparison()}
+                    {compareMode === 'parameters' && renderParameterComparison()}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Legend */}
+            {compareMode === 'parameters' && !loading && (
+              <div className="mt-4 flex items-center gap-4 text-sm text-slate-400">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-orange-500/10 border border-orange-500/30 rounded"></div>
+                  <span>Values differ across devices</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-orange-400" />
+                  <span>Indicates difference</span>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ComparisonView;

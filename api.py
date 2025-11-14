@@ -263,6 +263,18 @@ app.include_router(eds_routes.router)
 import ticket_routes
 app.include_router(ticket_routes.router)
 
+# Include Search routes
+import search_routes
+app.include_router(search_routes.router)
+
+# Include Configuration Export routes
+import config_export_routes
+app.include_router(config_export_routes.router)
+
+# Include Admin Console routes
+import admin_routes
+app.include_router(admin_routes.router)
+
 # ============================================================================
 # API Endpoints
 # ============================================================================
