@@ -1047,11 +1047,13 @@ async def reset_eds_database():
     cursor.execute("SELECT COUNT(*) FROM eds_packages")
     package_count = cursor.fetchone()[0]
 
-    # Delete all EDS data from all tables
+    # Delete all EDS data from all tables (in correct order to respect foreign keys)
     cursor.execute("DELETE FROM eds_diagnostics")
     cursor.execute("DELETE FROM eds_tspecs")
     cursor.execute("DELETE FROM eds_capacity")
     cursor.execute("DELETE FROM eds_ports")
+    cursor.execute("DELETE FROM eds_variable_assemblies")
+    cursor.execute("DELETE FROM eds_assemblies")
     cursor.execute("DELETE FROM eds_connections")
     cursor.execute("DELETE FROM eds_parameters")
     cursor.execute("DELETE FROM eds_package_metadata")
