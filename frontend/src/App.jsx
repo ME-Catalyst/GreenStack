@@ -173,24 +173,6 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
             onClick={() => setActiveView('compare')}
             collapsed={collapsed}
           />
-
-          {!collapsed && recentDevices.length > 0 && (
-            <>
-              <div className="px-3 pt-4 pb-2">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Recent IO Link</p>
-              </div>
-              {recentDevices.slice(0, 5).map((device) => (
-                <button
-                  key={device.id}
-                  onClick={() => onDeviceSelect(device)}
-                  className="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-800 rounded-md transition-colors flex items-center space-x-2"
-                >
-                  <ChevronRight className="w-3 h-3" />
-                  <span className="truncate">{device.product_name}</span>
-                </button>
-              ))}
-            </>
-          )}
         </nav>
 
         {/* Footer */}
