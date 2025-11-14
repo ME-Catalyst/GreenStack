@@ -961,13 +961,15 @@ async def reset_database():
     """Delete all devices and related data from the system"""
     import sqlite3
     conn = sqlite3.connect(manager.storage.db_path)
+    # Enable foreign keys for this connection
+    conn.execute("PRAGMA foreign_keys = ON")
     cursor = conn.cursor()
 
     # Get count before deletion
     cursor.execute("SELECT COUNT(*) FROM devices")
     device_count = cursor.fetchone()[0]
 
-    # Delete all data from all tables
+    # Delete all data from all tables (in correct order to respect foreign keys)
     cursor.execute("DELETE FROM ui_menu_roles")
     cursor.execute("DELETE FROM ui_menu_items")
     cursor.execute("DELETE FROM ui_menus")
@@ -1000,13 +1002,15 @@ async def reset_iodd_database():
     """Delete all IODD devices and related data from the system"""
     import sqlite3
     conn = sqlite3.connect(manager.storage.db_path)
+    # Enable foreign keys for this connection
+    conn.execute("PRAGMA foreign_keys = ON")
     cursor = conn.cursor()
 
     # Get count before deletion
     cursor.execute("SELECT COUNT(*) FROM devices")
     device_count = cursor.fetchone()[0]
 
-    # Delete all IODD data from all tables
+    # Delete all IODD data from all tables (in correct order to respect foreign keys)
     cursor.execute("DELETE FROM ui_menu_roles")
     cursor.execute("DELETE FROM ui_menu_items")
     cursor.execute("DELETE FROM ui_menus")
@@ -1039,6 +1043,8 @@ async def reset_eds_database():
     """Delete all EDS files and related data from the system"""
     import sqlite3
     conn = sqlite3.connect(manager.storage.db_path)
+    # Enable foreign keys for this connection
+    conn.execute("PRAGMA foreign_keys = ON")
     cursor = conn.cursor()
 
     # Get counts before deletion

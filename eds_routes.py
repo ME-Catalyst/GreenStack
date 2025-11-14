@@ -926,6 +926,8 @@ async def delete_eds_file(eds_id: int):
         Success message
     """
     conn = sqlite3.connect(get_db_path())
+    # Enable foreign keys for this connection
+    conn.execute("PRAGMA foreign_keys = ON")
     cursor = conn.cursor()
 
     # Check if EDS exists
@@ -934,7 +936,20 @@ async def delete_eds_file(eds_id: int):
         conn.close()
         raise HTTPException(status_code=404, detail="EDS file not found")
 
-    # Delete EDS file (parameters and connections will cascade delete)
+    # Delete all associated data in correct order (child tables first)
+    # This is necessary as a fallback if foreign keys are not enabled
+    cursor.execute("DELETE FROM eds_diagnostics WHERE eds_file_id = ?", (eds_id,))
+    cursor.execute("DELETE FROM eds_tspecs WHERE eds_file_id = ?", (eds_id,))
+    cursor.execute("DELETE FROM eds_capacity WHERE eds_file_id = ?", (eds_id,))
+    cursor.execute("DELETE FROM eds_groups WHERE eds_file_id = ?", (eds_id,))
+    cursor.execute("DELETE FROM eds_ports WHERE eds_file_id = ?", (eds_id,))
+    cursor.execute("DELETE FROM eds_modules WHERE eds_file_id = ?", (eds_id,))
+    cursor.execute("DELETE FROM eds_variable_assemblies WHERE eds_file_id = ?", (eds_id,))
+    cursor.execute("DELETE FROM eds_assemblies WHERE eds_file_id = ?", (eds_id,))
+    cursor.execute("DELETE FROM eds_connections WHERE eds_file_id = ?", (eds_id,))
+    cursor.execute("DELETE FROM eds_parameters WHERE eds_file_id = ?", (eds_id,))
+
+    # Finally delete the EDS file itself
     cursor.execute("DELETE FROM eds_files WHERE id = ?", (eds_id,))
 
     conn.commit()
@@ -960,10 +975,24 @@ async def bulk_delete_eds_files(request: dict):
         raise HTTPException(status_code=400, detail="No EDS IDs provided")
 
     conn = sqlite3.connect(get_db_path())
+    # Enable foreign keys for this connection
+    conn.execute("PRAGMA foreign_keys = ON")
     cursor = conn.cursor()
 
-    # Delete all specified EDS files
+    # Delete all associated data for each EDS file
     placeholders = ','.join('?' * len(eds_ids))
+    cursor.execute(f"DELETE FROM eds_diagnostics WHERE eds_file_id IN ({placeholders})", eds_ids)
+    cursor.execute(f"DELETE FROM eds_tspecs WHERE eds_file_id IN ({placeholders})", eds_ids)
+    cursor.execute(f"DELETE FROM eds_capacity WHERE eds_file_id IN ({placeholders})", eds_ids)
+    cursor.execute(f"DELETE FROM eds_groups WHERE eds_file_id IN ({placeholders})", eds_ids)
+    cursor.execute(f"DELETE FROM eds_ports WHERE eds_file_id IN ({placeholders})", eds_ids)
+    cursor.execute(f"DELETE FROM eds_modules WHERE eds_file_id IN ({placeholders})", eds_ids)
+    cursor.execute(f"DELETE FROM eds_variable_assemblies WHERE eds_file_id IN ({placeholders})", eds_ids)
+    cursor.execute(f"DELETE FROM eds_assemblies WHERE eds_file_id IN ({placeholders})", eds_ids)
+    cursor.execute(f"DELETE FROM eds_connections WHERE eds_file_id IN ({placeholders})", eds_ids)
+    cursor.execute(f"DELETE FROM eds_parameters WHERE eds_file_id IN ({placeholders})", eds_ids)
+
+    # Finally delete all specified EDS files
     cursor.execute(f"DELETE FROM eds_files WHERE id IN ({placeholders})", eds_ids)
 
     deleted_count = cursor.rowcount
