@@ -21,10 +21,10 @@ const TicketsPage = ({ API_BASE, toast }) => {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    status: '',
-    priority: '',
-    device_type: '',
-    category: '',
+    status: 'all',
+    priority: 'all',
+    device_type: 'all',
+    category: 'all',
     search: ''
   });
   const [commentText, setCommentText] = useState('');
@@ -39,10 +39,10 @@ const TicketsPage = ({ API_BASE, toast }) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filters.status) params.append('status', filters.status);
-      if (filters.priority) params.append('priority', filters.priority);
-      if (filters.device_type) params.append('device_type', filters.device_type);
-      if (filters.category) params.append('category', filters.category);
+      if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+      if (filters.priority && filters.priority !== 'all') params.append('priority', filters.priority);
+      if (filters.device_type && filters.device_type !== 'all') params.append('device_type', filters.device_type);
+      if (filters.category && filters.category !== 'all') params.append('category', filters.category);
 
       const response = await axios.get(`${API_BASE}/api/tickets?${params.toString()}`);
       setTickets(response.data);
@@ -359,7 +359,7 @@ const TicketsPage = ({ API_BASE, toast }) => {
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value="" className="text-slate-300">All Statuses</SelectItem>
+                <SelectItem value="all" className="text-slate-300">All Statuses</SelectItem>
                 <SelectItem value="open" className="text-slate-300">Open</SelectItem>
                 <SelectItem value="in_progress" className="text-slate-300">In Progress</SelectItem>
                 <SelectItem value="resolved" className="text-slate-300">Resolved</SelectItem>
@@ -374,7 +374,7 @@ const TicketsPage = ({ API_BASE, toast }) => {
                 <SelectValue placeholder="All Priorities" />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value="" className="text-slate-300">All Priorities</SelectItem>
+                <SelectItem value="all" className="text-slate-300">All Priorities</SelectItem>
                 <SelectItem value="low" className="text-slate-300">Low</SelectItem>
                 <SelectItem value="medium" className="text-slate-300">Medium</SelectItem>
                 <SelectItem value="high" className="text-slate-300">High</SelectItem>
@@ -388,7 +388,7 @@ const TicketsPage = ({ API_BASE, toast }) => {
                 <SelectValue placeholder="All Device Types" />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value="" className="text-slate-300">All Device Types</SelectItem>
+                <SelectItem value="all" className="text-slate-300">All Device Types</SelectItem>
                 <SelectItem value="EDS" className="text-slate-300">EDS</SelectItem>
                 <SelectItem value="IODD" className="text-slate-300">IODD</SelectItem>
               </SelectContent>
@@ -400,7 +400,7 @@ const TicketsPage = ({ API_BASE, toast }) => {
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value="" className="text-slate-300">All Categories</SelectItem>
+                <SelectItem value="all" className="text-slate-300">All Categories</SelectItem>
                 <SelectItem value="data_issue" className="text-slate-300">Data Issue</SelectItem>
                 <SelectItem value="parser_bug" className="text-slate-300">Parser Bug</SelectItem>
                 <SelectItem value="missing_feature" className="text-slate-300">Missing Feature</SelectItem>
@@ -429,7 +429,7 @@ const TicketsPage = ({ API_BASE, toast }) => {
               <Bug className="w-16 h-16 text-slate-700 mx-auto mb-4" />
               <p className="text-slate-400">No tickets found</p>
               <p className="text-sm text-slate-500 mt-2">
-                {filters.search || filters.status || filters.priority || filters.device_type || filters.category
+                {filters.search || (filters.status !== 'all') || (filters.priority !== 'all') || (filters.device_type !== 'all') || (filters.category !== 'all')
                   ? 'Try adjusting your filters'
                   : 'Create your first ticket from a device detail page'}
               </p>
