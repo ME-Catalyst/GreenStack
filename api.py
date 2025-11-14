@@ -275,6 +275,13 @@ app.include_router(config_export_routes.router)
 import admin_routes
 app.include_router(admin_routes.router)
 
+# Include MQTT Broker Management routes
+import mqtt_routes
+app.include_router(mqtt_routes.router, prefix="/api/mqtt", tags=["MQTT"])
+
+# Include WebSocket for MQTT
+app.add_websocket_route("/ws/mqtt", mqtt_routes.websocket_endpoint)
+
 # ============================================================================
 # API Endpoints
 # ============================================================================

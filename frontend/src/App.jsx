@@ -30,6 +30,7 @@ import TicketsPage from './components/TicketsPage';
 import SearchPage from './components/SearchPage';
 import ComparisonView from './components/ComparisonView';
 import AdminConsole from './components/AdminConsole';
+import MqttManager from './components/MqttManager';
 
 // ============================================================================
 // Helper Functions
@@ -82,6 +83,13 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
             onClick={() => setActiveView('overview')}
             collapsed={collapsed}
           />
+
+          {/* Devices Section */}
+          {!collapsed && (
+            <div className="px-3 pt-4 pb-2">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Devices</p>
+            </div>
+          )}
           <NavItem
             icon={<Radio className="w-5 h-5" />}
             label={`IO Link Devices`}
@@ -96,6 +104,20 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
             badge={edsFiles.length}
             active={activeView === 'eds-files'}
             onClick={() => setActiveView('eds-files')}
+            collapsed={collapsed}
+          />
+
+          {/* Applications Section */}
+          {!collapsed && (
+            <div className="px-3 pt-4 pb-2">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Applications</p>
+            </div>
+          )}
+          <NavItem
+            icon={<Wifi className="w-5 h-5" />}
+            label="MQTT Broker"
+            active={activeView === 'mqtt'}
+            onClick={() => setActiveView('mqtt')}
             collapsed={collapsed}
           />
           <NavItem
@@ -4584,6 +4606,21 @@ const IODDManager = () => {
                 <ComparisonView
                   API_BASE={API_BASE}
                   onBack={() => setActiveView('overview')}
+                />
+              </motion.div>
+            )}
+
+            {activeView === 'mqtt' && (
+              <motion.div
+                key="mqtt"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <MqttManager
+                  API_BASE={API_BASE}
+                  toast={toast}
                 />
               </motion.div>
             )}
