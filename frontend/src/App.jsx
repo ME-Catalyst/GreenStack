@@ -2075,8 +2075,25 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1">
               {getTypeIcon(param.data_type)}
-              <div className="flex flex-col items-start">
-                <span className="text-sm font-medium text-white">{param.name}</span>
+              <div className="flex flex-col items-start gap-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-white">{param.name}</span>
+                  {param.dynamic && (
+                    <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/50 text-xs px-1.5 py-0" title="Parameter value changes dynamically">
+                      Dynamic
+                    </Badge>
+                  )}
+                  {param.excluded_from_data_storage && (
+                    <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/50 text-xs px-1.5 py-0" title="Excluded from data storage">
+                      No Storage
+                    </Badge>
+                  )}
+                  {param.modifies_other_variables && (
+                    <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/50 text-xs px-1.5 py-0" title="Modifying this parameter affects other variables">
+                      Affects Others
+                    </Badge>
+                  )}
+                </div>
                 <span className="text-xs text-slate-500 font-mono">{item.variable_id}</span>
               </div>
             </div>
@@ -2124,10 +2141,21 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                   <p className="text-xs font-mono text-white">{item.display_format}</p>
                 </div>
               )}
-              {item.unit_code && (
+              {item.unit_code && (() => {
+                const unitInfo = getUnitInfo(parseInt(item.unit_code));
+                return (
+                  <div className="p-2 rounded bg-slate-800 border border-slate-700">
+                    <p className="text-xs text-slate-500 mb-1">Unit</p>
+                    <p className="text-xs font-mono text-white" title={`${unitInfo.name} (Code: ${item.unit_code})`}>
+                      {unitInfo.symbol || item.unit_code}
+                    </p>
+                  </div>
+                );
+              })()}
+              {param.value_range_name && (
                 <div className="p-2 rounded bg-slate-800 border border-slate-700">
-                  <p className="text-xs text-slate-500 mb-1">Unit Code</p>
-                  <p className="text-xs font-mono text-white">{item.unit_code}</p>
+                  <p className="text-xs text-slate-500 mb-1">Range Name</p>
+                  <p className="text-xs font-mono text-white">{param.value_range_name}</p>
                 </div>
               )}
             </div>
