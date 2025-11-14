@@ -136,6 +136,124 @@ services:
       - "com.iodd-manager.component=shadow"
       - "com.iodd-manager.description=Device Shadow (Digital Twin) Service"
 
+  # ============================================================================
+  # InfluxDB Time-Series Database
+  # ============================================================================
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: iodd-influxdb
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_ADMIN_USER:-admin}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD:-admin123changeme}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG:-iodd-manager}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET:-device-telemetry}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN:-my-super-secret-auth-token}
+      DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUXDB_RETENTION:-90d}
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    ports:
+      - "8086:8086"
+    networks:
+      - iodd-network
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.iodd-manager.component=timeseries"
+      - "com.iodd-manager.description=InfluxDB Time-Series Database"
+
+  # ============================================================================
+  # Grafana Visualization & Dashboards
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: iodd-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin123changeme}
+      GF_USERS_ALLOW_SIGN_UP: ${GRAFANA_ALLOW_SIGNUP:-false}
+      GF_SERVER_ROOT_URL: http://localhost:3000
+      GF_INSTALL_PLUGINS: grafana-mqtt-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    networks:
+      - iodd-network
+    depends_on:
+      - influxdb
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.iodd-manager.component=visualization"
+      - "com.iodd-manager.description=Grafana Dashboards"
+
+  # ============================================================================
+  # Node-RED Workflow Automation
+  # ============================================================================
+  nodered:
+    image: nodered/node-red:latest
+    container_name: iodd-nodered
+    restart: unless-stopped
+    environment:
+      TZ: UTC
+      NODE_RED_CREDENTIAL_SECRET: ${NODERED_CREDENTIAL_SECRET:-change-this-secret}
+    volumes:
+      - nodered-data:/data
+    ports:
+      - "${NODERED_PORT:-1880}:1880"
+    networks:
+      - iodd-network
+    depends_on:
+      - mosquitto
+      - influxdb
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:1880 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.iodd-manager.component=automation"
+      - "com.iodd-manager.description=Node-RED Workflow Engine"
+
+  # ============================================================================
+  # InfluxDB Ingestion Service
+  # ============================================================================
+  influx-ingestion:
+    build:
+      context: ./services/influx-ingestion
+      dockerfile: Dockerfile
+    container_name: iodd-influx-ingestion
+    restart: unless-stopped
+    environment:
+      MQTT_BROKER: mosquitto:1883
+      MQTT_USERNAME: ${MQTT_USERNAME:-iodd}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-mqtt123}
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN:-my-super-secret-auth-token}
+      INFLUXDB_ORG: ${INFLUXDB_ORG:-iodd-manager}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET:-device-telemetry}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    networks:
+      - iodd-network
+    depends_on:
+      - mosquitto
+      - influxdb
+    labels:
+      - "com.iodd-manager.component=ingestion"
+      - "com.iodd-manager.description=InfluxDB Data Ingestion Service"
+
 # ============================================================================
 # Additional Volumes
 # ============================================================================
@@ -147,4 +265,12 @@ volumes:
   mosquitto-data:
     driver: local
   mosquitto-log:
+    driver: local
+  influxdb-data:
+    driver: local
+  influxdb-config:
+    driver: local
+  grafana-data:
+    driver: local
+  nodered-data:
     driver: local
