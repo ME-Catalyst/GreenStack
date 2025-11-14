@@ -408,10 +408,158 @@ async def get_system_info():
             "compiler": platform.python_compiler()
         },
         "application": {
-            "name": "IODD Manager",
+            "name": "GreenStack",
             "version": "2.1.0",
             "database_path": DB_PATH,
             "database_exists": os.path.exists(DB_PATH)
         },
         "timestamp": datetime.now().isoformat()
     }
+
+
+# ============================================================================
+# Dangerous Operations - Database Deletion Endpoints
+# ============================================================================
+
+@router.post("/database/delete-iodd")
+async def delete_all_iodd_devices():
+    """
+    Delete all IODD devices and related data
+
+    WARNING: This is a destructive operation that cannot be undone.
+    Deletes all devices, parameters, and related metadata.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    try:
+        # Get count before deletion
+        cursor.execute("SELECT COUNT(*) FROM devices")
+        device_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM parameters")
+        param_count = cursor.fetchone()[0]
+
+        # Delete related data first (cascading)
+        cursor.execute("DELETE FROM parameters")
+        cursor.execute("DELETE FROM device_vendor")
+        cursor.execute("DELETE FROM data_storage")
+        cursor.execute("DELETE FROM variables")
+        cursor.execute("DELETE FROM variable_values")
+        cursor.execute("DELETE FROM devices")
+
+        conn.commit()
+
+        return {
+            "success": True,
+            "message": "All IODD devices deleted",
+            "devices_deleted": device_count,
+            "parameters_deleted": param_count
+        }
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete IODD devices: {str(e)}")
+    finally:
+        conn.close()
+
+
+@router.post("/database/delete-eds")
+async def delete_all_eds_files():
+    """
+    Delete all EDS files and related data
+
+    WARNING: This is a destructive operation that cannot be undone.
+    Deletes all EDS files, parameters, assemblies, modules, ports, and connections.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    try:
+        # Get count before deletion
+        cursor.execute("SELECT COUNT(*) FROM eds_files")
+        file_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM eds_parameters")
+        param_count = cursor.fetchone()[0]
+
+        # Delete related data first (cascading)
+        cursor.execute("DELETE FROM eds_connections")
+        cursor.execute("DELETE FROM eds_ports")
+        cursor.execute("DELETE FROM eds_modules")
+        cursor.execute("DELETE FROM eds_assemblies")
+        cursor.execute("DELETE FROM eds_parameters")
+        cursor.execute("DELETE FROM eds_files")
+
+        conn.commit()
+
+        return {
+            "success": True,
+            "message": "All EDS files deleted",
+            "files_deleted": file_count,
+            "parameters_deleted": param_count
+        }
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete EDS files: {str(e)}")
+    finally:
+        conn.close()
+
+
+@router.post("/database/delete-all")
+async def delete_all_data():
+    """
+    Delete ALL data from the database
+
+    WARNING: This is an extremely destructive operation that cannot be undone.
+    Deletes all devices, EDS files, parameters, tickets, and all related data.
+    The database structure (tables) will remain, but all content will be removed.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    try:
+        # Get counts before deletion
+        cursor.execute("SELECT COUNT(*) FROM devices")
+        iodd_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM eds_files")
+        eds_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM tickets")
+        ticket_count = cursor.fetchone()[0]
+
+        # Delete all data in correct order to respect foreign keys
+        # Tickets and attachments
+        cursor.execute("DELETE FROM ticket_attachments")
+        cursor.execute("DELETE FROM tickets")
+
+        # EDS data
+        cursor.execute("DELETE FROM eds_connections")
+        cursor.execute("DELETE FROM eds_ports")
+        cursor.execute("DELETE FROM eds_modules")
+        cursor.execute("DELETE FROM eds_assemblies")
+        cursor.execute("DELETE FROM eds_parameters")
+        cursor.execute("DELETE FROM eds_files")
+
+        # IODD data
+        cursor.execute("DELETE FROM parameters")
+        cursor.execute("DELETE FROM device_vendor")
+        cursor.execute("DELETE FROM data_storage")
+        cursor.execute("DELETE FROM variables")
+        cursor.execute("DELETE FROM variable_values")
+        cursor.execute("DELETE FROM devices")
+
+        conn.commit()
+
+        return {
+            "success": True,
+            "message": "All data deleted from database",
+            "iodd_devices_deleted": iodd_count,
+            "eds_files_deleted": eds_count,
+            "tickets_deleted": ticket_count
+        }
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete all data: {str(e)}")
+    finally:
+        conn.close()

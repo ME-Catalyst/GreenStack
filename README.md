@@ -1,8 +1,8 @@
-# IODD Manager
+# GreenStack
 
 <div align="center">
 
-**A modern, full-stack industrial automation tool for managing IO-Link Device Description (IODD) files**
+**Intelligent device management platform with a complete Industrial IoT foundation**
 
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-blue)](https://github.com/ME-Catalyst/iodd-manager/actions)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE.md)
@@ -22,29 +22,37 @@
 
 ## Overview
 
-IODD Manager is a comprehensive solution for importing, managing, and analyzing IO-Link Device Description (IODD) files. It provides a powerful REST API backend with a modern React frontend for device management and interactive configuration.
+GreenStack is an intelligent device management platform built on a rock-solid Industrial IoT foundation. Currently managing IO-Link (IODD) and EtherNet/IP (EDS) device configurations, it provides a modern web interface for device catalog management. The platform includes an integrated IoT stack with MQTT broker, Grafana dashboards, Node-RED workflows, and InfluxDB storage - a complete foundation ready for future device connectivity and real-time monitoring capabilities.
 
 ## Features
 
-- 🎯 **IODD File Management** - Import, parse, and store IODD XML files and packages
-- 📦 **Multi-File Import** - Support for single files, ZIP packages, and nested ZIP archives
-- 🖥️ **Modern Web UI** - React-based dashboard with interactive device configuration
-- 📊 **Interactive Menus** - Full IODD menu rendering with parameter controls
-- ⚡ **EDS File Support** *(under development)* - EtherNet/IP Electronic Data Sheet parsing and management
+### Device Configuration Management
+- 🎯 **IO-Link (IODD) Support** - Full import, parsing, and management of IODD XML files and packages
+- ⚡ **EtherNet/IP (EDS) Support** - Complete EDS file parsing with assemblies, modules, and parameters
+- 📦 **Multi-File Import** - Support for single files, ZIP packages, and nested archives
+- 📊 **Interactive Configuration** - Full menu rendering with parameter controls and validation
+
+### Industrial IoT Foundation (Forward-Looking)
+- 📡 **MQTT Broker** - Integrated Eclipse Mosquitto ready for device messaging
+- 📈 **Grafana Dashboards** - Pre-configured for future telemetry visualization
+- 🔄 **Node-RED Workflows** - Visual programming platform for automation
+- 💾 **InfluxDB Storage** - Time-series database ready for IoT data streams
+
+### Modern Architecture
 - 🚀 **REST API** - Full-featured FastAPI backend with OpenAPI documentation
+- 🖥️ **Modern Web UI** - React-based dashboard with Tailwind CSS and Framer Motion
 - 💾 **Database Storage** - SQLite/PostgreSQL with Alembic migrations
-- ⚙️ **Configuration Management** - Environment-based configuration with .env support
-- 🧪 **Comprehensive Testing** - 65+ tests with pytest
+- 🐳 **Docker Ready** - Complete containerized deployment with docker-compose
 - 🔒 **Security** - CORS configuration, input validation, SQL injection protection
-- 📦 **Docker Ready** - Containerized deployment with docker-compose
+- 🧪 **Comprehensive Testing** - 65+ tests with pytest
 
 ## Quick Start
 
 ### 📦 PyPI Package (Recommended)
 
 ```bash
-pip install iodd-manager
-iodd-api
+pip install greenstack
+greenstack-api
 ```
 
 Access the application at http://localhost:8000
@@ -54,8 +62,8 @@ Access the application at http://localhost:8000
 ### 🐳 Docker
 
 ```bash
-docker pull ghcr.io/me-catalyst/iodd-manager:latest
-docker run -d -p 8000:8000 -v iodd-data:/data ghcr.io/me-catalyst/iodd-manager:latest
+docker pull ghcr.io/me-catalyst/greenstack:latest
+docker run -d -p 8000:8000 -v greenstack-data:/data ghcr.io/me-catalyst/greenstack:latest
 ```
 
 Access the application at http://localhost:8000
@@ -71,8 +79,8 @@ Access the application at http://localhost:8000
 ### 🐧 Linux / 🍎 macOS Source Install
 
 ```bash
-git clone https://github.com/ME-Catalyst/iodd-manager.git
-cd iodd-manager
+git clone https://github.com/ME-Catalyst/greenstack.git
+cd greenstack
 chmod +x setup.sh
 ./setup.sh
 ```
@@ -147,9 +155,9 @@ This project is licensed under the MIT License - see [LICENSE.md](LICENSE.md) fo
 
 <div align="center">
 
-![GitHub Stars](https://img.shields.io/github/stars/ME-Catalyst/iodd-manager?style=social)
-![GitHub Issues](https://img.shields.io/github/issues/ME-Catalyst/iodd-manager)
+![GitHub Stars](https://img.shields.io/github/stars/ME-Catalyst/greenstack?style=social)
+![GitHub Issues](https://img.shields.io/github/issues/ME-Catalyst/greenstack)
 
-[⬆ back to top](#iodd-manager)
+[⬆ back to top](#greenstack)
 
 </div>

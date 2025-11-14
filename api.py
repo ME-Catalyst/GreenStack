@@ -1,7 +1,8 @@
 """
-IODD Manager REST API
-=====================
-FastAPI-based REST API for IODD management system
+GreenStack REST API
+===================
+FastAPI-based REST API for intelligent device management
+Currently supports IO-Link (IODD) and EtherNet/IP (EDS) device configurations
 """
 
 from typing import List, Optional, Dict, Any, Union
@@ -234,8 +235,8 @@ class EDSUploadResponse(BaseModel):
 # ============================================================================
 
 app = FastAPI(
-    title=config.APP_NAME + " API",
-    description="API for managing IODD files and generating device adapters",
+    title="GreenStack API",
+    description="Intelligent device management API supporting IO-Link (IODD) and EtherNet/IP (EDS) configurations",
     version=config.APP_VERSION,
     docs_url="/docs" if config.ENABLE_DOCS else None,
     redoc_url="/redoc" if config.ENABLE_DOCS else None,
