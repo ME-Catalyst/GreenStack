@@ -21,7 +21,10 @@ def clear_eds_data():
         'eds_files',
         'eds_parameters',
         'eds_connections',
+        'eds_assemblies',
+        'eds_variable_assemblies',
         'eds_ports',
+        'eds_modules',
         'eds_capacity',
         'eds_tspecs',
         'eds_packages',
@@ -49,6 +52,15 @@ def clear_eds_data():
 
     cursor.execute("DELETE FROM eds_ports")
     print("  [OK] Deleted ports")
+
+    cursor.execute("DELETE FROM eds_modules")
+    print("  [OK] Deleted modules")
+
+    cursor.execute("DELETE FROM eds_variable_assemblies")
+    print("  [OK] Deleted variable assemblies")
+
+    cursor.execute("DELETE FROM eds_assemblies")
+    print("  [OK] Deleted assemblies")
 
     cursor.execute("DELETE FROM eds_connections")
     print("  [OK] Deleted connections")
@@ -305,6 +317,36 @@ def import_package(package_path):
                     port.get('port_name'),
                     port.get('port_path'),
                     port.get('link_number')
+                ))
+
+            # Insert modules
+            for module in parsed_data.get('modules', []):
+                cursor.execute("""
+                    INSERT INTO eds_modules (
+                        eds_file_id, module_number, module_name, device_type,
+                        catalog_number, major_revision, minor_revision,
+                        config_size, config_data, input_size, output_size,
+                        module_description, slot_number, module_class,
+                        vendor_code, product_code, raw_definition
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    eds_id,
+                    module.get('module_number'),
+                    module.get('module_name'),
+                    module.get('device_type'),
+                    module.get('catalog_number'),
+                    module.get('major_revision'),
+                    module.get('minor_revision'),
+                    module.get('config_size'),
+                    module.get('config_data'),
+                    module.get('input_size'),
+                    module.get('output_size'),
+                    module.get('module_description'),
+                    module.get('slot_number'),
+                    module.get('module_class'),
+                    module.get('vendor_code'),
+                    module.get('product_code'),
+                    module.get('raw_definition')
                 ))
 
             # Insert capacity

@@ -281,6 +281,36 @@ async def upload_eds_file(file: UploadFile = File(...)):
                 port.get('link_number')
             ))
 
+        # Insert modules
+        for module in parsed_data.get('modules', []):
+            cursor.execute("""
+                INSERT INTO eds_modules (
+                    eds_file_id, module_number, module_name, device_type,
+                    catalog_number, major_revision, minor_revision,
+                    config_size, config_data, input_size, output_size,
+                    module_description, slot_number, module_class,
+                    vendor_code, product_code, raw_definition
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                eds_id,
+                module.get('module_number'),
+                module.get('module_name'),
+                module.get('device_type'),
+                module.get('catalog_number'),
+                module.get('major_revision'),
+                module.get('minor_revision'),
+                module.get('config_size'),
+                module.get('config_data'),
+                module.get('input_size'),
+                module.get('output_size'),
+                module.get('module_description'),
+                module.get('slot_number'),
+                module.get('module_class'),
+                module.get('vendor_code'),
+                module.get('product_code'),
+                module.get('raw_definition')
+            ))
+
         # Insert capacity
         capacity = parsed_data.get('capacity', {})
         if capacity:
@@ -1486,4 +1516,65 @@ async def get_eds_ports(eds_id: int):
     return {
         "ports": ports,
         "total_count": len(ports)
+    }
+
+
+@router.get("/{eds_id}/modules")
+async def get_eds_modules(eds_id: int):
+    """
+    Get module definitions for an EDS file.
+
+    Modules represent physical I/O modules in modular devices like bus couplers
+    and distributed I/O systems. Each module can have its own configuration,
+    input/output sizes, and hardware characteristics.
+
+    Args:
+        eds_id: EDS file ID
+
+    Returns:
+        List of module definitions with hardware info, I/O sizes, and configuration
+    """
+    conn = sqlite3.connect(get_db_path())
+    cursor = conn.cursor()
+
+    # Get modules
+    cursor.execute("""
+        SELECT
+            id, module_number, module_name, device_type,
+            catalog_number, major_revision, minor_revision,
+            config_size, config_data, input_size, output_size,
+            module_description, slot_number, module_class,
+            vendor_code, product_code, raw_definition
+        FROM eds_modules
+        WHERE eds_file_id = ?
+        ORDER BY module_number
+    """, (eds_id,))
+
+    modules = []
+    for row in cursor.fetchall():
+        modules.append({
+            "id": row[0],
+            "module_number": row[1],
+            "module_name": row[2],
+            "device_type": row[3],
+            "catalog_number": row[4],
+            "major_revision": row[5],
+            "minor_revision": row[6],
+            "config_size": row[7],
+            "config_data": row[8],
+            "input_size": row[9],
+            "output_size": row[10],
+            "module_description": row[11],
+            "slot_number": row[12],
+            "module_class": row[13],
+            "vendor_code": row[14],
+            "product_code": row[15],
+            "raw_definition": row[16]
+        })
+
+    conn.close()
+
+    return {
+        "modules": modules,
+        "total_count": len(modules)
     }

@@ -448,6 +448,81 @@ class EDSParser:
 
         return ports
 
+    def get_modules(self) -> List[Dict[str, Any]]:
+        """
+        Extract module definitions from [Module] section.
+
+        Modules represent physical I/O modules in modular devices like bus couplers.
+        This is a best-effort parser that will be refined when we have actual sample data.
+
+        Expected formats (based on research):
+        - Module1 = "ModuleName", DeviceType, CatalogNumber, ...
+        - ModuleN = <various fields>
+
+        Returns:
+            List of module dictionaries with extracted fields
+        """
+        if 'Module' not in self.sections:
+            return []
+
+        modules = []
+        content = self.sections['Module']
+
+        # Pattern 1: Try to match Module entries with quoted names
+        # Module1 = "Name", DeviceType, CatalogNumber, MajorRev, MinorRev, ConfigSize, InputSize, OutputSize, ...
+        module_pattern = r'Module(\d+)\s*=\s*(.+?)(?:;|$)'
+        matches = re.finditer(module_pattern, content, re.MULTILINE | re.DOTALL)
+
+        for match in matches:
+            module_num = int(match.group(1))
+            module_data = match.group(2).strip()
+
+            # Remove comments and clean up
+            module_data = re.sub(r'\$.*', '', module_data)
+
+            # Try to parse comma-separated values
+            # Handle quoted strings properly
+            values = []
+            current = []
+            in_quotes = False
+            for char in module_data:
+                if char == '"':
+                    in_quotes = not in_quotes
+                elif char == ',' and not in_quotes:
+                    values.append(''.join(current).strip().strip('"'))
+                    current = []
+                else:
+                    current.append(char)
+            if current:
+                values.append(''.join(current).strip().strip('"'))
+
+            # Build module dict with flexible field mapping
+            module_dict = {
+                'module_number': module_num,
+                'module_name': values[0] if len(values) > 0 else f'Module{module_num}',
+                'device_type': values[1] if len(values) > 1 else None,
+                'catalog_number': values[2] if len(values) > 2 else None,
+                'major_revision': self._parse_int(values[3]) if len(values) > 3 else None,
+                'minor_revision': self._parse_int(values[4]) if len(values) > 4 else None,
+                'config_size': self._parse_int(values[5]) if len(values) > 5 else None,
+                'input_size': self._parse_int(values[6]) if len(values) > 6 else None,
+                'output_size': self._parse_int(values[7]) if len(values) > 7 else None,
+                'module_description': values[8] if len(values) > 8 else None,
+                'slot_number': self._parse_int(values[9]) if len(values) > 9 else None,
+                'module_class': values[10] if len(values) > 10 else None,
+                'vendor_code': self._parse_int(values[11]) if len(values) > 11 else None,
+                'product_code': self._parse_int(values[12]) if len(values) > 12 else None,
+                'raw_definition': module_data,  # Store raw data for later refinement
+            }
+
+            # Extract config data if present (might be hex string)
+            if len(values) > 13:
+                module_dict['config_data'] = values[13]
+
+            modules.append(module_dict)
+
+        return modules
+
     def get_capacity(self) -> Dict[str, Any]:
         """
         Extract capacity information from [Capacity] section with support for multiple vendor formats.
@@ -596,6 +671,7 @@ def parse_eds_file(content: str, file_path: str = None, strict_mode: bool = Fals
         'connections': parser.get_connections(),
         'assemblies': assemblies,  # New: assembly definitions
         'ports': parser.get_ports(),
+        'modules': parser.get_modules(),  # New: module definitions for modular devices
         'capacity': parser.get_capacity(),
         'all_sections': parser.get_all_sections(),
         'checksum': parser.get_checksum(),

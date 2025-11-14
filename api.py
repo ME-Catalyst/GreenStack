@@ -1052,6 +1052,7 @@ async def reset_eds_database():
     cursor.execute("DELETE FROM eds_tspecs")
     cursor.execute("DELETE FROM eds_capacity")
     cursor.execute("DELETE FROM eds_ports")
+    cursor.execute("DELETE FROM eds_modules")
     cursor.execute("DELETE FROM eds_variable_assemblies")
     cursor.execute("DELETE FROM eds_assemblies")
     cursor.execute("DELETE FROM eds_connections")
