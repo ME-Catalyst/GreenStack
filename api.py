@@ -155,6 +155,11 @@ class DocumentInfoModel(BaseModel):
     copyright: Optional[str] = None
     release_date: Optional[str] = None
     version: Optional[str] = None
+    vendor_name: Optional[str] = None
+    vendor_url: Optional[str] = None
+    vendor_text: Optional[str] = None
+    product_text: Optional[str] = None
+    device_family: Optional[str] = None
 
 class DeviceFeaturesModel(BaseModel):
     """Device features and capabilities model"""
@@ -642,9 +647,11 @@ async def get_device_document_info(device_id: int):
         raise HTTPException(status_code=404, detail="Device not found")
 
     import sqlite3
+    import xml.etree.ElementTree as ET
     conn = sqlite3.connect(manager.storage.db_path)
     cursor = conn.cursor()
 
+    # Get document info from table
     cursor.execute("""
         SELECT copyright, release_date, version
         FROM document_info
@@ -652,15 +659,87 @@ async def get_device_document_info(device_id: int):
     """, (device_id,))
 
     row = cursor.fetchone()
+
+    # Get XML content to extract vendor information
+    cursor.execute("""
+        SELECT xml_content
+        FROM iodd_files
+        WHERE device_id = ?
+    """, (device_id,))
+
+    xml_row = cursor.fetchone()
     conn.close()
 
     if not row:
         return None
 
+    # Parse XML to extract vendor information
+    vendor_name = None
+    vendor_url = None
+    vendor_text = None
+    product_text = None
+    device_family = None
+
+    if xml_row and xml_row[0]:
+        try:
+            root = ET.fromstring(xml_row[0])
+            ns = {'iodd': 'http://www.io-link.com/IODD/2010/10'}
+
+            # Try both with and without namespace
+            profile_body = root.find('.//ProfileBody', ns) or root.find('.//ProfileBody')
+            if profile_body:
+                device_identity = profile_body.find('.//DeviceIdentity', ns) or profile_body.find('.//DeviceIdentity')
+                if device_identity:
+                    # Extract vendor name
+                    vendor_name_elem = device_identity.find('.//VendorName', ns) or device_identity.find('.//VendorName')
+                    if vendor_name_elem is not None and vendor_name_elem.text:
+                        vendor_name = vendor_name_elem.text
+
+                    # Extract vendor URL
+                    vendor_url_elem = device_identity.find('.//VendorUrl', ns) or device_identity.find('.//VendorUrl')
+                    if vendor_url_elem is not None and vendor_url_elem.text:
+                        vendor_url = vendor_url_elem.text
+
+                    # Extract vendor text
+                    vendor_text_elem = device_identity.find('.//VendorText', ns) or device_identity.find('.//VendorText')
+                    if vendor_text_elem is not None and vendor_text_elem.get('textId'):
+                        # Try to resolve text ID
+                        text_id = vendor_text_elem.get('textId')
+                        external_text = root.find(f'.//ExternalTextCollection/PrimaryLanguage/Text[@id="{text_id}"]', ns) or \
+                                       root.find(f'.//ExternalTextCollection/PrimaryLanguage/Text[@id="{text_id}"]')
+                        if external_text is not None and external_text.get('value'):
+                            vendor_text = external_text.get('value')
+
+                    # Extract product text
+                    product_text_elem = device_identity.find('.//ProductText', ns) or device_identity.find('.//ProductText')
+                    if product_text_elem is not None and product_text_elem.get('textId'):
+                        text_id = product_text_elem.get('textId')
+                        external_text = root.find(f'.//ExternalTextCollection/PrimaryLanguage/Text[@id="{text_id}"]', ns) or \
+                                       root.find(f'.//ExternalTextCollection/PrimaryLanguage/Text[@id="{text_id}"]')
+                        if external_text is not None and external_text.get('value'):
+                            product_text = external_text.get('value')
+
+                    # Extract device family
+                    device_family_elem = device_identity.find('.//DeviceFamily', ns) or device_identity.find('.//DeviceFamily')
+                    if device_family_elem is not None and device_family_elem.get('textId'):
+                        text_id = device_family_elem.get('textId')
+                        external_text = root.find(f'.//ExternalTextCollection/PrimaryLanguage/Text[@id="{text_id}"]', ns) or \
+                                       root.find(f'.//ExternalTextCollection/PrimaryLanguage/Text[@id="{text_id}"]')
+                        if external_text is not None and external_text.get('value'):
+                            device_family = external_text.get('value')
+        except Exception as e:
+            # If XML parsing fails, just return basic info
+            print(f"Warning: Failed to parse XML for vendor info: {e}")
+
     return DocumentInfoModel(
         copyright=row[0],
         release_date=row[1],
-        version=row[2]
+        version=row[2],
+        vendor_name=vendor_name,
+        vendor_url=vendor_url,
+        vendor_text=vendor_text,
+        product_text=product_text,
+        device_family=device_family
     )
 
 @app.get("/api/iodd/{device_id}/features",

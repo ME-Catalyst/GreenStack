@@ -2601,25 +2601,87 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {documentInfo.copyright && (
-                      <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
-                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Copyright</p>
-                        <p className="text-sm text-white">{documentInfo.copyright}</p>
+                  <div className="space-y-4">
+                    {/* Vendor Information Section */}
+                    {(documentInfo.vendor_name || documentInfo.vendor_url || documentInfo.vendor_text) && (
+                      <div className="pb-4 border-b border-slate-700">
+                        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">Vendor Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {documentInfo.vendor_name && (
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-blue-500/10 to-indigo-500/5 border border-slate-700">
+                              <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Vendor</p>
+                              <p className="text-sm text-white font-medium">{documentInfo.vendor_name}</p>
+                            </div>
+                          )}
+                          {documentInfo.vendor_url && (
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-slate-700">
+                              <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Website</p>
+                              <a
+                                href={documentInfo.vendor_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-green-400 hover:text-green-300 underline transition-colors inline-flex items-center gap-1"
+                              >
+                                {documentInfo.vendor_url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          )}
+                          {documentInfo.vendor_text && (
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
+                              <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Description</p>
+                              <p className="text-sm text-white">{documentInfo.vendor_text}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
-                    {documentInfo.release_date && (
-                      <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
-                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Release Date</p>
-                        <p className="text-sm text-white">{documentInfo.release_date}</p>
+
+                    {/* Product Information */}
+                    {(documentInfo.product_text || documentInfo.device_family) && (
+                      <div className="pb-4 border-b border-slate-700">
+                        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">Product Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {documentInfo.product_text && (
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
+                              <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Product Description</p>
+                              <p className="text-sm text-white">{documentInfo.product_text}</p>
+                            </div>
+                          )}
+                          {documentInfo.device_family && (
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
+                              <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Device Family</p>
+                              <p className="text-sm text-white">{documentInfo.device_family}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
-                    {documentInfo.version && (
-                      <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
-                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Document Version</p>
-                        <p className="text-sm text-white">{documentInfo.version}</p>
+
+                    {/* Document Metadata */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">Document Metadata</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {documentInfo.copyright && (
+                          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
+                            <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Copyright</p>
+                            <p className="text-sm text-white">{documentInfo.copyright}</p>
+                          </div>
+                        )}
+                        {documentInfo.release_date && (
+                          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
+                            <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Release Date</p>
+                            <p className="text-sm text-white">{documentInfo.release_date}</p>
+                          </div>
+                        )}
+                        {documentInfo.version && (
+                          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
+                            <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Document Version</p>
+                            <p className="text-sm text-white">{documentInfo.version}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
