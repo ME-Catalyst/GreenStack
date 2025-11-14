@@ -259,6 +259,10 @@ import eds_routes
 eds_routes.db_path = manager.storage.db_path
 app.include_router(eds_routes.router)
 
+# Include Ticket routes
+import ticket_routes
+app.include_router(ticket_routes.router)
+
 # ============================================================================
 # API Endpoints
 # ============================================================================

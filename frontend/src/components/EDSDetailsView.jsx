@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { decodeTriggerTransport, decodeConnectionParams, getConnectionSummary } from '@/utils/edsConnectionDecoder';
 import ParameterCard from './ParameterCard';
 import { groupParametersByCategory, getSortedCategories, getCategoryBadgeColor, getCategoryIconColor } from '../utils/edsParameterCategorizer';
+import TicketButton from './TicketButton';
+import TicketModal from './TicketModal';
 
 const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExportZIP, API_BASE }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -22,6 +24,7 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
   const [selectedEds, setSelectedEds] = useState(initialEds);
   const [loadingRevision, setLoadingRevision] = useState(false);
   const [groups, setGroups] = useState([]);
+  const [showTicketModal, setShowTicketModal] = useState(false);
 
   // Fetch available revisions for this device
   useEffect(() => {
@@ -231,6 +234,20 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
         {activeTab === 'capacity' && <CapacityTab selectedEds={selectedEds} />}
         {activeTab === 'raw' && <RawContentTab selectedEds={selectedEds} />}
       </div>
+
+      {/* Ticket Button */}
+      <TicketButton onClick={() => setShowTicketModal(true)} />
+
+      {/* Ticket Modal */}
+      <TicketModal
+        isOpen={showTicketModal}
+        onClose={() => setShowTicketModal(false)}
+        deviceType="EDS"
+        deviceId={selectedEds.id}
+        deviceName={selectedEds.product_name}
+        vendorName={selectedEds.vendor_name}
+        productCode={selectedEds.product_code}
+      />
     </div>
   );
 };

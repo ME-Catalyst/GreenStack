@@ -16,7 +16,7 @@ import {
   AlertTriangle, Radio, ArrowRightLeft, FileText, Lock, Wrench, Monitor,
   Wifi, Menu, ChevronDown, Info, Type, Hash, ToggleLeft, Command, RotateCcw,
   AlertCircle, Network, Server, Gauge, Cable, Clock, Tag, Layers, GitBranch,
-  ArrowUpRight, ArrowDownRight, Users, HardDrive, CheckCircle, XCircle, AlertOctagon, FolderOpen
+  ArrowUpRight, ArrowDownRight, Users, HardDrive, CheckCircle, XCircle, AlertOctagon, FolderOpen, Bug
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -24,6 +24,9 @@ import axios from 'axios';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import EDSDetailsView from './components/EDSDetailsView';
+import TicketButton from './components/TicketButton';
+import TicketModal from './components/TicketModal';
+import TicketsPage from './components/TicketsPage';
 
 // ============================================================================
 // Helper Functions
@@ -104,6 +107,13 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
             label="Analytics"
             active={activeView === 'analytics'}
             onClick={() => setActiveView('analytics')}
+            collapsed={collapsed}
+          />
+          <NavItem
+            icon={<Bug className="w-5 h-5" />}
+            label="Tickets"
+            active={activeView === 'tickets'}
+            onClick={() => setActiveView('tickets')}
             collapsed={collapsed}
           />
 
@@ -1335,6 +1345,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
   const [paramSearchQuery, setParamSearchQuery] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showTicketModal, setShowTicketModal] = useState(false);
 
   useEffect(() => {
     if (device) {
@@ -3820,6 +3831,20 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Ticket Button */}
+      <TicketButton onClick={() => setShowTicketModal(true)} />
+
+      {/* Ticket Modal */}
+      <TicketModal
+        isOpen={showTicketModal}
+        onClose={() => setShowTicketModal(false)}
+        deviceType="IODD"
+        deviceId={device.id}
+        deviceName={device.product_name}
+        vendorName={device.vendor_name}
+        productCode={device.product_id}
+      />
     </div>
   );
 };
@@ -4534,6 +4559,21 @@ const IODDManager = () => {
                   <h2 className="text-2xl font-bold mb-4">Analytics</h2>
                   <p className="text-slate-400">Coming soon...</p>
                 </div>
+              </motion.div>
+            )}
+
+            {activeView === 'tickets' && (
+              <motion.div
+                key="tickets"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <TicketsPage
+                  API_BASE={API_BASE}
+                  toast={toast}
+                />
               </motion.div>
             )}
 

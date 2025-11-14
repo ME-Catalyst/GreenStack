@@ -8,7 +8,7 @@ import { getCategoryBadgeColor } from '../utils/edsParameterCategorizer';
 
 /**
  * Visual Range Indicator Component
- * Shows a visual slider indicating where the default value falls within the min-max range
+ * Adapts visualization based on range characteristics
  */
 const RangeIndicator = ({ min, max, defaultValue, units = '' }) => {
   if (min === null || max === null || defaultValue === null) return null;
@@ -16,36 +16,115 @@ const RangeIndicator = ({ min, max, defaultValue, units = '' }) => {
   if (min === max) return null;
 
   const range = max - min;
-  const position = ((defaultValue - min) / range) * 100;
+  const absMin = Math.abs(min);
+  const absMax = Math.abs(max);
+  const absRange = Math.abs(range);
+
+  // Detect if this is a large range (spans multiple orders of magnitude)
+  const ordersOfMagnitude = Math.log10(absMax / Math.max(absMin, 1));
+  const isLargeRange = ordersOfMagnitude > 2 || absRange > 10000;
+
+  // For very large ranges, use a compact stat card instead
+  if (isLargeRange && absRange > 100000) {
+    return (
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="bg-slate-800/50 rounded p-2 text-center">
+          <div className="text-xs text-slate-500 mb-1">Min</div>
+          <div className="text-sm text-blue-300 font-mono">{formatValueByType(min, { category: 'Integer' }, units)}</div>
+        </div>
+        <div className="bg-blue-900/30 border border-blue-700/50 rounded p-2 text-center">
+          <div className="text-xs text-blue-400 mb-1">Default</div>
+          <div className="text-sm text-white font-mono font-semibold">{formatValueByType(defaultValue, { category: 'Integer' }, units)}</div>
+        </div>
+        <div className="bg-slate-800/50 rounded p-2 text-center">
+          <div className="text-xs text-slate-500 mb-1">Max</div>
+          <div className="text-sm text-blue-300 font-mono">{formatValueByType(max, { category: 'Integer' }, units)}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate position (linear or log scale)
+  let position;
+  if (isLargeRange && min > 0) {
+    // Use logarithmic scale for large ranges with positive values
+    const logMin = Math.log10(min);
+    const logMax = Math.log10(max);
+    const logDefault = Math.log10(defaultValue);
+    position = ((logDefault - logMin) / (logMax - logMin)) * 100;
+  } else {
+    // Linear scale
+    position = ((defaultValue - min) / range) * 100;
+  }
+
   const clampedPosition = Math.max(0, Math.min(100, position));
 
-  // Determine label based on position
-  let positionLabel = 'Normal';
-  if (clampedPosition < 25) positionLabel = 'Low';
-  else if (clampedPosition > 75) positionLabel = 'High';
+  // Determine zone and color
+  let zone = 'mid';
+  let zoneLabel = 'Normal';
+  let zoneColor = 'blue';
+
+  if (clampedPosition < 33) {
+    zone = 'low';
+    zoneLabel = 'Low';
+    zoneColor = 'cyan';
+  } else if (clampedPosition > 67) {
+    zone = 'high';
+    zoneLabel = 'High';
+    zoneColor = 'purple';
+  }
 
   return (
     <div className="mt-3">
-      <div className="flex justify-between text-xs text-slate-500 mb-1">
-        <span>{formatValueByType(min, { category: 'Integer' }, units)}</span>
-        <span className="text-slate-400">{positionLabel}</span>
-        <span>{formatValueByType(max, { category: 'Integer' }, units)}</span>
+      <div className="flex justify-between text-xs text-slate-500 mb-2">
+        <div className="text-left">
+          <div className="text-slate-600">Min</div>
+          <div className="text-slate-400 font-mono">{formatValueByType(min, { category: 'Integer' }, units)}</div>
+        </div>
+        <div className="text-center">
+          <div className={`text-${zoneColor}-400 font-medium`}>{zoneLabel} Range</div>
+          <div className="text-slate-500 text-xs">{isLargeRange ? 'Log Scale' : 'Linear'}</div>
+        </div>
+        <div className="text-right">
+          <div className="text-slate-600">Max</div>
+          <div className="text-slate-400 font-mono">{formatValueByType(max, { category: 'Integer' }, units)}</div>
+        </div>
       </div>
-      <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden">
-        {/* Filled portion */}
+
+      {/* Zone-based visualization */}
+      <div className="relative h-8 bg-slate-800 rounded-lg overflow-hidden">
+        {/* Background zones */}
+        <div className="absolute inset-0 flex">
+          <div className="flex-1 bg-cyan-900/20"></div>
+          <div className="flex-1 bg-blue-900/20"></div>
+          <div className="flex-1 bg-purple-900/20"></div>
+        </div>
+
+        {/* Zone markers */}
+        <div className="absolute inset-0 flex justify-between px-2 items-center pointer-events-none">
+          <div className="w-px h-4 bg-slate-700"></div>
+          <div className="w-px h-4 bg-slate-700"></div>
+          <div className="w-px h-4 bg-slate-700"></div>
+          <div className="w-px h-4 bg-slate-700"></div>
+        </div>
+
+        {/* Default value marker */}
         <div
-          className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 to-blue-500 transition-all"
-          style={{ width: `${clampedPosition}%` }}
-        />
-        {/* Marker */}
-        <div
-          className="absolute top-0 h-full w-1 bg-white shadow-lg transition-all"
+          className={`absolute top-0 h-full flex items-center transition-all`}
           style={{ left: `${clampedPosition}%` }}
-        />
+        >
+          <div className={`w-1 h-full bg-gradient-to-b from-${zoneColor}-400 to-${zoneColor}-500 shadow-lg`}></div>
+          <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-${zoneColor}-400 rounded-full border-2 border-slate-900 shadow-lg`}></div>
+        </div>
       </div>
-      <div className="text-center mt-1">
-        <span className="text-xs text-slate-400">
-          Default: {formatValueByType(defaultValue, { category: 'Integer' }, units)}
+
+      <div className="text-center mt-2">
+        <span className="text-xs text-slate-500">Default: </span>
+        <span className={`text-sm text-${zoneColor}-300 font-mono font-semibold`}>
+          {formatValueByType(defaultValue, { category: 'Integer' }, units)}
+        </span>
+        <span className="text-xs text-slate-600 ml-2">
+          ({Math.round(clampedPosition)}%)
         </span>
       </div>
     </div>
@@ -192,37 +271,31 @@ const ParameterCard = ({ param, category, usedByConnections = [], isExpanded: in
 
       {isExpanded && (
         <CardContent className="space-y-4 border-t border-slate-800 pt-4">
-          {/* Type Information */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-xs text-slate-500 mb-1">Data Type</div>
-              <div className="text-sm text-white">{dataTypeInfo.displayName}</div>
-              {dataTypeInfo.size && (
-                <div className="text-xs text-slate-400">Size: {dataTypeInfo.size}</div>
-              )}
-            </div>
-            {units && (
-              <div>
-                <div className="text-xs text-slate-500 mb-1">Units</div>
-                <div className="text-sm text-white">{units}</div>
-              </div>
-            )}
-          </div>
-
-          {/* Value Information */}
+          {/* Value Information - Show prominently */}
           {!enumInfo && (
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <div className="text-xs text-slate-500 mb-1">Default</div>
-                <div className="text-sm text-white font-mono">{formattedDefault}</div>
-              </div>
-              <div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-slate-800/50 rounded-lg p-3">
                 <div className="text-xs text-slate-500 mb-1">Minimum</div>
-                <div className="text-sm text-white font-mono">{formattedMin}</div>
+                <div className="text-base text-cyan-300 font-mono">{formattedMin}</div>
               </div>
-              <div>
+              <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3">
+                <div className="text-xs text-blue-400 mb-1">Default</div>
+                <div className="text-base text-white font-mono font-semibold">{formattedDefault}</div>
+              </div>
+              <div className="bg-slate-800/50 rounded-lg p-3">
                 <div className="text-xs text-slate-500 mb-1">Maximum</div>
-                <div className="text-sm text-white font-mono">{formattedMax}</div>
+                <div className="text-base text-purple-300 font-mono">{formattedMax}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Units - Show prominently if available */}
+          {units && (
+            <div className="bg-amber-900/20 border border-amber-700/30 rounded-lg p-3 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <div>
+                <span className="text-xs text-amber-400/80">Units: </span>
+                <span className="text-sm text-amber-200 font-medium">{units}</span>
               </div>
             </div>
           )}
@@ -274,6 +347,17 @@ const ParameterCard = ({ param, category, usedByConnections = [], isExpanded: in
               Technical Details
             </summary>
             <div className="mt-2 ml-5 space-y-2 text-xs font-mono">
+              <div className="text-slate-400">
+                <span className="text-slate-500">Data Type:</span> {dataTypeInfo.displayName}
+                {param.data_type !== null && param.data_type !== undefined && (
+                  <span className="text-slate-600 ml-2">(0x{param.data_type.toString(16).toUpperCase().padStart(2, '0')})</span>
+                )}
+              </div>
+              {param.data_size && (
+                <div className="text-slate-400">
+                  <span className="text-slate-500">Data Size:</span> {param.data_size} bytes
+                </div>
+              )}
               {param.link_path_size && param.link_path_size !== '0' && (
                 <div className="text-slate-400">
                   <span className="text-slate-500">Link Path Size:</span> {param.link_path_size}
@@ -287,11 +371,6 @@ const ParameterCard = ({ param, category, usedByConnections = [], isExpanded: in
               {param.descriptor && param.descriptor.trim() && (
                 <div className="text-slate-400">
                   <span className="text-slate-500">Descriptor:</span> {param.descriptor}
-                </div>
-              )}
-              {param.data_size && (
-                <div className="text-slate-400">
-                  <span className="text-slate-500">Data Size:</span> {param.data_size} bytes
                 </div>
               )}
             </div>

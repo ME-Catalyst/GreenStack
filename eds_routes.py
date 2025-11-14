@@ -176,8 +176,11 @@ async def upload_eds_file(file: UploadFile = File(...)):
                     eds_file_id, param_number, param_name, data_type,
                     data_size, default_value, min_value, max_value,
                     description, link_path_size, link_path, descriptor,
-                    help_string_1, help_string_2, help_string_3, enum_values
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    help_string_1, help_string_2, help_string_3, enum_values,
+                    units, scaling_multiplier, scaling_divisor, scaling_base, scaling_offset,
+                    link_scaling_multiplier, link_scaling_divisor, link_scaling_base, link_scaling_offset,
+                    decimal_places
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 eds_id,
                 param.get('param_number'),
@@ -194,7 +197,17 @@ async def upload_eds_file(file: UploadFile = File(...)):
                 param.get('help_string_1'),
                 param.get('help_string_2'),
                 param.get('help_string_3'),
-                param.get('enum_values')  # JSON string or None
+                param.get('enum_values'),  # JSON string or None
+                param.get('units'),
+                param.get('scaling_multiplier'),
+                param.get('scaling_divisor'),
+                param.get('scaling_base'),
+                param.get('scaling_offset'),
+                param.get('link_scaling_multiplier'),
+                param.get('link_scaling_divisor'),
+                param.get('link_scaling_base'),
+                param.get('link_scaling_offset'),
+                param.get('decimal_places')
             ))
 
         # Insert connections with all fields
@@ -1150,15 +1163,28 @@ async def upload_eds_package(file: UploadFile = File(...)):
                             eds_file_id, param_number, param_name, data_type,
                             data_size, default_value, min_value, max_value,
                             description, link_path_size, link_path, descriptor,
-                            help_string_1, help_string_2, help_string_3
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            help_string_1, help_string_2, help_string_3,
+                            units, scaling_multiplier, scaling_divisor, scaling_base, scaling_offset,
+                            link_scaling_multiplier, link_scaling_divisor, link_scaling_base, link_scaling_offset,
+                            decimal_places
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, (
                         eds_id, param.get('param_number'), param.get('param_name'),
                         param.get('data_type'), param.get('data_size'),
                         param.get('default_value'), param.get('min_value'), param.get('max_value'),
                         param.get('help_string_1', ''), param.get('link_path_size'),
                         param.get('link_path'), param.get('descriptor'),
-                        param.get('help_string_1'), param.get('help_string_2'), param.get('help_string_3')
+                        param.get('help_string_1'), param.get('help_string_2'), param.get('help_string_3'),
+                        param.get('units'),
+                        param.get('scaling_multiplier'),
+                        param.get('scaling_divisor'),
+                        param.get('scaling_base'),
+                        param.get('scaling_offset'),
+                        param.get('link_scaling_multiplier'),
+                        param.get('link_scaling_divisor'),
+                        param.get('link_scaling_base'),
+                        param.get('link_scaling_offset'),
+                        param.get('decimal_places')
                     ))
 
                 # Insert connections
@@ -1179,6 +1205,48 @@ async def upload_eds_package(file: UploadFile = File(...)):
                         conn_info.get('t_to_o_params'), conn_info.get('config_part1'),
                         conn_info.get('config_part2'), conn_info.get('path'),
                         conn_info.get('trigger_transport_comment'), conn_info.get('connection_params_comment')
+                    ))
+
+                # Insert assemblies
+                assemblies = parsed.get('assemblies', {})
+
+                # Insert fixed assemblies
+                for assembly in assemblies.get('fixed', []):
+                    cursor.execute("""
+                        INSERT INTO eds_assemblies (
+                            eds_file_id, assembly_number, assembly_name, assembly_type,
+                            unknown_field1, size, unknown_field2, path,
+                            help_string, is_variable
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        eds_id,
+                        assembly.get('assembly_number'),
+                        assembly.get('assembly_name'),
+                        assembly.get('assembly_type'),
+                        assembly.get('unknown_field1'),
+                        assembly.get('size'),
+                        assembly.get('unknown_field2'),
+                        assembly.get('path'),
+                        assembly.get('help_string'),
+                        False  # is_variable
+                    ))
+
+                # Insert variable assemblies
+                for assembly in assemblies.get('variable', []):
+                    cursor.execute("""
+                        INSERT INTO eds_variable_assemblies (
+                            eds_file_id, assembly_number, assembly_name,
+                            max_size, unknown_value1, unknown_value2,
+                            description
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        eds_id,
+                        assembly.get('assembly_number'),
+                        assembly.get('assembly_name'),
+                        assembly.get('max_size'),
+                        assembly.get('unknown_value1'),
+                        assembly.get('unknown_value2'),
+                        assembly.get('description')
                     ))
 
                 # Insert ports

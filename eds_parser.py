@@ -189,34 +189,47 @@ class EDSParser:
             # Parse comma-separated values
             values = [v.strip().strip('"') for v in param_data.split(',')]
 
-            # EDS Parameter format (correct mapping from actual EDS files):
-            # 0: Link path size
-            # 1: Link path
-            # 2: Descriptor
-            # 3: (unknown)
-            # 4: (unknown)
-            # 5: Data Type (integer value)
-            # 6: Param Name (quoted string)
-            # 7: Help String 1 (quoted string)
-            # 8: Help String 2 (quoted string)
-            # 9: Default value
-            # 10: Max value
-            # 11: Min value
+            # EDS Parameter format (corrected mapping based on actual EDS files):
+            # Index 0:  reserved (skip)
+            # Index 1-2: Link Path Size, Link Path
+            # Index 3:  Descriptor
+            # Index 4:  Data Type (hex like 0xC8)
+            # Index 5:  Data Size
+            # Index 6:  Name
+            # Index 7:  Units (e.g., "Microsecond")
+            # Index 8:  Help String
+            # Index 9:  Min value
+            # Index 10: Max value
+            # Index 11: Default value
+            # Index 12-15: Scaling (mult, div, base, offset)
+            # Index 16-19: Link scaling (mult, div, base, offset)
+            # Index 20: Decimal places
 
             params.append({
                 'param_number': param_num,
-                'link_path_size': values[0] if len(values) > 0 else None,
-                'link_path': values[1] if len(values) > 1 else None,
-                'descriptor': values[2] if len(values) > 2 else None,
-                'data_type': self._parse_int(values[5]) if len(values) > 5 else None,  # Index 5
-                'data_size': self._parse_int(values[4]) if len(values) > 4 else None,
-                'param_name': values[6] if len(values) > 6 else f'Param{param_num}',  # Index 6
-                'help_string_1': values[7] if len(values) > 7 else '',  # Index 7
-                'help_string_2': values[8] if len(values) > 8 else '',  # Index 8
+                # Skip index 0 (reserved)
+                'link_path_size': values[1] if len(values) > 1 else None,
+                'link_path': values[2] if len(values) > 2 else None,
+                'descriptor': values[3] if len(values) > 3 else None,
+                'data_type': self._parse_hex(values[4]) if len(values) > 4 else None,  # FIXED: Use _parse_hex
+                'data_size': self._parse_int(values[5]) if len(values) > 5 else None,
+                'param_name': values[6] if len(values) > 6 else f'Param{param_num}',
+                'units': values[7] if len(values) > 7 else '',  # NEW: Units field
+                'help_string_1': values[8] if len(values) > 8 else '',  # FIXED: Correct index
+                'help_string_2': '',  # Not used in this format
                 'help_string_3': '',  # Not used in this format
-                'default_value': values[9] if len(values) > 9 else None,
-                'max_value': values[10] if len(values) > 10 else None,
-                'min_value': values[11] if len(values) > 11 else None,
+                'min_value': values[9] if len(values) > 9 else None,  # FIXED: Correct order
+                'max_value': values[10] if len(values) > 10 else None,  # FIXED: Correct order
+                'default_value': values[11] if len(values) > 11 else None,  # FIXED: Correct order
+                'scaling_multiplier': values[12] if len(values) > 12 else None,  # NEW
+                'scaling_divisor': values[13] if len(values) > 13 else None,  # NEW
+                'scaling_base': values[14] if len(values) > 14 else None,  # NEW
+                'scaling_offset': values[15] if len(values) > 15 else None,  # NEW
+                'link_scaling_multiplier': values[16] if len(values) > 16 else None,  # NEW
+                'link_scaling_divisor': values[17] if len(values) > 17 else None,  # NEW
+                'link_scaling_base': values[18] if len(values) > 18 else None,  # NEW
+                'link_scaling_offset': values[19] if len(values) > 19 else None,  # NEW
+                'decimal_places': self._parse_int(values[20]) if len(values) > 20 else None,  # NEW
             })
 
         return params
