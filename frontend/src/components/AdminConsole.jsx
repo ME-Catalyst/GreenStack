@@ -132,6 +132,96 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
     }
   };
 
+  const handleDeleteIODD = async () => {
+    if (!confirm('⚠️ WARNING: This will delete ALL IODD devices and parameters!\n\nThis action cannot be undone. Are you absolutely sure?')) return;
+
+    try {
+      const response = await axios.post(`${API_BASE}/api/admin/database/delete-iodd`);
+      toast({
+        title: 'Success',
+        description: `Deleted ${response.data.devices_deleted} devices and ${response.data.parameters_deleted} parameters`
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete IODD devices',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteEDS = async () => {
+    if (!confirm('⚠️ WARNING: This will delete ALL EDS files and parameters!\n\nThis action cannot be undone. Are you absolutely sure?')) return;
+
+    try {
+      const response = await axios.post(`${API_BASE}/api/admin/database/delete-eds`);
+      toast({
+        title: 'Success',
+        description: `Deleted ${response.data.files_deleted} files and ${response.data.parameters_deleted} parameters`
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete EDS files',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteTickets = async () => {
+    if (!confirm('⚠️ WARNING: This will delete ALL tickets and attachments!\n\nThis action cannot be undone. Are you absolutely sure?')) return;
+
+    try {
+      const response = await axios.post(`${API_BASE}/api/admin/database/delete-tickets`);
+      toast({
+        title: 'Success',
+        description: `Deleted ${response.data.tickets_deleted} tickets and ${response.data.attachments_deleted} attachments`
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete tickets',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    const firstConfirm = confirm('⚠️ DANGER: This will delete ALL data from the database!\n\nThis includes:\n- All IODD devices\n- All EDS files\n- All tickets\n- All parameters\n\nThis action cannot be undone. Continue?');
+    if (!firstConfirm) return;
+
+    const secondConfirm = confirm('⚠️ FINAL WARNING: You are about to permanently delete everything!\n\nType "DELETE" in the next prompt to confirm.');
+    if (!secondConfirm) return;
+
+    const userInput = prompt('Type DELETE (in capital letters) to confirm:');
+    if (userInput !== 'DELETE') {
+      toast({
+        title: 'Cancelled',
+        description: 'Delete operation cancelled',
+        variant: 'default'
+      });
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API_BASE}/api/admin/database/delete-all`);
+      toast({
+        title: 'Success',
+        description: `All data deleted: ${response.data.iodd_devices_deleted} IODD devices, ${response.data.eds_files_deleted} EDS files`
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete all data',
+        variant: 'destructive'
+      });
+    }
+  };
+
   if (loading && !overview) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -210,6 +300,10 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
           handleVacuum={handleVacuum}
           handleBackup={handleBackup}
           handleDownloadBackup={handleDownloadBackup}
+          handleDeleteIODD={handleDeleteIODD}
+          handleDeleteEDS={handleDeleteEDS}
+          handleDeleteAll={handleDeleteAll}
+          toast={toast}
         />
       )}
 
@@ -704,7 +798,7 @@ const HubTab = ({ overview, onNavigate }) => {
 /**
  * Database Tab
  */
-const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDownloadBackup }) => {
+const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDownloadBackup, handleDeleteIODD, handleDeleteEDS, handleDeleteAll, toast }) => {
   return (
     <div className="space-y-6">
       {/* Health Status */}
@@ -852,10 +946,64 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
         </CardHeader>
         <CardContent>
           <p className="text-slate-400 text-sm mb-4">
-            Dangerous operations that can result in data loss. Use with caution.
+            ⚠️ Dangerous operations that can result in permanent data loss. Use with extreme caution.
           </p>
-          <div className="text-sm text-slate-500">
-            Destructive operations are not available in the UI for safety. Use the CLI or API if needed.
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button
+              onClick={handleDeleteIODD}
+              variant="destructive"
+              className="h-auto py-4 flex-col items-start bg-red-900/50 hover:bg-red-900/70 border-red-800"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Trash2 className="w-4 h-4" />
+                <span className="font-semibold">Delete All IODD</span>
+              </div>
+              <p className="text-xs opacity-80 text-left">
+                Permanently remove all IODD devices and parameters
+              </p>
+            </Button>
+
+            <Button
+              onClick={handleDeleteEDS}
+              variant="destructive"
+              className="h-auto py-4 flex-col items-start bg-red-900/50 hover:bg-red-900/70 border-red-800"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Trash2 className="w-4 h-4" />
+                <span className="font-semibold">Delete All EDS</span>
+              </div>
+              <p className="text-xs opacity-80 text-left">
+                Permanently remove all EDS files and parameters
+              </p>
+            </Button>
+
+            <Button
+              onClick={handleDeleteTickets}
+              variant="destructive"
+              className="h-auto py-4 flex-col items-start bg-red-900/50 hover:bg-red-900/70 border-red-800"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Trash2 className="w-4 h-4" />
+                <span className="font-semibold">Delete All Tickets</span>
+              </div>
+              <p className="text-xs opacity-80 text-left">
+                Permanently remove all tickets and attachments
+              </p>
+            </Button>
+
+            <Button
+              onClick={handleDeleteAll}
+              variant="destructive"
+              className="h-auto py-4 flex-col items-start bg-red-900 hover:bg-red-800 border-red-700"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Trash2 className="w-4 h-4" />
+                <span className="font-semibold">Delete ALL Data</span>
+              </div>
+              <p className="text-xs opacity-80 text-left">
+                EXTREME: Remove everything from the database
+              </p>
+            </Button>
           </div>
         </CardContent>
       </Card>

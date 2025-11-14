@@ -48,7 +48,9 @@
       "Bash(powershell -Command \"Stop-Process -Id 403500,420080 -Force\")",
       "Bash(move \"alembic\\versions\\008_expand_parameter_schema.py\" \"alembic\\versions\\010_expand_parameter_schema.py\")",
       "Bash(move \"alembic\\versions\\009_create_ticket_system.py\" \"alembic\\versions\\011_create_ticket_system.py\")",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(powershell -Command \"Get-Process python -ErrorAction SilentlyContinue | Select-Object Id, ProcessName\")",
+      "Bash(powershell -Command:*)"
     ],
     "deny": [],
     "ask": []

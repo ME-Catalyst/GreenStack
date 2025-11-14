@@ -145,6 +145,13 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
             onClick={() => setActiveView('grafana')}
             collapsed={collapsed}
           />
+
+          {/* Tools Section */}
+          {!collapsed && (
+            <div className="px-3 pt-4 pb-2">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tools</p>
+            </div>
+          )}
           <NavItem
             icon={<Zap className="w-5 h-5" />}
             label="Generators"
@@ -180,35 +187,6 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
                 >
                   <ChevronRight className="w-3 h-3" />
                   <span className="truncate">{device.product_name}</span>
-                </button>
-              ))}
-            </>
-          )}
-
-          {!collapsed && recentEdsFiles.length > 0 && (
-            <>
-              <div className="px-3 pt-4 pb-2">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Recent EDS</p>
-              </div>
-              {recentEdsFiles.slice(0, 5).map((eds) => (
-                <button
-                  key={eds.id}
-                  onClick={() => onEdsSelect(eds)}
-                  className="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-800 rounded-md transition-colors flex items-center space-x-2"
-                >
-                  <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
-                    <img
-                      src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/eds/${eds.id}/icon`}
-                      alt=""
-                      className="w-4 h-4 object-contain"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'block';
-                      }}
-                    />
-                    <ChevronRight className="w-3 h-3" style={{display: 'none'}} />
-                  </div>
-                  <span className="truncate">{eds.product_name || eds.deviceName}</span>
                 </button>
               ))}
             </>

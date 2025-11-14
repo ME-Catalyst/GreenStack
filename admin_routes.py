@@ -505,6 +505,50 @@ async def delete_all_eds_files():
         conn.close()
 
 
+@router.post("/database/delete-tickets")
+async def delete_all_tickets():
+    """
+    Delete all tickets and attachments
+
+    WARNING: This is a destructive operation that cannot be undone.
+    Deletes all tickets and their associated attachments.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    try:
+        # Get count before deletion
+        cursor.execute("SELECT COUNT(*) FROM tickets")
+        ticket_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM ticket_attachments")
+        attachment_count = cursor.fetchone()[0]
+
+        # Delete attachments first (foreign key constraint)
+        cursor.execute("DELETE FROM ticket_attachments")
+        cursor.execute("DELETE FROM tickets")
+
+        conn.commit()
+
+        # Also delete attachment files from filesystem
+        attachments_dir = Path("ticket_attachments")
+        if attachments_dir.exists():
+            shutil.rmtree(attachments_dir)
+            attachments_dir.mkdir()
+
+        return {
+            "success": True,
+            "message": "All tickets deleted",
+            "tickets_deleted": ticket_count,
+            "attachments_deleted": attachment_count
+        }
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete tickets: {str(e)}")
+    finally:
+        conn.close()
+
+
 @router.post("/database/delete-all")
 async def delete_all_data():
     """
@@ -539,6 +583,7 @@ async def delete_all_data():
         cursor.execute("DELETE FROM eds_modules")
         cursor.execute("DELETE FROM eds_assemblies")
         cursor.execute("DELETE FROM eds_parameters")
+        cursor.execute("DELETE FROM eds_diagnostics")
         cursor.execute("DELETE FROM eds_files")
 
         # IODD data
@@ -550,6 +595,12 @@ async def delete_all_data():
         cursor.execute("DELETE FROM devices")
 
         conn.commit()
+
+        # Delete attachment files from filesystem
+        attachments_dir = Path("ticket_attachments")
+        if attachments_dir.exists():
+            shutil.rmtree(attachments_dir)
+            attachments_dir.mkdir()
 
         return {
             "success": True,
