@@ -352,6 +352,131 @@ async def list_eds_files():
     return eds_files
 
 
+@router.get("/grouped/by-device")
+async def list_eds_files_grouped():
+    """
+    Get list of EDS files grouped by device (vendor_code + product_code).
+    Returns only the latest revision for each unique device, plus revision count.
+
+    Returns:
+        List of EDS file information with revision_count field
+    """
+    conn = sqlite3.connect(get_db_path())
+    cursor = conn.cursor()
+
+    # Use window functions to get latest revision per device
+    cursor.execute("""
+        WITH ranked AS (
+            SELECT
+                id, vendor_code, vendor_name, product_code, product_type,
+                product_type_str, product_name, catalog_number,
+                major_revision, minor_revision, description,
+                import_date, home_url,
+                diagnostic_info_count, diagnostic_warn_count,
+                diagnostic_error_count, diagnostic_fatal_count,
+                has_parsing_issues,
+                ROW_NUMBER() OVER (
+                    PARTITION BY vendor_code, product_code
+                    ORDER BY major_revision DESC, minor_revision DESC, import_date DESC
+                ) as rn,
+                COUNT(*) OVER (
+                    PARTITION BY vendor_code, product_code
+                ) as revision_count
+            FROM eds_files
+        )
+        SELECT
+            id, vendor_code, vendor_name, product_code, product_type,
+            product_type_str, product_name, catalog_number,
+            major_revision, minor_revision, description,
+            import_date, home_url,
+            diagnostic_info_count, diagnostic_warn_count,
+            diagnostic_error_count, diagnostic_fatal_count,
+            has_parsing_issues, revision_count
+        FROM ranked
+        WHERE rn = 1
+        ORDER BY vendor_name, product_name
+    """)
+
+    eds_files = []
+    for row in cursor.fetchall():
+        eds_files.append({
+            "id": row[0],
+            "vendor_code": row[1],
+            "vendor_name": row[2],
+            "product_code": row[3],
+            "product_type": row[4],
+            "product_type_str": row[5],
+            "product_name": row[6],
+            "catalog_number": row[7],
+            "major_revision": row[8],
+            "minor_revision": row[9],
+            "description": row[10],
+            "import_date": row[11],
+            "home_url": row[12],
+            "diagnostics": {
+                "info_count": row[13] or 0,
+                "warn_count": row[14] or 0,
+                "error_count": row[15] or 0,
+                "fatal_count": row[16] or 0,
+                "has_issues": bool(row[17])
+            },
+            "revision_count": row[18]  # Number of revisions for this device
+        })
+
+    conn.close()
+    return eds_files
+
+
+@router.get("/device/{vendor_code}/{product_code}/revisions")
+async def get_device_revisions(vendor_code: int, product_code: int):
+    """
+    Get all revisions for a specific device (identified by vendor_code + product_code).
+    Returns list sorted by revision (newest first).
+
+    Args:
+        vendor_code: Device vendor code
+        product_code: Device product code
+
+    Returns:
+        List of all revisions for this device
+    """
+    conn = sqlite3.connect(get_db_path())
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            id, vendor_code, vendor_name, product_code, product_name,
+            catalog_number, major_revision, minor_revision,
+            import_date, description
+        FROM eds_files
+        WHERE vendor_code = ? AND product_code = ?
+        ORDER BY major_revision DESC, minor_revision DESC, import_date DESC
+    """, (vendor_code, product_code))
+
+    revisions = []
+    for row in cursor.fetchall():
+        revisions.append({
+            "id": row[0],
+            "vendor_code": row[1],
+            "vendor_name": row[2],
+            "product_code": row[3],
+            "product_name": row[4],
+            "catalog_number": row[5],
+            "major_revision": row[6],
+            "minor_revision": row[7],
+            "import_date": row[8],
+            "description": row[9],
+            "revision_string": f"v{row[6]}.{row[7]}"
+        })
+
+    conn.close()
+
+    if not revisions:
+        raise HTTPException(status_code=404, detail="No revisions found for this device")
+
+    return revisions
+
+
 @router.get("/{eds_id}")
 async def get_eds_file(eds_id: int):
     """

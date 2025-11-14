@@ -467,9 +467,19 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
                     <FileText className="w-6 h-6 text-purple-400" style={{display: 'none'}} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-white truncate">
-                      {eds.product_name || 'Unknown Product'}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-white truncate">
+                        {eds.product_name || 'Unknown Product'}
+                      </h3>
+                      <Badge variant="outline" className="text-xs">
+                        v{eds.major_revision}.{eds.minor_revision}
+                      </Badge>
+                      {eds.revision_count > 1 && (
+                        <Badge className="text-xs bg-purple-900/50 text-purple-300 border-purple-700">
+                          {eds.revision_count} revisions
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-slate-400">
                       {eds.vendor_name || 'Unknown Vendor'}
                       {eds.catalog_number && ` • Cat# ${eds.catalog_number}`}
@@ -4009,7 +4019,7 @@ const IODDManager = () => {
 
   const fetchEdsFiles = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/api/eds`);
+      const response = await axios.get(`${API_BASE}/api/eds/grouped/by-device`);
       setEdsFiles(response.data);
       updateRecentEdsFilesFromStorage(response.data);
     } catch (error) {
