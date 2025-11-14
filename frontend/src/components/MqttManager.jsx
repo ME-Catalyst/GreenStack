@@ -170,7 +170,7 @@ const MqttManager = ({ API_BASE, toast }) => {
     }
   };
 
-  const subscribeTopic = async () => {
+  const handleSubscribe = async () => {
     try {
       const response = await fetch(`${API_BASE}/api/mqtt/subscribe`, {
         method: 'POST',
@@ -201,7 +201,7 @@ const MqttManager = ({ API_BASE, toast }) => {
     }
   };
 
-  const unsubscribeTopic = async () => {
+  const handleUnsubscribe = async () => {
     try {
       const response = await fetch(`${API_BASE}/api/mqtt/unsubscribe`, {
         method: 'POST',
@@ -663,7 +663,7 @@ const MqttManager = ({ API_BASE, toast }) => {
           <div className="flex gap-2">
             {!isSubscribed ? (
               <Button
-                onClick={subscribeTopic}
+                onClick={handleSubscribe}
                 className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500"
               >
                 <PlayCircle className="w-4 h-4 mr-2" />
@@ -671,7 +671,7 @@ const MqttManager = ({ API_BASE, toast }) => {
               </Button>
             ) : (
               <Button
-                onClick={unsubscribeTopic}
+                onClick={handleUnsubscribe}
                 variant="destructive"
                 className="flex-1"
               >
