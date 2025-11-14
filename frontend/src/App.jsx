@@ -16,7 +16,8 @@ import {
   AlertTriangle, Radio, ArrowRightLeft, FileText, Lock, Wrench, Monitor,
   Wifi, Menu, ChevronDown, Info, Type, Hash, ToggleLeft, Command, RotateCcw,
   AlertCircle, Network, Server, Gauge, Cable, Clock, Tag, Layers, GitBranch,
-  ArrowUpRight, ArrowDownRight, Users, HardDrive, CheckCircle, XCircle, AlertOctagon, FolderOpen, Bug
+  ArrowUpRight, ArrowDownRight, Users, HardDrive, CheckCircle, XCircle, AlertOctagon, FolderOpen, Bug,
+  Workflow, LineChart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -31,6 +32,9 @@ import SearchPage from './components/SearchPage';
 import ComparisonView from './components/ComparisonView';
 import AdminConsole from './components/AdminConsole';
 import MqttManager from './components/MqttManager';
+import InfluxManager from './components/InfluxManager';
+import NodeRedManager from './components/NodeRedManager';
+import GrafanaManager from './components/GrafanaManager';
 
 // ============================================================================
 // Helper Functions
@@ -118,6 +122,27 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
             label="MQTT Broker"
             active={activeView === 'mqtt'}
             onClick={() => setActiveView('mqtt')}
+            collapsed={collapsed}
+          />
+          <NavItem
+            icon={<Database className="w-5 h-5" />}
+            label="InfluxDB"
+            active={activeView === 'influxdb'}
+            onClick={() => setActiveView('influxdb')}
+            collapsed={collapsed}
+          />
+          <NavItem
+            icon={<Workflow className="w-5 h-5" />}
+            label="Node-RED"
+            active={activeView === 'nodered'}
+            onClick={() => setActiveView('nodered')}
+            collapsed={collapsed}
+          />
+          <NavItem
+            icon={<LineChart className="w-5 h-5" />}
+            label="Grafana"
+            active={activeView === 'grafana'}
+            onClick={() => setActiveView('grafana')}
             collapsed={collapsed}
           />
           <NavItem
@@ -4619,6 +4644,51 @@ const IODDManager = () => {
                 transition={{ duration: 0.2 }}
               >
                 <MqttManager
+                  API_BASE={API_BASE}
+                  toast={toast}
+                />
+              </motion.div>
+            )}
+
+            {activeView === 'influxdb' && (
+              <motion.div
+                key="influxdb"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <InfluxManager
+                  API_BASE={API_BASE}
+                  toast={toast}
+                />
+              </motion.div>
+            )}
+
+            {activeView === 'nodered' && (
+              <motion.div
+                key="nodered"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <NodeRedManager
+                  API_BASE={API_BASE}
+                  toast={toast}
+                />
+              </motion.div>
+            )}
+
+            {activeView === 'grafana' && (
+              <motion.div
+                key="grafana"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <GrafanaManager
                   API_BASE={API_BASE}
                   toast={toast}
                 />
