@@ -35,6 +35,13 @@ import MqttManager from './components/MqttManager';
 import InfluxManager from './components/InfluxManager';
 import NodeRedManager from './components/NodeRedManager';
 import GrafanaManager from './components/GrafanaManager';
+import { getUnitInfo, formatValueWithUnit } from './utils/iolinkUnits';
+import {
+  translateBitrate,
+  decodeProfileCharacteristics,
+  getWireColorInfo,
+  formatCycleTime
+} from './utils/iolinkConstants';
 
 // ============================================================================
 // Helper Functions
@@ -1700,11 +1707,19 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                 Format: <Badge className="ml-1 bg-slate-700 text-slate-300 text-xs">{item.display_format}</Badge>
               </div>
             )}
-            {item.unit_code && (
-              <div className="text-slate-400">
-                Unit: <Badge className="ml-1 bg-slate-700 text-slate-300 text-xs">{item.unit_code}</Badge>
-              </div>
-            )}
+            {item.unit_code && (() => {
+              const unitInfo = getUnitInfo(item.unit_code);
+              return (
+                <div className="text-slate-400">
+                  Unit: <Badge className="ml-1 bg-slate-700 text-slate-300 text-xs" title={unitInfo.name}>
+                    {unitInfo.symbol || item.unit_code}
+                  </Badge>
+                  {unitInfo.symbol && (
+                    <span className="ml-1 text-xs text-slate-500">({unitInfo.name})</span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       );
@@ -1747,11 +1762,19 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                 Format: <Badge className="ml-1 bg-slate-700 text-slate-300 text-xs">{item.display_format}</Badge>
               </div>
             )}
-            {item.unit_code && (
-              <div className="text-slate-400">
-                Unit: <Badge className="ml-1 bg-slate-700 text-slate-300 text-xs">{item.unit_code}</Badge>
-              </div>
-            )}
+            {item.unit_code && (() => {
+              const unitInfo = getUnitInfo(item.unit_code);
+              return (
+                <div className="text-slate-400">
+                  Unit: <Badge className="ml-1 bg-slate-700 text-slate-300 text-xs" title={unitInfo.name}>
+                    {unitInfo.symbol || item.unit_code}
+                  </Badge>
+                  {unitInfo.symbol && (
+                    <span className="ml-1 text-xs text-slate-500">({unitInfo.name})</span>
+                  )}
+                </div>
+              );
+            })()}
             <div className="text-slate-500 text-xs mt-2">
               ⚠ Parameter details not found in database
             </div>
@@ -2611,12 +2634,30 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     </div>
 
                     {/* Profile Characteristic */}
-                    {deviceFeatures.profile_characteristic && (
-                      <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
-                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Profile Characteristic</p>
-                        <p className="text-sm text-white font-mono">{deviceFeatures.profile_characteristic}</p>
-                      </div>
-                    )}
+                    {deviceFeatures.profile_characteristic && (() => {
+                      const characteristics = decodeProfileCharacteristics(deviceFeatures.profile_characteristic);
+                      return (
+                        <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700">
+                          <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Profile Characteristics</p>
+                          <p className="text-xs text-slate-500 font-mono mb-2">Raw: {deviceFeatures.profile_characteristic}</p>
+                          {characteristics.length > 0 ? (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {characteristics.map((char) => (
+                                <Badge
+                                  key={char.code}
+                                  className="bg-purple-500/20 text-purple-300 border-purple-500/50 text-xs"
+                                  title={`${char.description} (Code: ${char.code})`}
+                                >
+                                  {char.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-slate-400 italic">No profile characteristics decoded</p>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Access Locks */}
                     <div>
@@ -2764,15 +2805,18 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span>{param.name}</span>
                                 {param.dynamic && (
-                                  <Badge className="bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50 text-xs">
-                                    Dynamic
+                                  <Badge className="bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50 text-xs" title="Parameter updates in real-time">
+                                    🔄 Dynamic
                                   </Badge>
                                 )}
-                                {param.unit_code && (
-                                  <span className="text-xs text-purple-400 font-semibold">
-                                    [{param.unit_code}]
-                                  </span>
-                                )}
+                                {param.unit_code && (() => {
+                                  const unitInfo = getUnitInfo(param.unit_code);
+                                  return (
+                                    <span className="text-xs text-purple-400 font-semibold" title={`Unit Code ${param.unit_code}: ${unitInfo.name}`}>
+                                      [{unitInfo.symbol || param.unit_code}]
+                                    </span>
+                                  );
+                                })()}
                                 {param.bit_length && (
                                   <span className="text-xs text-slate-500">({param.bit_length} bits)</span>
                                 )}
@@ -3319,12 +3363,17 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             <p className="text-lg font-bold text-blue-400">{communicationProfile.compatible_with}</p>
                           </div>
                         )}
-                        {communicationProfile.bitrate && (
-                          <div className="p-4 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-slate-700">
-                            <p className="text-xs text-slate-400 mb-1">Bitrate</p>
-                            <p className="text-lg font-bold text-purple-400">{communicationProfile.bitrate}</p>
-                          </div>
-                        )}
+                        {communicationProfile.bitrate && (() => {
+                          const bitrateDisplay = translateBitrate(communicationProfile.bitrate);
+                          return (
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-slate-700">
+                              <p className="text-xs text-slate-400 mb-1">Bitrate</p>
+                              <p className="text-lg font-bold text-purple-400" title={`${communicationProfile.bitrate} - ${bitrateDisplay}`}>
+                                {bitrateDisplay}
+                              </p>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -3335,7 +3384,9 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         {communicationProfile.min_cycle_time && (
                           <div className="p-4 rounded-lg bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-slate-700">
                             <p className="text-xs text-slate-400 mb-1">Min Cycle Time</p>
-                            <p className="text-lg font-bold text-orange-400">{(communicationProfile.min_cycle_time / 1000).toFixed(1)} ms</p>
+                            <p className="text-lg font-bold text-orange-400" title={`${communicationProfile.min_cycle_time} microseconds`}>
+                              {formatCycleTime(communicationProfile.min_cycle_time)}
+                            </p>
                           </div>
                         )}
                         {communicationProfile.msequence_capability && (
@@ -3369,12 +3420,23 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                       <div>
                         <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">Wire Configuration</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {Object.entries(communicationProfile.wire_config).map(([wire, func]) => (
-                            <div key={wire} className="p-3 rounded-lg bg-gradient-to-br from-[#3DB60F]/10 to-blue-500/5 border border-slate-700">
-                              <p className="text-xs text-slate-400 mb-1">{wire}</p>
-                              <p className="text-sm font-semibold text-[#3DB60F]">{func}</p>
-                            </div>
-                          ))}
+                          {Object.entries(communicationProfile.wire_config).map(([wire, func]) => {
+                            const wireInfo = getWireColorInfo(wire);
+                            return (
+                              <div key={wire} className="p-3 rounded-lg bg-gradient-to-br from-[#3DB60F]/10 to-blue-500/5 border border-slate-700 hover:border-[#3DB60F]/50 transition-all">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div
+                                    className="w-4 h-4 rounded-full border-2 border-slate-600 shadow-inner"
+                                    style={{ backgroundColor: wireInfo.hex }}
+                                    title={wireInfo.name}
+                                  />
+                                  <p className="text-xs text-slate-400 font-mono">{wire}</p>
+                                </div>
+                                <p className="text-xs text-slate-300 mb-1">{wireInfo.name}</p>
+                                <p className="text-xs font-semibold text-[#3DB60F]">{func}</p>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
