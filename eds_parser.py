@@ -303,20 +303,60 @@ class EDSParser:
         variable_assemblies = []
         content = self.sections['Assembly']
 
-        # Pattern 1: Fixed assemblies
-        # Assem100 = "Digital Input", 0x64, 0, 1, 0x0000, , "20 04 24 65 30 03", , ;
-        fixed_pattern = r'Assem(\d+)\s*=\s*"([^"]+)",\s*(\w+),\s*(\d+),\s*(\d+),\s*(\w+),\s*,\s*"([^"]*)",\s*,\s*;'
-        fixed_matches = re.finditer(fixed_pattern, content, re.MULTILINE)
+        # Pattern 1: Fixed assemblies - more flexible pattern to handle various formats
+        # Format 1: Assem100 = "Digital Input", 0x64, 0, 1, 0x0000, , "20 04 24 65 30 03", , ;
+        # Format 2: Assem100 = "InputAssem", , , 0x0021, , ;
+        fixed_pattern = r'Assem(\d+)\s*=\s*(.+?);'
+        fixed_matches = re.finditer(fixed_pattern, content, re.MULTILINE | re.DOTALL)
 
         for match in fixed_matches:
+            assembly_num = int(match.group(1))
+            assembly_data = match.group(2).strip()
+
+            # Remove comments
+            if '$' in assembly_data:
+                assembly_data = assembly_data.split('$')[0].strip()
+
+            # Split by commas, handling quoted strings
+            parts = []
+            current = ''
+            in_quotes = False
+            for char in assembly_data:
+                if char == '"':
+                    in_quotes = not in_quotes
+                    current += char
+                elif char == ',' and not in_quotes:
+                    parts.append(current.strip())
+                    current = ''
+                else:
+                    current += char
+            if current.strip():
+                parts.append(current.strip())
+
+            # Extract assembly name (first quoted field)
+            assembly_name = ''
+            if parts and parts[0].startswith('"') and parts[0].endswith('"'):
+                assembly_name = parts[0].strip('"')
+
+            # Try to find size field (look for hex values like 0x0021)
+            size = None
+            for part in parts:
+                part = part.strip()
+                if part.startswith('0x') or part.startswith('0X'):
+                    try:
+                        size = self._parse_int(part)
+                        break
+                    except:
+                        pass
+
             fixed_assemblies.append({
-                'assembly_number': int(match.group(1)),
-                'assembly_name': match.group(2),
-                'assembly_type': self._parse_int(match.group(3)),  # 0x64
-                'unknown_field1': int(match.group(4)),
-                'size': int(match.group(5)),
-                'unknown_field2': self._parse_int(match.group(6)),  # 0x0000
-                'path': match.group(7),
+                'assembly_number': assembly_num,
+                'assembly_name': assembly_name,
+                'assembly_type': None,
+                'unknown_field1': None,
+                'size': size,
+                'unknown_field2': None,
+                'path': '',
                 'help_string': '',
                 'is_variable': False
             })
