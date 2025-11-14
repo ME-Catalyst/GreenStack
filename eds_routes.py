@@ -1301,3 +1301,189 @@ async def get_package_details(package_id: int):
 
     conn.close()
     return package_info
+
+
+@router.get("/{eds_id}/assemblies")
+async def get_eds_assemblies(eds_id: int):
+    """
+    Get assembly definitions for an EDS file.
+
+    Returns both fixed assemblies (Assem100, Assem119, etc.) and
+    variable assemblies (AssemExa134, etc.) with their configurations.
+
+    Args:
+        eds_id: EDS file ID
+
+    Returns:
+        Dictionary with 'fixed' and 'variable' assembly lists
+    """
+    conn = sqlite3.connect(get_db_path())
+    cursor = conn.cursor()
+
+    # Get fixed assemblies
+    cursor.execute("""
+        SELECT
+            id, assembly_number, assembly_name, assembly_type,
+            unknown_field1, size, unknown_field2, path,
+            help_string, is_variable
+        FROM eds_assemblies
+        WHERE eds_file_id = ?
+        ORDER BY assembly_number
+    """, (eds_id,))
+
+    fixed_assemblies = []
+    for row in cursor.fetchall():
+        assembly_num = row[1]
+        assembly_ref = f"Assem{assembly_num}"
+
+        # Find connections that use this assembly
+        cursor.execute("""
+            SELECT connection_number, connection_name,
+                   output_assembly, input_assembly,
+                   o_to_t_params, t_to_o_params
+            FROM eds_connections
+            WHERE eds_file_id = ?
+            AND (output_assembly LIKE ? OR input_assembly LIKE ?
+                 OR o_to_t_params LIKE ? OR t_to_o_params LIKE ?)
+        """, (eds_id, f"%{assembly_ref}%", f"%{assembly_ref}%",
+              f"%{assembly_ref}%", f"%{assembly_ref}%"))
+
+        used_by = []
+        for conn_row in cursor.fetchall():
+            direction = []
+            if assembly_ref in (conn_row[2] or ''):  # output_assembly
+                direction.append('output')
+            if assembly_ref in (conn_row[3] or ''):  # input_assembly
+                direction.append('input')
+            if assembly_ref in (conn_row[4] or ''):  # o_to_t_params
+                direction.append('O→T')
+            if assembly_ref in (conn_row[5] or ''):  # t_to_o_params
+                direction.append('T→O')
+
+            used_by.append({
+                "connection_number": conn_row[0],
+                "connection_name": conn_row[1],
+                "direction": ', '.join(direction)
+            })
+
+        fixed_assemblies.append({
+            "id": row[0],
+            "assembly_number": row[1],
+            "assembly_name": row[2],
+            "assembly_type": row[3],
+            "unknown_field1": row[4],
+            "size": row[5],
+            "unknown_field2": row[6],
+            "path": row[7],
+            "help_string": row[8],
+            "is_variable": bool(row[9]),
+            "used_by_connections": used_by
+        })
+
+    # Get variable assemblies
+    cursor.execute("""
+        SELECT
+            id, assembly_name, assembly_number,
+            unknown_value1, max_size, description
+        FROM eds_variable_assemblies
+        WHERE eds_file_id = ?
+        ORDER BY assembly_number
+    """, (eds_id,))
+
+    variable_assemblies = []
+    for row in cursor.fetchall():
+        assembly_ref = row[1]  # assembly_name like "AssemExa134"
+
+        # Find connections that use this assembly
+        cursor.execute("""
+            SELECT connection_number, connection_name,
+                   output_assembly, input_assembly,
+                   o_to_t_params, t_to_o_params
+            FROM eds_connections
+            WHERE eds_file_id = ?
+            AND (output_assembly LIKE ? OR input_assembly LIKE ?
+                 OR o_to_t_params LIKE ? OR t_to_o_params LIKE ?)
+        """, (eds_id, f"%{assembly_ref}%", f"%{assembly_ref}%",
+              f"%{assembly_ref}%", f"%{assembly_ref}%"))
+
+        used_by = []
+        for conn_row in cursor.fetchall():
+            direction = []
+            if assembly_ref in (conn_row[2] or ''):  # output_assembly
+                direction.append('output')
+            if assembly_ref in (conn_row[3] or ''):  # input_assembly
+                direction.append('input')
+            if assembly_ref in (conn_row[4] or ''):  # o_to_t_params
+                direction.append('O→T')
+            if assembly_ref in (conn_row[5] or ''):  # t_to_o_params
+                direction.append('T→O')
+
+            used_by.append({
+                "connection_number": conn_row[0],
+                "connection_name": conn_row[1],
+                "direction": ', '.join(direction)
+            })
+
+        variable_assemblies.append({
+            "id": row[0],
+            "assembly_name": row[1],
+            "assembly_number": row[2],
+            "unknown_value1": row[3],
+            "max_size": row[4],
+            "description": row[5],
+            "used_by_connections": used_by
+        })
+
+    conn.close()
+
+    return {
+        "fixed": fixed_assemblies,
+        "variable": variable_assemblies,
+        "total_count": len(fixed_assemblies) + len(variable_assemblies)
+    }
+
+
+@router.get("/{eds_id}/ports")
+async def get_eds_ports(eds_id: int):
+    """
+    Get port definitions for an EDS file.
+
+    Ports define communication interfaces (TCP, Ethernet, etc.) and
+    their configurations for device connectivity.
+
+    Args:
+        eds_id: EDS file ID
+
+    Returns:
+        List of port definitions with type, name, path, and link information
+    """
+    conn = sqlite3.connect(get_db_path())
+    cursor = conn.cursor()
+
+    # Get ports
+    cursor.execute("""
+        SELECT
+            id, port_number, port_type, port_name,
+            port_path, link_number
+        FROM eds_ports
+        WHERE eds_file_id = ?
+        ORDER BY port_number
+    """, (eds_id,))
+
+    ports = []
+    for row in cursor.fetchall():
+        ports.append({
+            "id": row[0],
+            "port_number": row[1],
+            "port_type": row[2],
+            "port_name": row[3],
+            "port_path": row[4],
+            "link_number": row[5]
+        })
+
+    conn.close()
+
+    return {
+        "ports": ports,
+        "total_count": len(ports)
+    }

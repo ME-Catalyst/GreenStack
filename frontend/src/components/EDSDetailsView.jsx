@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   ArrowLeft, Download, FileText, Server, ArrowUpRight, ArrowDownRight,
-  Users, Activity, Clock, Package, Code, Database, FileCode, ChevronDown, ChevronRight, Info, Filter
+  Users, Activity, Clock, Package, Code, Database, FileCode, ChevronDown, ChevronRight, Info, Filter, Boxes, Network
 } from 'lucide-react';
+import AssembliesSection from './AssembliesSection';
+import PortsSection from './PortsSection';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui';
@@ -62,6 +64,8 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
     { id: 'overview', label: 'Overview', icon: Package },
     { id: 'parameters', label: `Parameters (${selectedEds.parameters?.length || 0})`, icon: Database },
     { id: 'connections', label: `Connections (${selectedEds.connections?.length || 0})`, icon: Activity },
+    { id: 'assemblies', label: 'Assemblies', icon: Boxes },
+    { id: 'ports', label: 'Ports', icon: Network },
     { id: 'capacity', label: 'Capacity & Performance', icon: Server },
     { id: 'raw', label: 'Raw EDS Content', icon: FileCode },
   ];
@@ -203,6 +207,8 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
         {activeTab === 'overview' && <OverviewTab selectedEds={selectedEds} />}
         {activeTab === 'parameters' && <ParametersTab selectedEds={selectedEds} />}
         {activeTab === 'connections' && <ConnectionsTab selectedEds={selectedEds} />}
+        {activeTab === 'assemblies' && <AssembliesSection edsId={selectedEds.id} />}
+        {activeTab === 'ports' && <PortsSection edsId={selectedEds.id} />}
         {activeTab === 'capacity' && <CapacityTab selectedEds={selectedEds} />}
         {activeTab === 'raw' && <RawContentTab selectedEds={selectedEds} />}
       </div>
@@ -733,6 +739,36 @@ const ConnectionsTab = ({ selectedEds }) => {
                           <div>
                             <div className="text-xs text-blue-400 font-semibold mb-1">Description</div>
                             <p className="text-sm text-slate-300">{conn.help_string}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Assembly References */}
+                    {(conn.o_to_t_params || conn.t_to_o_params) && (
+                      <div className="bg-green-950/20 rounded-lg p-3 border border-green-900/30">
+                        <div className="flex items-start gap-2">
+                          <Package className="w-4 h-4 text-green-400 mt-0.5" />
+                          <div className="flex-1">
+                            <div className="text-xs text-green-400 font-semibold mb-2">Assembly References</div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                              {conn.o_to_t_params && (
+                                <div>
+                                  <div className="text-xs text-slate-500 mb-1">O→T (Output)</div>
+                                  <div className="font-mono text-xs text-green-300">
+                                    {conn.o_to_t_params}
+                                  </div>
+                                </div>
+                              )}
+                              {conn.t_to_o_params && (
+                                <div>
+                                  <div className="text-xs text-slate-500 mb-1">T→O (Input)</div>
+                                  <div className="font-mono text-xs text-cyan-300">
+                                    {conn.t_to_o_params}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
