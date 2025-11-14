@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Filter, ChevronRight, Package, Settings, Link as LinkIcon, List, Hash, FileText } from 'lucide-react';
+import { Search, X, Filter, ChevronRight, Package, Settings, Link as LinkIcon, List, Hash, FileText, Tag } from 'lucide-react';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from './ui';
-import { Button } from './ui';
+import { Button, Badge } from './ui';
 
 /**
  * Global search page for searching across all device data
@@ -17,6 +17,72 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchInputRef = useRef(null);
   const suggestionsTimeoutRef = useRef(null);
+
+  // Advanced filters
+  const [vendorFilter, setVendorFilter] = useState(null);
+  const [availableVendors, setAvailableVendors] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState(null);
+  const [hasParametersFilter, setHasParametersFilter] = useState(false);
+  const [hasAssembliesFilter, setHasAssembliesFilter] = useState(false);
+  const [allDevices, setAllDevices] = useState([]);
+
+  // Fetch all devices on mount
+  useEffect(() => {
+    const fetchAllDevices = async () => {
+      setSearching(true);
+      try {
+        const [ioddResponse, edsResponse] = await Promise.all([
+          axios.get(`${API_BASE}/api/iodd`),
+          axios.get(`${API_BASE}/api/eds`)
+        ]);
+
+        const ioddDevices = ioddResponse.data.map(d => ({
+          ...d,
+          type: 'IODD',
+          id: d.id,
+          product_name: d.product_name,
+          vendor_name: d.manufacturer,
+          has_parameters: d.parameter_count > 0,
+          has_assemblies: false
+        }));
+
+        const edsDevices = edsResponse.data.map(d => ({
+          ...d,
+          type: 'EDS',
+          id: d.id,
+          product_name: d.product_name,
+          vendor_name: d.vendor_name,
+          has_parameters: d.parameter_count > 0,
+          has_assemblies: d.assembly_count > 0
+        }));
+
+        const devices = [...ioddDevices, ...edsDevices];
+        setAllDevices(devices);
+
+        // Extract unique vendors
+        const vendors = [...new Set(devices.map(d => d.vendor_name).filter(Boolean))].sort();
+        setAvailableVendors(vendors);
+
+        // Set initial results to show all devices
+        setResults({
+          query: '',
+          total_results: devices.length,
+          eds_devices: edsDevices,
+          iodd_devices: ioddDevices,
+          parameters: [],
+          assemblies: [],
+          connections: [],
+          enums: []
+        });
+      } catch (error) {
+        console.error('Failed to fetch devices:', error);
+      } finally {
+        setSearching(false);
+      }
+    };
+
+    fetchAllDevices();
+  }, [API_BASE]);
 
   // Fetch search suggestions as user types
   useEffect(() => {
@@ -49,8 +115,73 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
     };
   }, [searchQuery, API_BASE]);
 
+  // Apply client-side filters
+  const applyFilters = (devices) => {
+    let filtered = [...devices];
+
+    // Device type filter
+    if (deviceTypeFilter) {
+      filtered = filtered.filter(d => d.type === deviceTypeFilter);
+    }
+
+    // Vendor filter
+    if (vendorFilter) {
+      filtered = filtered.filter(d => d.vendor_name === vendorFilter);
+    }
+
+    // Has parameters filter
+    if (hasParametersFilter) {
+      filtered = filtered.filter(d => d.has_parameters);
+    }
+
+    // Has assemblies filter
+    if (hasAssembliesFilter) {
+      filtered = filtered.filter(d => d.has_assemblies);
+    }
+
+    return filtered;
+  };
+
+  // Handle filter changes
+  useEffect(() => {
+    if (allDevices.length > 0 && !searchQuery) {
+      // Apply filters to local devices when not searching
+      const filtered = applyFilters(allDevices);
+      const edsDevices = filtered.filter(d => d.type === 'EDS');
+      const ioddDevices = filtered.filter(d => d.type === 'IODD');
+
+      setResults({
+        query: '',
+        total_results: filtered.length,
+        eds_devices: edsDevices,
+        iodd_devices: ioddDevices,
+        parameters: [],
+        assemblies: [],
+        connections: [],
+        enums: []
+      });
+    }
+  }, [deviceTypeFilter, vendorFilter, hasParametersFilter, hasAssembliesFilter, allDevices]);
+
   const handleSearch = async (query = searchQuery) => {
-    if (query.length < 2) return;
+    if (query.length < 2) {
+      // If clearing search, show all devices with current filters
+      const filtered = applyFilters(allDevices);
+      const edsDevices = filtered.filter(d => d.type === 'EDS');
+      const ioddDevices = filtered.filter(d => d.type === 'IODD');
+
+      setResults({
+        query: '',
+        total_results: filtered.length,
+        eds_devices: edsDevices,
+        iodd_devices: ioddDevices,
+        parameters: [],
+        assemblies: [],
+        connections: [],
+        enums: []
+      });
+      return;
+    }
 
     setSearching(true);
     setShowSuggestions(false);
@@ -85,11 +216,51 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
 
   const clearSearch = () => {
     setSearchQuery('');
-    setResults(null);
     setSuggestions([]);
     setShowSuggestions(false);
     searchInputRef.current?.focus();
+
+    // Reapply filters to show all devices
+    const filtered = applyFilters(allDevices);
+    const edsDevices = filtered.filter(d => d.type === 'EDS');
+    const ioddDevices = filtered.filter(d => d.type === 'IODD');
+
+    setResults({
+      query: '',
+      total_results: filtered.length,
+      eds_devices: edsDevices,
+      iodd_devices: ioddDevices,
+      parameters: [],
+      assemblies: [],
+      connections: [],
+      enums: []
+    });
   };
+
+  const clearAllFilters = () => {
+    setDeviceTypeFilter(null);
+    setVendorFilter(null);
+    setHasParametersFilter(false);
+    setHasAssembliesFilter(false);
+    setSearchQuery('');
+
+    // Show all devices
+    const edsDevices = allDevices.filter(d => d.type === 'EDS');
+    const ioddDevices = allDevices.filter(d => d.type === 'IODD');
+
+    setResults({
+      query: '',
+      total_results: allDevices.length,
+      eds_devices: edsDevices,
+      iodd_devices: ioddDevices,
+      parameters: [],
+      assemblies: [],
+      connections: [],
+      enums: []
+    });
+  };
+
+  const hasActiveFilters = deviceTypeFilter || vendorFilter || hasParametersFilter || hasAssembliesFilter;
 
   const getCategoryIcon = (category) => {
     switch (category) {
@@ -351,6 +522,116 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                   </button>
                 </div>
               </div>
+
+              {/* Advanced Filters */}
+              <div className="mt-4 pt-4 border-t border-slate-700">
+                <div className="flex items-start gap-4 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-slate-400" />
+                    <span className="text-sm text-slate-400">Advanced filters:</span>
+                  </div>
+
+                  {/* Vendor Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500">Vendor:</span>
+                    <select
+                      value={vendorFilter || ''}
+                      onChange={(e) => setVendorFilter(e.target.value || null)}
+                      className="px-3 py-1 text-sm bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-orange-500"
+                    >
+                      <option value="">All Vendors</option>
+                      {availableVendors.map(vendor => (
+                        <option key={vendor} value={vendor}>{vendor}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Has Parameters Filter */}
+                  <label className="flex items-center gap-2 px-3 py-1 bg-slate-800 border border-slate-700 rounded cursor-pointer hover:bg-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={hasParametersFilter}
+                      onChange={(e) => setHasParametersFilter(e.target.checked)}
+                      className="w-4 h-4 text-orange-600 bg-slate-700 border-slate-600 rounded focus:ring-orange-500"
+                    />
+                    <span className="text-sm text-white">Has Parameters</span>
+                  </label>
+
+                  {/* Has Assemblies Filter */}
+                  <label className="flex items-center gap-2 px-3 py-1 bg-slate-800 border border-slate-700 rounded cursor-pointer hover:bg-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={hasAssembliesFilter}
+                      onChange={(e) => setHasAssembliesFilter(e.target.checked)}
+                      className="w-4 h-4 text-orange-600 bg-slate-700 border-slate-600 rounded focus:ring-orange-500"
+                    />
+                    <span className="text-sm text-white">Has Assemblies</span>
+                  </label>
+
+                  {/* Clear Filters */}
+                  {hasActiveFilters && (
+                    <Button
+                      onClick={clearAllFilters}
+                      variant="outline"
+                      className="text-xs h-8"
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
+
+                {/* Active Filters Display */}
+                {hasActiveFilters && (
+                  <div className="flex items-center gap-2 mt-3 flex-wrap">
+                    <span className="text-xs text-slate-500">Active:</span>
+                    {deviceTypeFilter && (
+                      <Badge variant="outline" className="text-xs">
+                        Type: {deviceTypeFilter}
+                        <button
+                          onClick={() => setDeviceTypeFilter(null)}
+                          className="ml-1 hover:text-red-400"
+                        >
+                          <X className="w-3 h-3 inline" />
+                        </button>
+                      </Badge>
+                    )}
+                    {vendorFilter && (
+                      <Badge variant="outline" className="text-xs">
+                        Vendor: {vendorFilter}
+                        <button
+                          onClick={() => setVendorFilter(null)}
+                          className="ml-1 hover:text-red-400"
+                        >
+                          <X className="w-3 h-3 inline" />
+                        </button>
+                      </Badge>
+                    )}
+                    {hasParametersFilter && (
+                      <Badge variant="outline" className="text-xs">
+                        Has Parameters
+                        <button
+                          onClick={() => setHasParametersFilter(false)}
+                          className="ml-1 hover:text-red-400"
+                        >
+                          <X className="w-3 h-3 inline" />
+                        </button>
+                      </Badge>
+                    )}
+                    {hasAssembliesFilter && (
+                      <Badge variant="outline" className="text-xs">
+                        Has Assemblies
+                        <button
+                          onClick={() => setHasAssembliesFilter(false)}
+                          className="ml-1 hover:text-red-400"
+                        >
+                          <X className="w-3 h-3 inline" />
+                        </button>
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -361,7 +642,11 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
             {/* Results Summary */}
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">
-                {results.total_results} result{results.total_results !== 1 ? 's' : ''} for "{results.query}"
+                {results.query ? (
+                  <>{results.total_results} result{results.total_results !== 1 ? 's' : ''} for "{results.query}"</>
+                ) : (
+                  <>{results.total_results} device{results.total_results !== 1 ? 's' : ''} {hasActiveFilters ? '(filtered)' : ''}</>
+                )}
               </h2>
               {results.has_more && (
                 <span className="text-sm text-orange-400">
@@ -410,21 +695,12 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
           </div>
         )}
 
-        {/* Empty State (no search performed) */}
-        {!results && !searching && (
+        {/* Loading State */}
+        {!results && searching && (
           <Card className="bg-slate-900 border-slate-800">
             <CardContent className="p-12 text-center">
-              <Search className="w-16 h-16 mx-auto mb-4 text-slate-600" />
-              <h3 className="text-xl font-semibold mb-2">Search across all data</h3>
-              <p className="text-slate-400 mb-4">
-                Enter a search term above to find devices, parameters, assemblies, and more
-              </p>
-              <div className="text-sm text-slate-500 space-y-1">
-                <p>• Search by device names, vendors, product codes</p>
-                <p>• Find parameters by name, description, or units</p>
-                <p>• Discover assemblies and connections</p>
-                <p>• Search through enum values</p>
-              </div>
+              <div className="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-slate-400">Loading devices...</p>
             </CardContent>
           </Card>
         )}

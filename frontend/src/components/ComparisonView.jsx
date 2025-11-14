@@ -99,24 +99,45 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
 
   const getParameterValue = (device, paramName) => {
     if (!device || !device.parameters) return null;
-    return device.parameters.find(p =>
-      p.name?.toLowerCase() === paramName.toLowerCase() ||
-      p.param_name?.toLowerCase() === paramName.toLowerCase()
-    );
+
+    // Try exact match first
+    let param = device.parameters.find(p => {
+      const pName = p.name || p.param_name || '';
+      return pName.toLowerCase() === paramName.toLowerCase();
+    });
+
+    // If no exact match, try fuzzy matching (remove spaces, underscores, dashes)
+    if (!param) {
+      const normalizedParamName = paramName.toLowerCase().replace(/[\s_-]/g, '');
+      param = device.parameters.find(p => {
+        const pName = (p.name || p.param_name || '').toLowerCase().replace(/[\s_-]/g, '');
+        return pName === normalizedParamName;
+      });
+    }
+
+    return param;
   };
 
   const getAllParameterNames = () => {
-    const names = new Set();
+    const nameMap = new Map(); // Use map to track unique normalized names
 
     Object.values(deviceDetails).forEach(device => {
       if (device.parameters) {
         device.parameters.forEach(p => {
-          names.add(p.name || p.param_name);
+          const rawName = p.name || p.param_name;
+          if (rawName) {
+            const normalized = rawName.toLowerCase().replace(/[\s_-]/g, '');
+            // Store the first occurrence of each normalized name
+            if (!nameMap.has(normalized)) {
+              nameMap.set(normalized, rawName);
+            }
+          }
         });
       }
     });
 
-    return Array.from(names).sort();
+    // Return sorted display names
+    return Array.from(nameMap.values()).sort();
   };
 
   const renderParameterComparison = () => {
@@ -307,11 +328,25 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
     );
   };
 
-  const filteredDevices = [...availableDevices, ...availableEds].filter(device =>
-    device.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    device.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    device.vendor_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Smart device filtering
+  const filteredDevices = [...availableDevices, ...availableEds].filter(device => {
+    // Filter by search query
+    const matchesSearch = !searchQuery ||
+      device.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      device.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      device.vendor_name?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Filter by device type (if any device is selected, only show same type)
+    const matchesType = selectedDevices.length === 0 ||
+      selectedDevices[0].type === device.type;
+
+    // Exclude already selected devices
+    const notAlreadySelected = !selectedDevices.find(d =>
+      d.id === device.id && d.type === device.type
+    );
+
+    return matchesSearch && matchesType && notAlreadySelected;
+  });
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-6">
@@ -364,6 +399,14 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
               </div>
             </CardHeader>
             <CardContent>
+              {selectedDevices.length > 0 && (
+                <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <p className="text-sm text-blue-300">
+                    Showing only <strong>{selectedDevices[0].type}</strong> devices to match your selection
+                  </p>
+                </div>
+              )}
+
               <input
                 type="text"
                 value={searchQuery}
