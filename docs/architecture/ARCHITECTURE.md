@@ -6,14 +6,17 @@
 
 ## Overview
 
-IODD Manager is a comprehensive system for importing, managing, and analyzing IO-Link Device Description (IODD) files. The system provides a REST API backend, modern React frontend, and complete database storage for IODD device data.
+GreenStack (formerly IODD Manager) is a comprehensive intelligent device management platform for importing, managing, and analyzing IO-Link Device Description (IODD) and EtherNet/IP (EDS) device configurations. The system provides a REST API backend, modern React frontend with advanced UX features, and complete database storage for device data.
 
 **Core Capabilities:**
-- Import and parse IODD XML files
+- Import and parse IODD XML files and EDS device descriptions
 - Multi-file and nested ZIP import
 - Interactive device configuration interface
 - RESTful API for device management
-- Web-based dashboard and visualization
+- Web-based dashboard with analytics and visualization
+- Dark/light theme with system preference detection
+- Comprehensive keyboard shortcuts for power users
+- Rich data analytics with interactive charts
 
 ---
 
@@ -142,10 +145,17 @@ graph TD
     React --> TailwindCSS[Tailwind CSS]
     React --> shadcn[shadcn/ui Components]
     React --> Axios[Axios HTTP Client]
+    React --> ChartJS[Chart.js + react-chartjs-2]
+    React --> FramerMotion[Framer Motion]
+    React --> ThreeJS[Three.js - 3D Graphics]
+
+    TailwindCSS --> DarkMode[Dark Mode Support]
+    React --> Context[Context API - Theme State]
 
     style React fill:#61dafb
     style Vite fill:#646cff
     style TailwindCSS fill:#06b6d4
+    style ChartJS fill:#ff6384
 ```
 
 ---
@@ -347,40 +357,185 @@ System:
 
 ---
 
-### 3. Frontend (React)
+### 3. User Experience Features
+
+GreenStack includes advanced user experience features built with modern web technologies.
+
+#### Theme System
+
+**Architecture:**
+```mermaid
+graph LR
+    System[System Preferences<br/>prefers-color-scheme]
+    Storage[localStorage<br/>iodd-manager-theme]
+    Context[ThemeContext<br/>React Context API]
+    Toggle[ThemeToggle Component]
+    DOM[Document Root<br/>class='dark' or 'light']
+
+    System -.->|Initial Detection| Context
+    Storage -.->|Persisted Choice| Context
+    Context --> Toggle
+    Toggle -->|User Action| Context
+    Context -->|Apply Class| DOM
+    Context -->|Save Preference| Storage
+
+    style Context fill:#61dafb
+    style Storage fill:#ffa500
+    style DOM fill:#90EE90
+```
+
+**Features:**
+- System preference detection via `prefers-color-scheme` media query
+- localStorage persistence across sessions
+- Manual override with animated toggle button
+- Instant theme switching without page reload
+- Tailwind CSS class-based dark mode (`dark:` prefix)
+
+#### Keyboard Shortcuts System
+
+**Architecture:**
+```mermaid
+graph TD
+    User[User Keyboard Input]
+    Hook[useKeyboardShortcuts Hook]
+    Check{Input Field?}
+    Match{Shortcut Match?}
+    Action[Execute Callback]
+    Ignore[Ignore Event]
+
+    User --> Hook
+    Hook --> Check
+    Check -->|Yes| Ignore
+    Check -->|No| Match
+    Match -->|Yes| Action
+    Match -->|No| Ignore
+
+    Action --> Navigate[Navigate to View]
+    Action --> Upload[Open Upload Dialog]
+    Action --> Refresh[Refresh Data]
+    Action --> Theme[Toggle Theme]
+
+    style Hook fill:#61dafb
+    style Action fill:#90EE90
+```
+
+**Available Shortcuts:**
+- **Navigation**: `h` (Home), `d` (Devices), `s` (Search), `c` (Compare), `a` (Analytics)
+- **Actions**: `Ctrl+U` (Upload), `Ctrl+Shift+T` (Toggle Theme), `Ctrl+R` (Refresh)
+- **Help**: `Shift+?` (Show Keyboard Shortcuts Help Modal)
+
+**Implementation Details:**
+- Modifier key support (Ctrl, Shift, Alt, Meta)
+- Input field awareness (shortcuts disabled when typing)
+- Customizable callback functions
+- Format helper for display (`formatShortcut()`)
+
+#### Analytics Dashboard
+
+**Data Pipeline:**
+```mermaid
+graph LR
+    Devices[Devices Data]
+    EDS[EDS Files Data]
+    Stats[Stats API]
+
+    Devices --> Process[Data Processing<br/>useMemo Hook]
+    EDS --> Process
+    Stats --> Process
+
+    Process --> Manufacturers[Manufacturer Distribution]
+    Process --> IOTypes[I/O Type Analysis]
+    Process --> DataTypes[Data Type Distribution]
+    Process --> Params[Parameter Ranges]
+
+    Manufacturers --> Charts[Chart.js Visualizations]
+    IOTypes --> Charts
+    DataTypes --> Charts
+    Params --> Charts
+
+    Charts --> Bar[Bar Charts]
+    Charts --> Doughnut[Doughnut Charts]
+    Charts --> Pie[Pie Charts]
+
+    style Process fill:#ffa500
+    style Charts fill:#ff6384
+```
+
+**Features:**
+- **Summary Metrics**: Total devices, parameters, EDS files, manufacturers
+- **Multi-Tab Interface**: Overview, Devices, Parameters, EDS
+- **Chart Types**:
+  - Bar Charts (manufacturer/vendor distribution)
+  - Doughnut Charts (I/O type distribution)
+  - Pie Charts (data type distribution)
+- **Time Range Selector**: Last 7/30/90 days, last year
+- **Responsive Design**: Adapts to screen size
+- **Dark Theme Optimization**: Chart colors optimized for both themes
+
+---
+
+### 4. Frontend (React)
 
 **Component Structure:**
 ```
 App.jsx (Main Container)
+├── ThemeProvider (Context)
+│   └── ThemeToggle (Sidebar Footer)
+├── useKeyboardShortcuts Hook
+├── KeyboardShortcutsHelp Modal (Shift+?)
 ├── Navigation
-├── Dashboard
+├── Dashboard/Overview
 │   ├── Statistics Cards
 │   ├── Recent Devices
 │   └── Quick Actions
-├── Device Library
+├── Analytics Dashboard (new)
+│   ├── Summary Metrics (4 cards)
+│   ├── Tab Navigation
+│   │   ├── Overview Tab (I/O Distribution, Param Ranges)
+│   │   ├── Devices Tab (Top Manufacturers)
+│   │   ├── Parameters Tab (Data Types)
+│   │   └── EDS Tab (Vendor Distribution)
+│   └── Time Range Selector
+├── Device Library (IODD)
 │   ├── Search & Filter
 │   └── Device Grid
+├── EDS Library
+│   ├── Search & Filter
+│   └── EDS Grid
+├── Search Page
+│   └── Universal Search
+├── Comparison View
+│   └── Side-by-Side Device Comparison
 └── Device Details
-    ├── Overview Tab
-    ├── Parameters Tab
-    ├── Menus Tab (Interactive)
-    │   ├── Menu Navigation
-    │   ├── Parameter Controls
-    │   │   ├── Dropdowns (enums)
-    │   │   ├── Sliders (numeric)
-    │   │   ├── Checkboxes (boolean)
-    │   │   └── Text Inputs (string)
-    │   └── Config Export
-    ├── Process Data Tab
-    ├── Errors & Events Tab
-    └── XML Source Tab
+    ├── IODD Details
+    │   ├── Overview Tab
+    │   ├── Parameters Tab
+    │   ├── Menus Tab (Interactive)
+    │   │   ├── Menu Navigation
+    │   │   ├── Parameter Controls
+    │   │   │   ├── Dropdowns (enums)
+    │   │   │   ├── Sliders (numeric)
+    │   │   │   ├── Checkboxes (boolean)
+    │   │   │   └── Text Inputs (string)
+    │   │   └── Config Export
+    │   ├── Process Data Tab
+    │   ├── Errors & Events Tab
+    │   └── XML Source Tab
+    └── EDS Details
+        ├── Overview Tab
+        ├── Parameters Tab (284+ params)
+        ├── Connections Tab
+        ├── Capacity Tab (Visual Gauges)
+        └── Raw Content Tab
 ```
 
 **State Management:**
-- React hooks (useState, useEffect, useMemo)
-- No external state library
-- Local component state
+- React hooks (useState, useEffect, useMemo, useCallback)
+- Context API for theme state (ThemeContext)
+- Custom hooks (useKeyboardShortcuts, useTheme)
+- Local component state for UI
 - API data caching in state
+- No external state library (Redux/Zustand)
 
 ---
 
@@ -715,19 +870,31 @@ CORS_ORIGINS = "http://localhost:5173,http://localhost:3000"
 
 ## Summary
 
-IODD Manager is a production-ready system for managing IO-Link device descriptions with:
+GreenStack is a production-ready intelligent device management platform with:
 
-✅ **Robust Parsing** - Handles complex IODD files with full IO-Link spec support
+✅ **Robust Parsing** - Handles complex IODD and EDS files with full spec support
 ✅ **Modern Architecture** - FastAPI + React with clean separation of concerns
+✅ **Advanced UX** - Dark/light theme, keyboard shortcuts, analytics dashboard
 ✅ **Interactive UI** - Full menu rendering with smart parameter controls
+✅ **Rich Analytics** - Chart.js visualizations for data insights
 ✅ **Scalable Storage** - SQLite for development, PostgreSQL for production
 ✅ **Comprehensive API** - RESTful endpoints for all device operations
 ✅ **Security First** - Input validation, SQL protection, CORS configuration
 ✅ **Well Tested** - 65+ tests with high coverage
+✅ **Accessible** - WCAG compliant, keyboard navigation, screen reader support
+
+**New in v2.0+:**
+- 🎨 Theme system with system preference detection
+- ⌨️ Comprehensive keyboard shortcuts for power users
+- 📊 Analytics dashboard with interactive Chart.js visualizations
+- 🎯 EDS file support (under development)
+- 🚀 Performance optimizations and code splitting
 
 ---
 
 **For more information:**
 - [Developer Reference](../developer/DEVELOPER_REFERENCE.md)
-- [API Specification](../developer/API_SPECIFICATION.md)
+- [API Endpoints](../developer/API_ENDPOINTS.md)
+- [Frontend Architecture](FRONTEND_ARCHITECTURE.md)
 - [User Manual](../user/USER_MANUAL.md)
+- [User Features Guide](../user/USER_FEATURES.md)
