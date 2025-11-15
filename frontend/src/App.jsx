@@ -35,6 +35,7 @@ import MqttManager from './components/MqttManager';
 import InfluxManager from './components/InfluxManager';
 import NodeRedManager from './components/NodeRedManager';
 import GrafanaManager from './components/GrafanaManager';
+import ThemeToggle from './components/ThemeToggle';
 import { getUnitInfo, formatValueWithUnit } from './utils/iolinkUnits';
 import {
   translateBitrate,
@@ -67,7 +68,7 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className={`fixed left-0 top-0 h-screen bg-slate-950 border-r border-slate-800 transition-all duration-300 z-50 ${collapsed ? 'w-16' : 'w-64'}`}>
+    <div className={`fixed left-0 top-0 h-screen bg-slate-950 dark:bg-slate-950 bg-white border-r border-slate-800 dark:border-slate-800 border-slate-200 transition-all duration-300 z-50 ${collapsed ? 'w-16' : 'w-64'}`}>
       <div className="flex flex-col h-full">
         {/* Logo/Brand */}
         <div className="px-4 py-5 border-b border-slate-800 flex items-center justify-between">
@@ -187,19 +188,28 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
         </nav>
 
         {/* Footer */}
-        {!collapsed && (
-          <div className="px-4 py-4 border-t border-slate-800">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-slate-400 hover:text-white"
-              onClick={() => setActiveView('settings')}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </Button>
-          </div>
-        )}
+        <div className="px-4 py-4 border-t border-slate-800">
+          {!collapsed ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex-1 justify-start text-slate-400 hover:text-white"
+                  onClick={() => setActiveView('settings')}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </Button>
+                <ThemeToggle variant="ghost" size="sm" className="text-slate-400 hover:text-white" />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <ThemeToggle variant="ghost" size="sm" className="text-slate-400 hover:text-white" />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
