@@ -1487,6 +1487,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
   const [paramAccessFilter, setParamAccessFilter] = useState('all');
   const [paramDataTypeFilter, setParamDataTypeFilter] = useState('all');
   const [paramShowFilters, setParamShowFilters] = useState(false);
+  const [errorSearchQuery, setErrorSearchQuery] = useState('');
+  const [eventSearchQuery, setEventSearchQuery] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -2483,6 +2485,28 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     });
   }, [parameters, paramSearchQuery, paramAccessFilter, paramDataTypeFilter]);
 
+  const filteredErrors = useMemo(() => {
+    if (!errorSearchQuery) return errors;
+    const query = errorSearchQuery.toLowerCase();
+    return errors.filter(error =>
+      (error.name && error.name.toLowerCase().includes(query)) ||
+      (error.description && error.description.toLowerCase().includes(query)) ||
+      (error.error_code && error.error_code.toString().includes(query)) ||
+      (error.additional_code && error.additional_code.toString().includes(query))
+    );
+  }, [errors, errorSearchQuery]);
+
+  const filteredEvents = useMemo(() => {
+    if (!eventSearchQuery) return events;
+    const query = eventSearchQuery.toLowerCase();
+    return events.filter(event =>
+      (event.name && event.name.toLowerCase().includes(query)) ||
+      (event.description && event.description.toLowerCase().includes(query)) ||
+      (event.event_code && event.event_code.toString().includes(query)) ||
+      (event.event_type && event.event_type.toLowerCase().includes(query))
+    );
+  }, [events, eventSearchQuery]);
+
   // Find the main device image (device-pic like *symbol-pic.png)
   // Priority: device-pic > any non-icon image > icon as last resort
   const mainDeviceImage = imageAssets.find(a => a.image_purpose === 'device-pic')
@@ -3469,6 +3493,22 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Search Box */}
+                {errors.length > 0 && (
+                  <div className="mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                      <Input
+                        type="text"
+                        placeholder="Search errors by name, code, or description..."
+                        value={errorSearchQuery}
+                        onChange={(e) => setErrorSearchQuery(e.target.value)}
+                        className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-red-500/50 focus:ring-red-500/20 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {loadingErrors ? (
                   <div className="space-y-3">
                     {[...Array(5)].map((_, i) => (
@@ -3479,9 +3519,20 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                   <div className="text-center py-8 text-slate-400">
                     No error types defined for this device
                   </div>
+                ) : filteredErrors.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400">
+                    No errors match your search
+                    <Button
+                      variant="link"
+                      onClick={() => setErrorSearchQuery('')}
+                      className="mt-2 text-red-400"
+                    >
+                      Clear search
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-3">
-                    {errors.map((error) => (
+                    {filteredErrors.map((error) => (
                       <div
                         key={error.id}
                         className="p-4 rounded-lg bg-gradient-to-br from-red-500/10 to-rose-500/5 border border-slate-700 hover:border-red-500/50 transition-all"
@@ -3527,6 +3578,22 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Search Box */}
+                {events.length > 0 && (
+                  <div className="mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                      <Input
+                        type="text"
+                        placeholder="Search events by name, code, type, or description..."
+                        value={eventSearchQuery}
+                        onChange={(e) => setEventSearchQuery(e.target.value)}
+                        className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-yellow-500/50 focus:ring-yellow-500/20 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {loadingEvents ? (
                   <div className="space-y-3">
                     {[...Array(3)].map((_, i) => (
@@ -3537,9 +3604,20 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                   <div className="text-center py-8 text-slate-400">
                     No events defined for this device
                   </div>
+                ) : filteredEvents.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400">
+                    No events match your search
+                    <Button
+                      variant="link"
+                      onClick={() => setEventSearchQuery('')}
+                      className="mt-2 text-yellow-400"
+                    >
+                      Clear search
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-3">
-                    {events.map((event) => (
+                    {filteredEvents.map((event) => (
                       <div
                         key={event.id}
                         className="p-4 rounded-lg bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border border-slate-700 hover:border-yellow-500/50 transition-all"
