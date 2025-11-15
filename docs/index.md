@@ -1,40 +1,43 @@
-# IODD Manager Documentation
+# GreenStack Documentation
 
-**Version 2.0** | **Status: Production Ready** | [GitHub Repository](https://github.com/ME-Catalyst/iodd-manager)
+**Version 2.0+** | **Status: Production Ready** | [GitHub Repository](https://github.com/ME-Catalyst/greenstack)
 
 ---
 
 ## 📚 Documentation Overview
 
-This is the complete documentation for IODD Manager, a professional tool for managing IO-Link Device Description (IODD) files.
+This is the complete documentation for GreenStack, an intelligent device management platform for IO-Link (IODD) and EtherNet/IP (EDS) device configurations.
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  IODD Manager Documentation Structure                           │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  👤 For Users          │  👨‍💻 For Developers    │  🏗️ Architecture  │
+┌──────────────────────────────────────────────────────────────────┐
+│  GreenStack Documentation Structure                              │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  👤 Users              │  👨‍💻 Developers         │  🏗️ Architecture   │
 │  • Quick Start         │  • API Reference      │  • System Design  │
-│  • User Manual         │  • Code Guide         │  • Data Flow      │
-│  • Configuration       │  • Best Practices     │  • Components     │
-│  • Troubleshooting     │  • Contributing       │                  │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+│  • User Features       │  • Code Guide         │  • Data Flow      │
+│  • Configuration       │  • Best Practices     │  • Frontend       │
+│  • Troubleshooting     │  • Contributing       │  • UX Features    │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 🚀 Getting Started (5 Minutes)
 
-**New to IODD Manager?** Start here:
+**New to GreenStack?** Start here:
 
 1. **[Quick Start Guide](user/getting-started/quick-start.md)** ⚡
    Get running in 5 minutes with step-by-step instructions
 
 2. **[Installation Guide](user/getting-started/installation.md)** 📦
-   Detailed installation for Windows, macOS, and Linux
+   Detailed installation for Windows, macOS, and Linux (or use PyPI/Docker!)
 
-3. **[Configuration Guide](user/CONFIGURATION.md)** ⚙️
+3. **[User Features Guide](user/USER_FEATURES.md)** ✨
+   Comprehensive 600+ line guide covering all features (theme, shortcuts, analytics)
+
+4. **[Configuration Guide](user/CONFIGURATION.md)** ⚙️
    Configure ports, storage, logging, and security
 
 ---
@@ -49,6 +52,7 @@ This is the complete documentation for IODD Manager, a professional tool for man
 
 ### User Guides
 - **[User Manual](user/USER_MANUAL.md)** - Complete feature guide
+- **[User Features Guide](user/USER_FEATURES.md)** ⭐ NEW - 600+ line comprehensive guide covering theme system, keyboard shortcuts, analytics dashboard, device management, search, comparison, export, ticket system, IoT integration, tips & best practices
 - **[Web Interface Guide](user/user-guide/web-interface.md)** - Dashboard, library, and device management
 - **[Configuration Reference](user/CONFIGURATION.md)** - All configuration options explained
 - **[GUI Features](user/GUI_DOCUMENTATION.md)** - Interactive interface documentation
@@ -65,6 +69,7 @@ This is the complete documentation for IODD Manager, a professional tool for man
 
 ### Core References
 - **[Developer Reference](developer/DEVELOPER_REFERENCE.md)** - Architecture, API, database, conventions
+- **[API Endpoints Reference](developer/API_ENDPOINTS.md)** ⭐ NEW - Complete REST API reference with all endpoints, request/response formats, examples
 - **[API Specification](developer/API_SPECIFICATION.md)** - Complete REST API documentation
 - **[Best Practices](developer/BEST_PRACTICES.md)** - UI generation and development patterns
 
@@ -89,7 +94,8 @@ This is the complete documentation for IODD Manager, a professional tool for man
 
 ## 🏗️ Architecture Documentation
 
-- **[System Architecture](architecture/ARCHITECTURE.md)** - High-level system design, components, data flows
+- **[System Architecture](architecture/ARCHITECTURE.md)** ⭐ UPDATED - High-level system design with 13 Mermaid diagrams, new User Experience Features section (theme, keyboard shortcuts, analytics), updated frontend stack
+- **[Frontend Architecture](architecture/FRONTEND_ARCHITECTURE.md)** ⭐ NEW - Complete React 18 frontend architecture (400+ lines) - component design, state management, theme system, keyboard shortcuts, analytics, styling, performance
 - **[Technology Stack](architecture/ARCHITECTURE.md#technology-stack)** - Backend, frontend, database
 - **[Data Flow](architecture/ARCHITECTURE.md#data-flow)** - Request/response patterns
 
@@ -171,8 +177,11 @@ This documentation follows these principles:
 
 <div align="center">
 
-**Made with ❤️ by the IODD Manager Team**
+**Made with ❤️ by the GreenStack Team**
 
-[GitHub](https://github.com/ME-Catalyst/iodd-manager) • [Issues](https://github.com/ME-Catalyst/iodd-manager/issues)
+**Version 2.0+** | **Latest Features:**
+🎨 Theme System • ⌨️ Keyboard Shortcuts • 📊 Analytics Dashboard • 🎯 EDS Support
+
+[GitHub](https://github.com/ME-Catalyst/greenstack) • [Issues](https://github.com/ME-Catalyst/greenstack/issues) • [CHANGELOG](../CHANGELOG.md)
 
 </div>
