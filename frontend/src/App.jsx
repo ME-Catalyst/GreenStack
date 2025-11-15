@@ -36,6 +36,9 @@ import InfluxManager from './components/InfluxManager';
 import NodeRedManager from './components/NodeRedManager';
 import GrafanaManager from './components/GrafanaManager';
 import ThemeToggle from './components/ThemeToggle';
+import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
+import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from './hooks/useKeyboardShortcuts';
+import { useTheme } from './contexts/ThemeContext';
 import { getUnitInfo, formatValueWithUnit } from './utils/iolinkUnits';
 import {
   translateBitrate,
@@ -4712,12 +4715,54 @@ const IODDManager = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [recentDevices, setRecentDevices] = useState([]);
   const [recentEdsFiles, setRecentEdsFiles] = useState([]);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const { toast } = useToast();
+  const { toggleTheme } = useTheme();
   const fileInputRef = React.useRef();
   const edsFileInputRef = React.useRef();
   const edsFolderInputRef = React.useRef();
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      ...KEYBOARD_SHORTCUTS.GOTO_OVERVIEW,
+      callback: () => setActiveView('overview'),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.GOTO_DEVICES,
+      callback: () => setActiveView('devices'),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.GOTO_SEARCH,
+      callback: () => setActiveView('search'),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.GOTO_COMPARE,
+      callback: () => setActiveView('compare'),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.UPLOAD_FILE,
+      callback: () => fileInputRef.current?.click(),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.TOGGLE_THEME,
+      callback: toggleTheme,
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.REFRESH,
+      callback: () => {
+        fetchDevices();
+        fetchEdsFiles();
+        fetchStats();
+      },
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.SHOW_HELP,
+      callback: () => setShowKeyboardHelp(true),
+    },
+  ]);
 
   useEffect(() => {
     fetchDevices();
@@ -5587,6 +5632,11 @@ const IODDManager = () => {
           </Card>
         </div>
       )}
+
+      <KeyboardShortcutsHelp
+        isOpen={showKeyboardHelp}
+        onClose={() => setShowKeyboardHelp(false)}
+      />
 
       <Toaster />
     </div>
