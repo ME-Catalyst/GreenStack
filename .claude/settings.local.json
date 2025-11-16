@@ -55,7 +55,10 @@
       "Bash(move \"archive\\diagnostic-scripts\\eds_diagnostics.py\" \"eds_diagnostics.py\")",
       "Bash(mv:*)",
       "Bash(node fix-theme.js:*)",
-      "Bash(node fix-all-themes.js:*)"
+      "Bash(node fix-all-themes.js:*)",
+      "Bash(=5.9.0)",
+      "Bash(=1.6.0)",
+      "Bash(=2.31.0)"
     ],
     "deny": [],
     "ask": []

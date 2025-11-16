@@ -106,7 +106,8 @@ def setup_mqtt_client():
         mqtt_client = client
         return client
     except Exception as e:
-        print(f"Error connecting MQTT client: {e}")
+        # Silently fail if MQTT broker is not available - it's optional
+        # Users can start it later via the Services admin page
         return None
 
 async def broadcast_message(message: Dict[str, Any]):

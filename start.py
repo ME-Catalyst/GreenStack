@@ -76,21 +76,25 @@ class IODDManagerLauncher:
         )
 
         self.processes.append(api_process)
-        
-        # Wait for API to be ready
-        time.sleep(2)
-        
-        # Check if API is running
+
+        # Wait for API to be ready with retry logic
         import requests
-        try:
-            response = requests.get(f"http://localhost:{self.api_port}/api/health")
-            if response.status_code == 200:
-                logger.info("✅ API server is running successfully")
-                return True
-        except:
-            pass
-        
-        logger.warning("API server may not be ready yet")
+        max_retries = 15
+        retry_delay = 1
+
+        for attempt in range(max_retries):
+            time.sleep(retry_delay)
+            try:
+                response = requests.get(f"http://localhost:{self.api_port}/api/health", timeout=2)
+                if response.status_code == 200:
+                    logger.info("✅ API server is running successfully")
+                    return True
+            except requests.exceptions.RequestException:
+                if attempt < max_retries - 1:
+                    logger.debug(f"Waiting for API server... (attempt {attempt + 1}/{max_retries})")
+                continue
+
+        logger.error("API server failed to start after multiple attempts")
         return False
     
     def start_frontend(self):
