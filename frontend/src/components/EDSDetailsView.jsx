@@ -326,7 +326,7 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
       {/* Tab Content */}
       <div className="min-h-[600px]">
         {activeTab === 'overview' && <OverviewTab selectedEds={selectedEds} />}
-        {activeTab === 'parameters' && <ParametersTab selectedEds={selectedEds} groups={groups} />}
+        {activeTab === 'parameters' && <ParametersTab selectedEds={selectedEds} groups={groups} comparisonMode={comparisonMode} parameterDiffs={parameterDiffs} />}
         {activeTab === 'connections' && <ConnectionsTab selectedEds={selectedEds} />}
         {activeTab === 'assemblies' && <AssembliesSection edsId={selectedEds.id} />}
         {activeTab === 'ports' && <PortsSection edsId={selectedEds.id} />}
@@ -464,7 +464,7 @@ const OverviewTab = ({ selectedEds }) => {
 };
 
 // Parameters Tab Component
-const ParametersTab = ({ selectedEds, groups }) => {
+const ParametersTab = ({ selectedEds, groups, comparisonMode = false, parameterDiffs = new Map() }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState(new Set());
   const [expandedCategories, setExpandedCategories] = useState(new Set(['network_timing', 'io_assembly', 'connection_points']));

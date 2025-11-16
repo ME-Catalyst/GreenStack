@@ -1831,7 +1831,10 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    toast.success('Configuration exported successfully');
+    toast({
+      title: 'Success',
+      description: 'Configuration exported successfully'
+    });
   };
 
   const resetConfiguration = () => {
@@ -1839,13 +1842,19 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
       initializeParameterValues(configSchema);
       setValidationErrors({});
       setHasUnsavedChanges(false);
-      toast.info('Configuration reset to default values');
+      toast({
+        title: 'Info',
+        description: 'Configuration reset to default values'
+      });
     }
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    toast({
+      title: 'Success',
+      description: 'Copied to clipboard'
+    });
   };
 
   // Initialize parameter values when config schema loads
