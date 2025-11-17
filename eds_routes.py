@@ -1588,21 +1588,24 @@ async def get_eds_assemblies(eds_id: int):
 @router.get("/{eds_id}/ports")
 async def get_eds_ports(eds_id: int):
     """
-    Get port definitions for an EDS file.
+    Get port definitions for an EDS file with intelligent detection.
 
     Ports define communication interfaces (TCP, Ethernet, etc.) and
-    their configurations for device connectivity.
+    their configurations for device connectivity. This endpoint detects:
+    1. Explicit [Port] definitions in EDS files
+    2. Inferred ports from assemblies (e.g., "IO-Link Port X0")
+    3. Port-related parameters and configurations
 
     Args:
         eds_id: EDS file ID
 
     Returns:
-        List of port definitions with type, name, path, and link information
+        Dict with explicit ports, inferred ports, parameters, and statistics
     """
     conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
 
-    # Get ports
+    # Get explicit ports
     cursor.execute("""
         SELECT
             id, port_number, port_type, port_name,
@@ -1612,9 +1615,9 @@ async def get_eds_ports(eds_id: int):
         ORDER BY port_number
     """, (eds_id,))
 
-    ports = []
+    explicit_ports = []
     for row in cursor.fetchall():
-        ports.append({
+        explicit_ports.append({
             "id": row[0],
             "port_number": row[1],
             "port_type": row[2],
@@ -1623,11 +1626,75 @@ async def get_eds_ports(eds_id: int):
             "link_number": row[5]
         })
 
+    # Get port-related assemblies (when no explicit ports exist)
+    cursor.execute("""
+        SELECT
+            id, assembly_number, assembly_name, size, path
+        FROM eds_assemblies
+        WHERE eds_file_id = ?
+        AND (
+            assembly_name LIKE '%Port%'
+            OR assembly_name LIKE '%IO-Link%'
+            OR assembly_name LIKE '%Channel%'
+        )
+        ORDER BY assembly_number
+    """, (eds_id,))
+
+    inferred_ports = []
+    for row in cursor.fetchall():
+        inferred_ports.append({
+            "id": row[0],
+            "assembly_number": row[1],
+            "name": row[2],
+            "size": row[3],
+            "path": row[4],
+            "source": "assembly"
+        })
+
+    # Get port-related parameters
+    cursor.execute("""
+        SELECT
+            id, param_number, param_name, description, data_type
+        FROM eds_parameters
+        WHERE eds_file_id = ?
+        AND (
+            param_name LIKE '%Port%'
+            OR param_name LIKE '%IO-Link%'
+            OR param_name LIKE '%Channel%'
+        )
+        ORDER BY param_number
+        LIMIT 100
+    """, (eds_id,))
+
+    port_parameters = []
+    for row in cursor.fetchall():
+        port_parameters.append({
+            "id": row[0],
+            "param_number": row[1],
+            "name": row[2],
+            "description": row[3],
+            "data_type": row[4]
+        })
+
+    # Get total assembly and parameter counts for context
+    cursor.execute("SELECT COUNT(*) FROM eds_assemblies WHERE eds_file_id = ?", (eds_id,))
+    total_assemblies = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM eds_parameters WHERE eds_file_id = ?", (eds_id,))
+    total_parameters = cursor.fetchone()[0]
+
     conn.close()
 
     return {
-        "ports": ports,
-        "total_count": len(ports)
+        "explicit_ports": explicit_ports,
+        "explicit_port_count": len(explicit_ports),
+        "inferred_ports": inferred_ports,
+        "inferred_port_count": len(inferred_ports),
+        "port_parameters": port_parameters[:20],  # Limit to first 20 for display
+        "port_parameter_count": len(port_parameters),
+        "total_assemblies": total_assemblies,
+        "total_parameters": total_parameters,
+        "has_port_data": len(explicit_ports) > 0 or len(inferred_ports) > 0 or len(port_parameters) > 0
     }
 
 
