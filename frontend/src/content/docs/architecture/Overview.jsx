@@ -7,6 +7,7 @@ import DocsCallout from '../../../components/docs/DocsCallout';
 import { DocsParagraph, DocsList, DocsLink } from '../../../components/docs/DocsText';
 import DocsCodeBlock from '../../../components/docs/DocsCodeBlock';
 import DocsTabs from '../../../components/docs/DocsTabs';
+import { ThreeTierArchitecture } from '../../../components/docs/DocsDiagram';
 
 export const metadata = {
   id: 'architecture/overview',
@@ -89,73 +90,8 @@ export default function Architecture() {
           business logic, and data layers.
         </DocsParagraph>
 
-        <div className="my-6 border border-border rounded-lg overflow-hidden bg-surface">
-          <div className="p-6">
-            <div className="space-y-6">
-              {/* Client Layer */}
-              <div className="border border-border rounded-lg p-4 bg-background">
-                <h5 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Boxes className="w-5 h-5 text-blue-500" />
-                  Client Layer
-                </h5>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="p-2 border border-border rounded bg-surface">Web Browser</div>
-                  <div className="p-2 border border-border rounded bg-surface">API Client/CLI</div>
-                </div>
-              </div>
-
-              {/* Application Layer */}
-              <div className="border border-border rounded-lg p-4 bg-background">
-                <h5 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Server className="w-5 h-5 text-brand-green" />
-                  Application Layer
-                </h5>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="p-2 border border-brand-green rounded bg-brand-green/10">
-                    <div className="font-semibold">React Frontend</div>
-                    <div className="text-xs text-muted-foreground">Port 3000</div>
-                  </div>
-                  <div className="p-2 border border-brand-green rounded bg-brand-green/10">
-                    <div className="font-semibold">FastAPI Backend</div>
-                    <div className="text-xs text-muted-foreground">Port 8000</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Business Logic */}
-              <div className="border border-border rounded-lg p-4 bg-background">
-                <h5 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-yellow-500" />
-                  Business Logic
-                </h5>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                  <div className="p-2 border border-border rounded bg-surface">IODD Parser</div>
-                  <div className="p-2 border border-border rounded bg-surface">Device Manager</div>
-                  <div className="p-2 border border-border rounded bg-surface">Asset Handler</div>
-                  <div className="p-2 border border-border rounded bg-surface">Menu System</div>
-                </div>
-              </div>
-
-              {/* Data Layer */}
-              <div className="border border-border rounded-lg p-4 bg-background">
-                <h5 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Database className="w-5 h-5 text-blue-600" />
-                  Data Layer
-                </h5>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="p-2 border border-border rounded bg-surface">
-                    <div className="font-semibold">SQLite/PostgreSQL</div>
-                    <div className="text-xs text-muted-foreground">Database</div>
-                  </div>
-                  <div className="p-2 border border-border rounded bg-surface">
-                    <div className="font-semibold">File Storage</div>
-                    <div className="text-xs text-muted-foreground">iodd_storage/</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Interactive Architecture Diagram */}
+        <ThreeTierArchitecture />
 
         <DocsCallout type="tip" title="Request Flow">
           <DocsParagraph>
