@@ -33,6 +33,8 @@ const BackendDevelopment = lazy(() => import('./developer/Backend'));
 const FrontendDevelopment = lazy(() => import('./developer/Frontend'));
 const ArchitectureOverview = lazy(() => import('./architecture/Overview'));
 const ProductionGuide = lazy(() => import('./deployment/ProductionGuide'));
+const DockerDeployment = lazy(() => import('./deployment/DockerDeployment'));
+const MonitoringLogging = lazy(() => import('./deployment/MonitoringLogging'));
 
 // Import metadata synchronously (metadata is lightweight)
 export { metadata as quickStartMeta } from './getting-started/QuickStart';
@@ -58,6 +60,8 @@ export { metadata as backendDevelopmentMeta } from './developer/Backend';
 export { metadata as frontendDevelopmentMeta } from './developer/Frontend';
 export { metadata as architectureOverviewMeta } from './architecture/Overview';
 export { metadata as productionGuideMeta } from './deployment/ProductionGuide';
+export { metadata as dockerDeploymentMeta } from './deployment/DockerDeployment';
+export { metadata as monitoringLoggingMeta } from './deployment/MonitoringLogging';
 
 // Import metadata for registry
 import { metadata as quickStartMeta } from './getting-started/QuickStart';
@@ -83,6 +87,8 @@ import { metadata as backendDevelopmentMeta } from './developer/Backend';
 import { metadata as frontendDevelopmentMeta } from './developer/Frontend';
 import { metadata as architectureOverviewMeta } from './architecture/Overview';
 import { metadata as productionGuideMeta } from './deployment/ProductionGuide';
+import { metadata as dockerDeploymentMeta } from './deployment/DockerDeployment';
+import { metadata as monitoringLoggingMeta } from './deployment/MonitoringLogging';
 
 // Documentation Pages Registry
 // Format: { 'page-id': { component, metadata, navigation } }
@@ -371,28 +377,32 @@ export const docsRegistry = {
     previous: {
       id: 'architecture/overview',
       title: 'System Architecture'
+    },
+    next: {
+      id: 'deployment/docker',
+      title: 'Docker Deployment'
     }
   },
 
   'deployment/docker': {
-    component: null,
-    metadata: {
-      id: 'deployment/docker',
-      title: 'Docker Deployment',
-      description: 'Containerized deployment with Docker',
-      category: 'deployment',
-      keywords: ['docker', 'container', 'deployment', 'compose'],
+    component: DockerDeployment,
+    metadata: dockerDeploymentMeta,
+    previous: {
+      id: 'deployment/production',
+      title: 'Production Deployment'
+    },
+    next: {
+      id: 'deployment/monitoring',
+      title: 'Monitoring & Logging'
     }
   },
 
   'deployment/monitoring': {
-    component: null,
-    metadata: {
-      id: 'deployment/monitoring',
-      title: 'Monitoring & Logging',
-      description: 'Monitor and debug Greenstack in production',
-      category: 'deployment',
-      keywords: ['monitoring', 'logging', 'debugging', 'metrics'],
+    component: MonitoringLogging,
+    metadata: monitoringLoggingMeta,
+    previous: {
+      id: 'deployment/docker',
+      title: 'Docker Deployment'
     }
   },
 
