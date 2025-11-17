@@ -5037,9 +5037,16 @@ const IODDManager = () => {
       fetchDevices();
       fetchStats();
     } catch (error) {
+      console.error('IODD Upload Error:', error);
+      console.error('Error Response:', error.response?.data);
+      console.error('File Info:', {
+        name: file?.name,
+        size: file?.size,
+        type: file?.type
+      });
       toast({
         title: 'Upload Failed',
-        description: error.response?.data?.detail || 'Failed to upload IODD file',
+        description: error.response?.data?.detail || error.message || 'Failed to upload IODD file',
         variant: 'destructive',
       });
     } finally {
