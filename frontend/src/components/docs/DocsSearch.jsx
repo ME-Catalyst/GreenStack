@@ -3,6 +3,7 @@ import { Search, X, FileText, ArrowRight, Command } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent, Input, ScrollArea } from '../ui';
 import { docsRegistry } from '../../content/docs/index';
+import { searchEngine } from '../../utils/docsSearch';
 
 /**
  * DocsSearch - Documentation Search Modal
@@ -28,7 +29,24 @@ const DocsSearch = ({ isOpen, onClose, onSelect, searchQuery, setSearchQuery }) 
     }
   }, [isOpen]);
 
-  // Search function
+  // Initialize search engine on mount
+  useEffect(() => {
+    const pages = Object.entries(docsRegistry).map(([pageId, page]) => ({
+      id: pageId,
+      title: page.metadata?.title || '',
+      description: page.metadata?.description || '',
+      keywords: page.metadata?.keywords || [],
+      category: page.metadata?.category || pageId.split('/')[0],
+      url: `/docs/${pageId}`,
+      content: '', // Can be populated from actual page content if available
+      headings: page.metadata?.headings || [],
+      lastUpdated: page.metadata?.lastUpdated || new Date().toISOString()
+    }));
+
+    searchEngine.buildIndex(pages);
+  }, []);
+
+  // Search function using advanced search engine
   useEffect(() => {
     if (!searchQuery.trim()) {
       setResults([]);
@@ -36,51 +54,24 @@ const DocsSearch = ({ isOpen, onClose, onSelect, searchQuery, setSearchQuery }) 
       return;
     }
 
-    const query = searchQuery.toLowerCase();
-    const searchResults = [];
-
-    Object.entries(docsRegistry).forEach(([pageId, page]) => {
-      if (!page.metadata) return;
-
-      const { title, description, keywords = [] } = page.metadata;
-      let score = 0;
-
-      // Title match (highest priority)
-      if (title.toLowerCase().includes(query)) {
-        score += 100;
-      }
-
-      // Description match
-      if (description?.toLowerCase().includes(query)) {
-        score += 50;
-      }
-
-      // Keyword match
-      keywords.forEach(keyword => {
-        if (keyword.toLowerCase().includes(query)) {
-          score += 30;
-        }
-      });
-
-      // Category match
-      const category = pageId.split('/')[0];
-      if (category.toLowerCase().includes(query)) {
-        score += 20;
-      }
-
-      if (score > 0) {
-        searchResults.push({
-          pageId,
-          ...page.metadata,
-          score
-        });
-      }
+    // Use the search engine with fuzzy matching
+    const searchResults = searchEngine.search(searchQuery, {
+      limit: 10,
+      minScore: 10
     });
 
-    // Sort by score descending
-    searchResults.sort((a, b) => b.score - a.score);
+    // Convert to component format
+    const formattedResults = searchResults.map(result => ({
+      pageId: result.id,
+      title: result.title,
+      description: result.description,
+      keywords: result.keywords,
+      category: result.category,
+      score: result.score,
+      highlights: result.highlights
+    }));
 
-    setResults(searchResults.slice(0, 10)); // Limit to 10 results
+    setResults(formattedResults);
     setSelectedIndex(0);
   }, [searchQuery]);
 
