@@ -35,6 +35,9 @@ const ArchitectureOverview = lazy(() => import('./architecture/Overview'));
 const ProductionGuide = lazy(() => import('./deployment/ProductionGuide'));
 const DockerDeployment = lazy(() => import('./deployment/DockerDeployment'));
 const MonitoringLogging = lazy(() => import('./deployment/MonitoringLogging'));
+const CommonIssues = lazy(() => import('./troubleshooting/CommonIssues'));
+const DebuggingGuide = lazy(() => import('./troubleshooting/DebuggingGuide'));
+const FAQ = lazy(() => import('./troubleshooting/FAQ'));
 
 // Import metadata synchronously (metadata is lightweight)
 export { metadata as quickStartMeta } from './getting-started/QuickStart';
@@ -62,6 +65,9 @@ export { metadata as architectureOverviewMeta } from './architecture/Overview';
 export { metadata as productionGuideMeta } from './deployment/ProductionGuide';
 export { metadata as dockerDeploymentMeta } from './deployment/DockerDeployment';
 export { metadata as monitoringLoggingMeta } from './deployment/MonitoringLogging';
+export { metadata as commonIssuesMeta } from './troubleshooting/CommonIssues';
+export { metadata as debuggingGuideMeta } from './troubleshooting/DebuggingGuide';
+export { metadata as faqMeta } from './troubleshooting/FAQ';
 
 // Import metadata for registry
 import { metadata as quickStartMeta } from './getting-started/QuickStart';
@@ -89,6 +95,9 @@ import { metadata as architectureOverviewMeta } from './architecture/Overview';
 import { metadata as productionGuideMeta } from './deployment/ProductionGuide';
 import { metadata as dockerDeploymentMeta } from './deployment/DockerDeployment';
 import { metadata as monitoringLoggingMeta } from './deployment/MonitoringLogging';
+import { metadata as commonIssuesMeta } from './troubleshooting/CommonIssues';
+import { metadata as debuggingGuideMeta } from './troubleshooting/DebuggingGuide';
+import { metadata as faqMeta } from './troubleshooting/FAQ';
 
 // Documentation Pages Registry
 // Format: { 'page-id': { component, metadata, navigation } }
@@ -403,39 +412,45 @@ export const docsRegistry = {
     previous: {
       id: 'deployment/docker',
       title: 'Docker Deployment'
+    },
+    next: {
+      id: 'troubleshooting/common-issues',
+      title: 'Common Issues'
     }
   },
 
   'troubleshooting/common-issues': {
-    component: null,
-    metadata: {
-      id: 'troubleshooting/common-issues',
-      title: 'Common Issues',
-      description: 'Solutions to common problems',
-      category: 'troubleshooting',
-      keywords: ['troubleshooting', 'issues', 'problems', 'solutions'],
+    component: CommonIssues,
+    metadata: commonIssuesMeta,
+    previous: {
+      id: 'deployment/monitoring',
+      title: 'Monitoring & Logging'
+    },
+    next: {
+      id: 'troubleshooting/debugging',
+      title: 'Debugging Guide'
     }
   },
 
   'troubleshooting/debugging': {
-    component: null,
-    metadata: {
-      id: 'troubleshooting/debugging',
-      title: 'Debugging Guide',
-      description: 'How to debug Greenstack issues',
-      category: 'troubleshooting',
-      keywords: ['debugging', 'debug', 'troubleshoot', 'logs'],
+    component: DebuggingGuide,
+    metadata: debuggingGuideMeta,
+    previous: {
+      id: 'troubleshooting/common-issues',
+      title: 'Common Issues'
+    },
+    next: {
+      id: 'troubleshooting/faq',
+      title: 'FAQ'
     }
   },
 
   'troubleshooting/faq': {
-    component: null,
-    metadata: {
-      id: 'troubleshooting/faq',
-      title: 'FAQ',
-      description: 'Frequently asked questions',
-      category: 'troubleshooting',
-      keywords: ['faq', 'questions', 'answers', 'help'],
+    component: FAQ,
+    metadata: faqMeta,
+    previous: {
+      id: 'troubleshooting/debugging',
+      title: 'Debugging Guide'
     }
   },
 };
