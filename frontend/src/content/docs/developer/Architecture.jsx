@@ -6,7 +6,8 @@ import DocsSection from '../../../components/docs/DocsSection';
 import DocsCallout from '../../../components/docs/DocsCallout';
 import { DocsParagraph, DocsLink } from '../../../components/docs/DocsText';
 import DocsCodeBlock from '../../../components/docs/DocsCodeBlock';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge } from '../../../components/ui';
+import DocsMermaid from '../../../components/docs/DocsMermaid';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../components/ui';
 
 export const metadata = {
   id: 'developer/architecture',
@@ -28,60 +29,49 @@ export default function Architecture({ onNavigate }) {
       />
 
       {/* High-Level Overview */}
-      <DocsSection title="High-Level Overview" icon={<Layers />}>
+      <DocsSection title="High-Level Architecture" icon={<Layers />}>
         <DocsParagraph>
           Greenstack is a modern full-stack application built with a clear separation between
           frontend and backend. It follows a three-tier architecture with presentation, application,
           and data layers.
         </DocsParagraph>
 
-        <Card className="my-6 bg-gradient-to-br from-surface to-surface-hover">
-          <CardContent className="pt-6">
-            <pre className="text-sm font-mono text-foreground overflow-x-auto">
-{`┌─────────────────────────────────────────────────────────────────────┐
-│                          CLIENT BROWSER                             │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │                    React Frontend (Port 5173)                 │  │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌──────────────────────┐  │  │
-│  │  │   UI Layer  │  │   Context   │  │   Components &       │  │  │
-│  │  │  Components │  │   Providers │  │   Page Views         │  │  │
-│  │  └─────────────┘  └─────────────┘  └──────────────────────┘  │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
-                                  │
-                            HTTP/REST API
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      FastAPI Backend (Port 8000)                    │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │                      API Layer (Routes)                       │  │
-│  │  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌──────────────────┐  │  │
-│  │  │   EDS   │ │  Admin  │ │  Themes  │ │   Search/MQTT    │  │  │
-│  │  │ Routes  │ │ Routes  │ │  Routes  │ │   Service Routes │  │  │
-│  │  └─────────┘ └─────────┘ └──────────┘ └──────────────────┘  │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │                   Business Logic Layer                        │  │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐   │  │
-│  │  │  EDS Parsers │  │  Validation  │  │   Data Models    │   │  │
-│  │  │  (XML/ZIP)   │  │  & Business  │  │   (SQLAlchemy)   │   │  │
-│  │  └──────────────┘  └──────────────┘  └──────────────────┘   │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
-                                  │
-                            SQL Queries
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                   SQLite Database (greenstack.db)                   │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  Tables: devices, iodds, parameters, themes, tickets, logs   │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘`}
-            </pre>
-          </CardContent>
-        </Card>
+        <DocsMermaid
+          chart={`
+graph TB
+    subgraph Client["🖥️ Client Browser"]
+        UI["React Frontend<br/>(Vite Dev Server)<br/>Port 5173"]
+        Components["UI Components<br/>Contexts<br/>Hooks"]
+        UI --> Components
+    end
+
+    subgraph Backend["⚡ FastAPI Backend<br/>Port 8000"]
+        API["API Routes<br/>(FastAPI)"]
+        BL["Business Logic<br/>(Parsers & Services)"]
+        ORM["Database Layer<br/>(SQLAlchemy)"]
+
+        API --> BL
+        BL --> ORM
+    end
+
+    subgraph Data["💾 Data Layer"]
+        DB[(SQLite Database<br/>greenstack.db)]
+    end
+
+    Client -->|HTTP/REST API| Backend
+    ORM -->|SQL Queries| DB
+
+    style Client fill:#2d5016,stroke:#3DB60F,stroke-width:3px,color:#fff
+    style Backend fill:#1a1f3a,stroke:#3DB60F,stroke-width:3px,color:#fff
+    style Data fill:#0a0e27,stroke:#3DB60F,stroke-width:3px,color:#fff
+    style UI fill:#3a4060,stroke:#51cf66,color:#fff
+    style Components fill:#3a4060,stroke:#51cf66,color:#fff
+    style API fill:#3a4060,stroke:#51cf66,color:#fff
+    style BL fill:#3a4060,stroke:#51cf66,color:#fff
+    style ORM fill:#3a4060,stroke:#51cf66,color:#fff
+    style DB fill:#2d5016,stroke:#3DB60F,stroke-width:2px,color:#fff
+          `}
+        />
 
         <div className="grid gap-4 md:grid-cols-3 my-6">
           <Card>
@@ -135,80 +125,58 @@ export default function Architecture({ onNavigate }) {
           Each functional area has dedicated route handlers and business logic.
         </DocsParagraph>
 
-        <Card className="my-6 bg-gradient-to-br from-surface to-surface-hover">
-          <CardContent className="pt-6">
-            <pre className="text-sm font-mono text-foreground overflow-x-auto">
-{`src/
-├── api.py                    # FastAPI application entry point
-├── config.py                 # Configuration and environment variables
-├── database.py               # Database connection management
-├── start.py                  # Application startup script
-│
-├── routes/                   # API Route Handlers
-│   ├── eds_routes.py         # IODD/EDS file upload & management
-│   ├── admin_routes.py       # Admin console & system stats
-│   ├── theme_routes.py       # Theme management endpoints
-│   ├── search_routes.py      # Full-text search functionality
-│   ├── mqtt_routes.py        # MQTT broker integration
-│   ├── service_routes.py     # External services (Grafana, Node-RED)
-│   ├── config_export_routes.py  # Configuration export
-│   └── ticket_routes.py      # Ticket system endpoints
-│
-├── parsers/                  # EDS/IODD File Parsers
-│   ├── eds_parser.py         # Main EDS XML parser
-│   ├── eds_package_parser.py # ZIP package handler
-│   └── eds_diagnostics.py    # Device diagnostics parser
-│
-└── utils/                    # Shared Utilities
-    └── (helper functions)
+        <DocsMermaid
+          chart={`
+graph TB
+    Request["📨 HTTP Request"]
 
+    subgraph Middleware["Middleware Layer"]
+        CORS["CORS<br/>Origin Validation"]
+        RateLimit["Rate Limiting<br/>10/min uploads<br/>100/min general"]
+    end
 
-┌─────────────────────────────────────────────────────────────────┐
-│                     FastAPI Request Flow                        │
-└─────────────────────────────────────────────────────────────────┘
+    subgraph Routes["🛣️ Route Layer"]
+        EDS["EDS Routes<br/>/api/iodds/*"]
+        Admin["Admin Routes<br/>/api/admin/*"]
+        Theme["Theme Routes<br/>/api/themes/*"]
+        Search["Search Routes<br/>/api/search/*"]
+        MQTT["MQTT Routes<br/>/api/mqtt/*"]
+    end
 
-  HTTP Request
-       │
-       ▼
-  ┌─────────────┐
-  │   CORS      │  # Cross-origin resource sharing
-  │ Middleware  │
-  └─────────────┘
-       │
-       ▼
-  ┌─────────────┐
-  │ Rate Limit  │  # 10/min uploads, 100/min general
-  │ Middleware  │
-  └─────────────┘
-       │
-       ▼
-  ┌─────────────┐
-  │   Router    │  # Route to appropriate handler
-  └─────────────┘
-       │
-       ▼
-  ┌─────────────┐
-  │   Route     │  # Business logic execution
-  │  Handler    │
-  └─────────────┘
-       │
-       ▼
-  ┌─────────────┐
-  │  Database   │  # SQLAlchemy ORM queries
-  │   Layer     │
-  └─────────────┘
-       │
-       ▼
-  ┌─────────────┐
-  │  Response   │  # JSON response with status code
-  │ Formatting  │
-  └─────────────┘
-       │
-       ▼
-  HTTP Response`}
-            </pre>
-          </CardContent>
-        </Card>
+    subgraph Logic["⚙️ Business Logic"]
+        Parser["EDS Parser<br/>(XML Processing)"]
+        Validator["Validation<br/>(Pydantic Models)"]
+        Services["Services<br/>(MQTT, Grafana)"]
+    end
+
+    subgraph Data["💾 Data Access"]
+        ORM["SQLAlchemy ORM"]
+        DB[(SQLite DB)]
+    end
+
+    Response["📤 JSON Response"]
+
+    Request --> CORS
+    CORS --> RateLimit
+    RateLimit --> Routes
+
+    Routes --> Logic
+    Logic --> ORM
+    ORM --> DB
+
+    DB --> ORM
+    ORM --> Logic
+    Logic --> Routes
+    Routes --> Response
+
+    style Request fill:#3DB60F,stroke:#51cf66,stroke-width:2px,color:#000
+    style Response fill:#3DB60F,stroke:#51cf66,stroke-width:2px,color:#000
+    style Middleware fill:#2d5016,stroke:#3DB60F,stroke-width:2px,color:#fff
+    style Routes fill:#1a1f3a,stroke:#3DB60F,stroke-width:2px,color:#fff
+    style Logic fill:#2a3050,stroke:#51cf66,color:#fff
+    style Data fill:#0a0e27,stroke:#3DB60F,stroke-width:2px,color:#fff
+          `}
+        />
 
         <DocsCallout type="info" title="Route Organization">
           <DocsParagraph>
@@ -225,79 +193,53 @@ export default function Architecture({ onNavigate }) {
           and a component-based architecture with lazy loading for optimal performance.
         </DocsParagraph>
 
-        <Card className="my-6 bg-gradient-to-br from-surface to-surface-hover">
-          <CardContent className="pt-6">
-            <pre className="text-sm font-mono text-foreground overflow-x-auto">
-{`frontend/src/
-├── main.jsx                  # Application entry point
-├── App.jsx                   # Root component with routing
-│
-├── components/               # React Components
-│   ├── ui.jsx                # Base UI components (Button, Card, etc.)
-│   ├── SearchPage.jsx        # Device search interface
-│   ├── EDSDetailsView.jsx    # Device detail views
-│   ├── ThemeManager.jsx      # Theme customization UI
-│   ├── AdminConsole.jsx      # Admin dashboard
-│   ├── MqttManager.jsx       # MQTT configuration
-│   ├── TicketsPage.jsx       # Ticket system UI
-│   └── docs/                 # Documentation components
-│       ├── DocsViewer.jsx
-│       ├── DocsNavigation.jsx
-│       ├── DocsContent.jsx
-│       └── ...
-│
-├── contexts/                 # React Context Providers
-│   └── ThemeContext.jsx      # Global theme state management
-│
-├── content/                  # Static Content
-│   └── docs/                 # Documentation pages (JSX)
-│       ├── index.js          # Docs registry
-│       ├── getting-started/
-│       ├── user-guide/
-│       ├── api/
-│       ├── components/
-│       └── developer/
-│
-├── config/                   # Configuration
-│   └── themes.js             # Theme definitions & presets
-│
-├── hooks/                    # Custom React Hooks
-│   └── useKeyboardShortcuts.js
-│
-└── utils/                    # Utility Functions
-    ├── docsSearch.js         # Documentation search
-    ├── edsParameterCategorizer.js
-    ├── edsDataTypeDecoder.js
-    └── ...
+        <DocsMermaid
+          chart={`
+graph TB
+    App["App.jsx<br/>(Root Component)"]
 
+    subgraph Context["🔄 Context Providers"]
+        ThemeCtx["ThemeContext<br/>(Global Theme State)"]
+    end
 
-┌─────────────────────────────────────────────────────────────────┐
-│                   React Component Hierarchy                     │
-└─────────────────────────────────────────────────────────────────┘
+    subgraph Router["🛣️ Router"]
+        Routes["React Router<br/>(Page Navigation)"]
+    end
 
-                          App.jsx
-                             │
-              ┌──────────────┼──────────────┐
-              │              │              │
-         ThemeContext   ErrorBoundary   Router
-              │                             │
-              └─────────────┬───────────────┘
-                            │
-          ┌─────────────────┼─────────────────┐
-          │                 │                 │
-     SearchPage      EDSDetailsView    AdminConsole
-          │                 │                 │
-    ┌─────┴─────┐     ┌─────┴─────┐    ┌─────┴─────┐
-    │           │     │           │    │           │
- Filters   Results  Params   Modules  Stats   Services
-    │           │     │           │    │           │
-    └───────────┴─────┴───────────┴────┴───────────┘
-                            │
-                      UI Components
-                  (Button, Card, Badge, etc.)`}
-            </pre>
-          </CardContent>
-        </Card>
+    subgraph Pages["📄 Page Components"]
+        Search["SearchPage<br/>(Device Search)"]
+        Details["EDSDetailsView<br/>(Device Details)"]
+        Admin["AdminConsole<br/>(System Admin)"]
+        Docs["DocsViewer<br/>(Documentation)"]
+    end
+
+    subgraph Components["🧩 Shared Components"]
+        UI["UI Components<br/>(Button, Card, etc)"]
+        Theme["ThemeManager<br/>(Theme UI)"]
+        Editors["Editors & Forms"]
+    end
+
+    subgraph Data["📊 Data Management"]
+        API["API Calls<br/>(axios)"]
+        LocalState["Local State<br/>(useState)"]
+    end
+
+    App --> Context
+    Context --> Router
+    Router --> Pages
+    Pages --> Components
+    Pages --> Data
+    Components --> UI
+    Data --> API
+
+    style App fill:#3DB60F,stroke:#51cf66,stroke-width:3px,color:#000
+    style Context fill:#2d5016,stroke:#3DB60F,stroke-width:2px,color:#fff
+    style Router fill:#2d5016,stroke:#3DB60F,stroke-width:2px,color:#fff
+    style Pages fill:#1a1f3a,stroke:#3DB60F,stroke-width:2px,color:#fff
+    style Components fill:#2a3050,stroke:#51cf66,color:#fff
+    style Data fill:#0a0e27,stroke:#3DB60F,stroke-width:2px,color:#fff
+          `}
+        />
 
         <div className="grid gap-4 md:grid-cols-2 my-6">
           <Card>
@@ -331,87 +273,55 @@ export default function Architecture({ onNavigate }) {
       </DocsSection>
 
       {/* Data Flow */}
-      <DocsSection title="Data Flow & Communication" icon={<Network />}>
+      <DocsSection title="Data Flow: IODD Upload Example" icon={<Network />}>
         <DocsParagraph>
-          Data flows through the application in a unidirectional pattern, from user actions
-          to API calls, database operations, and back to the UI.
+          This sequence diagram shows how data flows through the system when a user uploads
+          an IODD file.
         </DocsParagraph>
 
-        <Card className="my-6 bg-gradient-to-br from-surface to-surface-hover">
-          <CardContent className="pt-6">
-            <pre className="text-sm font-mono text-foreground overflow-x-auto">
-{`┌─────────────────────────────────────────────────────────────────┐
-│                      Data Flow Example:                         │
-│              IODD File Upload & Processing                      │
-└─────────────────────────────────────────────────────────────────┘
+        <DocsMermaid
+          chart={`
+sequenceDiagram
+    actor User
+    participant UI as React UI
+    participant API as FastAPI Backend
+    participant Parser as EDS Parser
+    participant DB as Database
 
-1. USER ACTION
-   │
-   └─► User clicks "Upload IODD" button
-       User selects .zip or .xml file
-       │
-       ▼
+    User->>UI: Upload IODD file
+    UI->>UI: Validate file type & size
 
-2. FRONTEND VALIDATION
-   │
-   └─► Validate file type (.zip, .xml, .eds)
-       Check file size (< 10MB)
-       Show upload progress UI
-       │
-       ▼
+    UI->>API: POST /api/iodds/upload
+    Note over UI,API: multipart/form-data
 
-3. API REQUEST
-   │
-   └─► POST /api/iodds/upload
-       Content-Type: multipart/form-data
-       File: [binary data]
-       │
-       ▼
+    API->>API: Check rate limit
+    API->>API: Validate file format
 
-4. BACKEND PROCESSING
-   │
-   ├─► Rate limit check (10/min)
-   │
-   ├─► File validation & extraction
-   │   └─► If ZIP: Extract contents
-   │       If XML: Read directly
-   │
-   ├─► XML Parsing
-   │   └─► EDSParser.parse(xml_content)
-   │       Extract device metadata
-   │       Parse parameters & modules
-   │       Decode data types & enums
-   │
-   ├─► Database Operations
-   │   └─► Check for duplicates
-   │       Create Device record
-   │       Create Parameter records
-   │       Create Module records
-   │       Commit transaction
-   │
-   └─► Response Generation
-       └─► Generate JSON response
-           Include device ID & summary
-       │
-       ▼
+    API->>Parser: Parse XML content
+    Parser->>Parser: Extract metadata
+    Parser->>Parser: Parse parameters
+    Parser->>Parser: Decode data types
 
-5. FRONTEND UPDATE
-   │
-   └─► Parse API response
-       Update device list
-       Show success notification
-       Navigate to device details
-       │
-       ▼
+    Parser-->>API: Parsed device data
 
-6. UI REFRESH
-   │
-   └─► Render device card
-       Display parameters
-       Enable search/filter`}
-            </pre>
-          </CardContent>
-        </Card>
+    API->>DB: Check for duplicates
+    DB-->>API: No conflicts
+
+    API->>DB: Create device record
+    API->>DB: Create parameter records
+    API->>DB: Commit transaction
+
+    DB-->>API: Device ID: 123
+
+    API-->>UI: 201 Created<br/>{id: 123, name: "Device"}
+
+    UI->>UI: Update device list
+    UI->>UI: Show success message
+    UI->>User: Navigate to device details
+
+    Note over User,DB: ✅ Complete in ~500ms
+          `}
+        />
       </DocsSection>
 
       {/* Database Schema */}
@@ -421,114 +331,92 @@ export default function Architecture({ onNavigate }) {
           All queries use SQLAlchemy ORM for type safety and SQL injection prevention.
         </DocsParagraph>
 
-        <Card className="my-6 bg-gradient-to-br from-surface to-surface-hover">
-          <CardContent className="pt-6">
-            <pre className="text-sm font-mono text-foreground overflow-x-auto">
-{`┌─────────────────────────────────────────────────────────────────┐
-│                      Database Entity Model                      │
-└─────────────────────────────────────────────────────────────────┘
+        <DocsMermaid
+          chart={`
+erDiagram
+    DEVICES ||--o{ PARAMETERS : has
+    DEVICES ||--o{ MODULES : contains
+    TICKETS ||--o{ ATTACHMENTS : includes
 
-┌──────────────────┐
-│     devices      │  # IO-Link device records
-├──────────────────┤
-│ id (PK)          │
-│ vendor_id        │  # IO-Link vendor ID
-│ device_id        │  # Device identifier
-│ product_name     │
-│ vendor_name      │
-│ product_text     │
-│ device_function  │
-│ hardware_rev     │
-│ firmware_rev     │
-│ iodd_version     │
-│ process_data_in  │
-│ process_data_out │
-│ created_at       │
-└──────────────────┘
-        │
-        │ 1:N
-        ▼
-┌──────────────────┐
-│   parameters     │  # Device parameters/settings
-├──────────────────┤
-│ id (PK)          │
-│ device_id (FK)   │────┐
-│ index            │    │
-│ subindex         │    │
-│ name             │    │
-│ description      │    │
-│ data_type        │    │
-│ access_rights    │    │
-│ default_value    │    │
-│ min_value        │    │
-│ max_value        │    │
-│ unit             │    │
-│ category         │    │
-└──────────────────┘    │
-                        │
-┌──────────────────┐    │
-│     modules      │    │  # Device modules/assemblies
-├──────────────────┤    │
-│ id (PK)          │    │
-│ device_id (FK)   │────┘
-│ name             │
-│ description      │
-│ type             │
-└──────────────────┘
+    DEVICES {
+        int id PK
+        int vendor_id
+        int device_id
+        string product_name
+        string vendor_name
+        string product_text
+        string device_function
+        string hardware_rev
+        string firmware_rev
+        string iodd_version
+        json process_data_in
+        json process_data_out
+        datetime created_at
+    }
 
+    PARAMETERS {
+        int id PK
+        int device_id FK
+        int index
+        int subindex
+        string name
+        string description
+        string data_type
+        string access_rights
+        string default_value
+        string min_value
+        string max_value
+        string unit
+        string category
+    }
 
-┌──────────────────┐
-│     themes       │  # Custom themes
-├──────────────────┤
-│ id (PK)          │
-│ name             │
-│ description      │
-│ preset_id        │
-│ colors (JSON)    │
-│ created_at       │
-│ updated_at       │
-└──────────────────┘
+    MODULES {
+        int id PK
+        int device_id FK
+        string name
+        string description
+        string type
+    }
 
+    THEMES {
+        int id PK
+        string name
+        string description
+        string preset_id
+        json colors
+        datetime created_at
+        datetime updated_at
+    }
 
-┌──────────────────┐
-│     tickets      │  # Support tickets
-├──────────────────┤
-│ id (PK)          │
-│ title            │
-│ description      │
-│ status           │
-│ priority         │
-│ assignee         │
-│ created_at       │
-│ updated_at       │
-└──────────────────┘
-        │
-        │ 1:N
-        ▼
-┌──────────────────┐
-│   attachments    │  # Ticket files
-├──────────────────┤
-│ id (PK)          │
-│ ticket_id (FK)   │
-│ filename         │
-│ file_path        │
-│ mime_type        │
-│ uploaded_at      │
-└──────────────────┘
+    TICKETS {
+        int id PK
+        string title
+        string description
+        string status
+        string priority
+        string assignee
+        datetime created_at
+        datetime updated_at
+    }
 
+    ATTACHMENTS {
+        int id PK
+        int ticket_id FK
+        string filename
+        string file_path
+        string mime_type
+        datetime uploaded_at
+    }
 
-┌──────────────────┐
-│    mqtt_logs     │  # MQTT message logs
-├──────────────────┤
-│ id (PK)          │
-│ timestamp        │
-│ topic            │
-│ payload          │
-│ qos              │
-└──────────────────┘`}
-            </pre>
-          </CardContent>
-        </Card>
+    MQTT_LOGS {
+        int id PK
+        datetime timestamp
+        string topic
+        string payload
+        int qos
+    }
+          `}
+        />
 
         <DocsCallout type="info" title="Database Management">
           <DocsParagraph>
@@ -539,108 +427,64 @@ export default function Architecture({ onNavigate }) {
         </DocsCallout>
       </DocsSection>
 
-      {/* API Architecture */}
-      <DocsSection title="API Architecture">
+      {/* API Structure */}
+      <DocsSection title="API Endpoint Structure">
         <DocsParagraph>
-          The REST API follows RESTful conventions with consistent response formats and
-          comprehensive error handling.
+          The REST API follows RESTful conventions with consistent response formats.
         </DocsParagraph>
 
-        <Card className="my-6">
-          <CardHeader>
-            <CardTitle className="text-base">API Endpoint Structure</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DocsCodeBlock language="text">
-{`/api
-├── /iodds                    # IODD/EDS Management
-│   ├── GET    /              # List all IODDs
-│   ├── POST   /upload        # Upload IODD file
-│   ├── GET    /{id}          # Get IODD details
-│   └── DELETE /{id}          # Delete IODD
-│
-├── /search                   # Search & Filter
-│   ├── GET    /              # Full-text search
-│   └── GET    /filters       # Available filters
-│
-├── /themes                   # Theme Management
-│   ├── GET    /              # List themes
-│   ├── POST   /              # Create custom theme
-│   ├── GET    /active        # Get active theme
-│   ├── POST   /{id}/activate # Activate theme
-│   ├── PUT    /{id}          # Update theme
-│   └── DELETE /{id}          # Delete theme
-│
-├── /admin                    # Admin Console
-│   ├── GET    /stats         # System statistics
-│   ├── GET    /logs          # Application logs
-│   ├── POST   /backup        # Create backup
-│   └── POST   /vacuum        # Optimize database
-│
-├── /mqtt                     # MQTT Integration
-│   ├── GET    /status        # Broker status
-│   ├── POST   /publish       # Publish message
-│   └── GET    /logs          # Message logs
-│
-├── /services                 # External Services
-│   ├── GET    /grafana       # Grafana status
-│   ├── GET    /nodered       # Node-RED status
-│   └── GET    /influxdb      # InfluxDB status
-│
-└── /tickets                  # Ticket System
-    ├── GET    /              # List tickets
-    ├── POST   /              # Create ticket
-    ├── GET    /{id}          # Get ticket details
-    ├── PUT    /{id}          # Update ticket
-    ├── DELETE /{id}          # Delete ticket
-    └── POST   /{id}/attach   # Upload attachment`}
-            </DocsCodeBlock>
-          </CardContent>
-        </Card>
+        <DocsMermaid
+          chart={`
+graph TB
+    API["/api"]
 
-        <div className="grid gap-4 md:grid-cols-2 my-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Request Format</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DocsCodeBlock language="http">
-{`POST /api/iodds/upload
-Content-Type: multipart/form-data
-Rate-Limit: 10/minute
+    subgraph IODD["📦 IODD Management"]
+        I1["/iodds<br/>GET - List all"]
+        I2["/iodds/upload<br/>POST - Upload file"]
+        I3["/iodds/:id<br/>GET - Get details"]
+        I4["/iodds/:id<br/>DELETE - Remove"]
+    end
 
-Headers:
-  Content-Type: multipart/form-data
+    subgraph Search["🔍 Search & Filter"]
+        S1["/search<br/>GET - Full-text search"]
+        S2["/search/filters<br/>GET - Get filters"]
+    end
 
-Body:
-  file: [binary data]`}
-              </DocsCodeBlock>
-            </CardContent>
-          </Card>
+    subgraph Themes["🎨 Theme System"]
+        T1["/themes<br/>GET - List themes"]
+        T2["/themes<br/>POST - Create custom"]
+        T3["/themes/active<br/>GET - Active theme"]
+        T4["/themes/:id/activate<br/>POST - Switch theme"]
+    end
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Response Format</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DocsCodeBlock language="json">
-{`{
-  "id": 123,
-  "vendor_id": 310,
-  "device_id": 1234,
-  "product_name": "Device Name",
-  "created_at": "2025-01-17T12:00:00"
-}
+    subgraph Admin["⚙️ Admin Console"]
+        A1["/admin/stats<br/>GET - Statistics"]
+        A2["/admin/logs<br/>GET - System logs"]
+        A3["/admin/backup<br/>POST - Create backup"]
+        A4["/admin/vacuum<br/>POST - Optimize DB"]
+    end
 
-// Error response
-{
-  "detail": "Error message",
-  "status": 400
-}`}
-              </DocsCodeBlock>
-            </CardContent>
-          </Card>
-        </div>
+    subgraph Services["🔌 External Services"]
+        M1["/mqtt/status<br/>GET - Broker status"]
+        M2["/mqtt/publish<br/>POST - Send message"]
+        G1["/services/grafana<br/>GET - Status"]
+        N1["/services/nodered<br/>GET - Status"]
+    end
+
+    API --> IODD
+    API --> Search
+    API --> Themes
+    API --> Admin
+    API --> Services
+
+    style API fill:#3DB60F,stroke:#51cf66,stroke-width:3px,color:#000
+    style IODD fill:#1a1f3a,stroke:#3DB60F,stroke-width:2px,color:#fff
+    style Search fill:#1a1f3a,stroke:#3DB60F,stroke-width:2px,color:#fff
+    style Themes fill:#1a1f3a,stroke:#3DB60F,stroke-width:2px,color:#fff
+    style Admin fill:#1a1f3a,stroke:#3DB60F,stroke-width:2px,color:#fff
+    style Services fill:#1a1f3a,stroke:#3DB60F,stroke-width:2px,color:#fff
+          `}
+        />
       </DocsSection>
 
       {/* Security Architecture */}
@@ -649,6 +493,39 @@ Body:
           Security is implemented at multiple layers with rate limiting, input validation,
           and protection against common vulnerabilities.
         </DocsParagraph>
+
+        <DocsMermaid
+          chart={`
+graph TB
+    Request["🌐 Incoming Request"]
+
+    subgraph Security["🛡️ Security Layers"]
+        L1["Layer 1: CORS<br/>Origin validation"]
+        L2["Layer 2: Rate Limiting<br/>SlowAPI middleware"]
+        L3["Layer 3: Input Validation<br/>Pydantic models"]
+        L4["Layer 4: SQL Injection Protection<br/>SQLAlchemy ORM"]
+        L5["Layer 5: XSS Protection<br/>React auto-escaping"]
+    end
+
+    Response["✅ Secure Response"]
+
+    Request --> L1
+    L1 --> L2
+    L2 --> L3
+    L3 --> L4
+    L4 --> L5
+    L5 --> Response
+
+    style Request fill:#ff6b6b,stroke:#ffd43b,stroke-width:2px,color:#000
+    style Response fill:#51cf66,stroke:#3DB60F,stroke-width:2px,color:#000
+    style Security fill:#1a1f3a,stroke:#3DB60F,stroke-width:3px,color:#fff
+    style L1 fill:#2a3050,stroke:#51cf66,color:#fff
+    style L2 fill:#2a3050,stroke:#51cf66,color:#fff
+    style L3 fill:#2a3050,stroke:#51cf66,color:#fff
+    style L4 fill:#2a3050,stroke:#51cf66,color:#fff
+    style L5 fill:#2a3050,stroke:#51cf66,color:#fff
+          `}
+        />
 
         <div className="grid gap-4 md:grid-cols-2 my-6">
           <Card>
@@ -686,66 +563,46 @@ Body:
       {/* Deployment Architecture */}
       <DocsSection title="Deployment Architecture">
         <DocsParagraph>
-          Greenstack can be deployed in various configurations from development to production.
+          Greenstack supports multiple deployment configurations from development to production.
         </DocsParagraph>
 
-        <Card className="my-6 bg-gradient-to-br from-surface to-surface-hover">
-          <CardContent className="pt-6">
-            <pre className="text-sm font-mono text-foreground overflow-x-auto">
-{`┌─────────────────────────────────────────────────────────────────┐
-│                    Production Deployment                        │
-└─────────────────────────────────────────────────────────────────┘
+        <DocsMermaid
+          chart={`
+graph TB
+    subgraph Production["🚀 Production Deployment"]
+        Internet["☁️ Internet"]
+        Proxy["Reverse Proxy<br/>(Nginx/Traefik)<br/>Port 443 HTTPS"]
+        FE["Frontend Container<br/>(Nginx Static)<br/>Port 80"]
+        BE["Backend Container<br/>(FastAPI)<br/>Port 8000"]
+        DBP[(Database<br/>PostgreSQL<br/>or SQLite)]
 
-                        Internet
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │  Reverse     │  # Nginx/Traefik
-                    │  Proxy       │  # SSL/TLS termination
-                    │  (Port 443)  │  # Load balancing
-                    └──────────────┘
-                           │
-              ┌────────────┴────────────┐
-              │                         │
-              ▼                         ▼
-       ┌─────────────┐          ┌─────────────┐
-       │  Frontend   │          │  Backend    │
-       │  Container  │          │  Container  │
-       │  (Nginx)    │          │  (FastAPI)  │
-       │  Port 80    │          │  Port 8000  │
-       └─────────────┘          └─────────────┘
-                                       │
-                                       ▼
-                                ┌─────────────┐
-                                │  Database   │
-                                │  (SQLite or │
-                                │  PostgreSQL)│
-                                └─────────────┘
+        Internet -->|HTTPS| Proxy
+        Proxy -->|Static Files| FE
+        Proxy -->|API /api/*| BE
+        BE -->|SQL| DBP
+    end
 
-┌─────────────────────────────────────────────────────────────────┐
-│                   Development Environment                       │
-└─────────────────────────────────────────────────────────────────┘
+    subgraph Development["💻 Development Environment"]
+        Dev["Developer Machine"]
+        Vite["Vite Dev Server<br/>Port 5173<br/>Hot Reload"]
+        Fast["FastAPI Server<br/>Port 8000<br/>Auto Reload"]
+        DBS[(SQLite File<br/>greenstack.db)]
 
-       Developer Machine
-              │
-    ┌─────────┴─────────┐
-    │                   │
-    ▼                   ▼
-┌────────┐         ┌────────┐
-│ Vite   │         │ Python │
-│ Dev    │    ←──→ │ FastAPI│
-│ Server │         │ Server │
-│ :5173  │         │ :8000  │
-└────────┘         └────────┘
-                       │
-                       ▼
-                  ┌────────┐
-                  │ SQLite │
-                  │  File  │
-                  └────────┘`}
-            </pre>
-          </CardContent>
-        </Card>
+        Dev --> Vite
+        Dev --> Fast
+        Vite -.->|Proxy API| Fast
+        Fast -->|SQL| DBS
+    end
+
+    style Production fill:#2d5016,stroke:#3DB60F,stroke-width:3px,color:#fff
+    style Development fill:#1a1f3a,stroke:#3DB60F,stroke-width:3px,color:#fff
+    style Proxy fill:#3a4060,stroke:#51cf66,color:#fff
+    style FE fill:#3a4060,stroke:#51cf66,color:#fff
+    style BE fill:#3a4060,stroke:#51cf66,color:#fff
+    style Vite fill:#3a4060,stroke:#51cf66,color:#fff
+    style Fast fill:#3a4060,stroke:#51cf66,color:#fff
+          `}
+        />
       </DocsSection>
 
       {/* Related Resources */}
