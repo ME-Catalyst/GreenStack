@@ -378,13 +378,116 @@ async def get_eds_diagnostics_summary():
             "count": row[2]
         })
 
+    # Add quality metrics
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM eds_files")
+    total_files = cursor.fetchone()[0]
+
+    # Get completeness stats
+    cursor.execute("""
+        SELECT
+            COUNT(CASE WHEN product_name IS NOT NULL AND product_name != '' THEN 1 END) as with_name,
+            COUNT(CASE WHEN vendor_name IS NOT NULL AND vendor_name != '' THEN 1 END) as with_vendor,
+            COUNT(CASE WHEN description IS NOT NULL AND description != '' THEN 1 END) as with_desc,
+            COUNT(CASE WHEN icon_data IS NOT NULL THEN 1 END) as with_icon
+        FROM eds_files
+    """)
+    comp = cursor.fetchone()
+
+    # Calculate quality score
+    total_issues = sum(row[3] + row[4] + row[5] + row[6] for row in [list(f.values())[3:7] for f in files_with_issues])
+    quality_score = 100
+    if total_files > 0:
+        quality_score -= (total_issues / (total_files * 10)) * 100  # Normalize by expected issues
+        quality_score = max(0, min(100, quality_score))
+
     conn.close()
 
     return {
         "files_with_issues": files_with_issues,
         "by_severity": by_severity,
         "common_codes": common_codes,
-        "total_files_with_issues": len(files_with_issues)
+        "total_files_with_issues": len(files_with_issues),
+        "total_files": total_files,
+        "quality_score": round(quality_score, 1),
+        "completeness": {
+            "product_name_pct": (comp[0] / total_files * 100) if total_files > 0 else 0,
+            "vendor_name_pct": (comp[1] / total_files * 100) if total_files > 0 else 0,
+            "description_pct": (comp[2] / total_files * 100) if total_files > 0 else 0,
+            "icon_pct": (comp[3] / total_files * 100) if total_files > 0 else 0
+        }
+    }
+
+
+@router.get("/diagnostics/iodd-summary")
+async def get_iodd_diagnostics_summary():
+    """Get summary of IODD parsing quality"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Get total files
+    cursor.execute("SELECT COUNT(*) FROM iodd_files")
+    total_files = cursor.fetchone()[0]
+
+    # Get files with missing fields
+    cursor.execute("""
+        SELECT
+            i.id,
+            d.product_name,
+            d.manufacturer,
+            d.vendor_id,
+            d.device_id
+        FROM iodd_files i
+        LEFT JOIN devices d ON i.device_id = d.id
+        WHERE d.product_name IS NULL OR d.product_name = ''
+           OR d.manufacturer IS NULL OR d.manufacturer = ''
+        LIMIT 50
+    """)
+
+    files_with_issues = []
+    for row in cursor.fetchall():
+        issues = []
+        if not row[1]:
+            issues.append("Missing product name")
+        if not row[2]:
+            issues.append("Missing manufacturer")
+        files_with_issues.append({
+            "id": row[0],
+            "product_name": row[1] or "N/A",
+            "manufacturer": row[2] or "N/A",
+            "vendor_id": row[3],
+            "device_id": row[4],
+            "issues": issues
+        })
+
+    # Get completeness
+    cursor.execute("""
+        SELECT
+            COUNT(CASE WHEN d.product_name IS NOT NULL AND d.product_name != '' THEN 1 END) as with_name,
+            COUNT(CASE WHEN d.manufacturer IS NOT NULL AND d.manufacturer != '' THEN 1 END) as with_vendor,
+            COUNT(CASE WHEN d.vendor_id IS NOT NULL THEN 1 END) as with_vendor_id
+        FROM iodd_files i
+        LEFT JOIN devices d ON i.device_id = d.id
+    """)
+    comp = cursor.fetchone()
+
+    quality_score = 100
+    if total_files > 0:
+        quality_score -= (len(files_with_issues) / total_files) * 50
+        quality_score = max(0, min(100, quality_score))
+
+    conn.close()
+
+    return {
+        "total_files": total_files,
+        "files_with_issues": files_with_issues,
+        "total_files_with_issues": len(files_with_issues),
+        "quality_score": round(quality_score, 1),
+        "completeness": {
+            "product_name_pct": (comp[0] / total_files * 100) if total_files > 0 else 0,
+            "manufacturer_pct": (comp[1] / total_files * 100) if total_files > 0 else 0,
+            "vendor_id_pct": (comp[2] / total_files * 100) if total_files > 0 else 0
+        }
     }
 
 
