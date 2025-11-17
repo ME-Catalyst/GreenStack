@@ -3,37 +3,30 @@ EDS (Electronic Data Sheet) API Routes
 Endpoints for managing EDS files for EtherNet/IP devices
 """
 
-from typing import List
-from fastapi import APIRouter, File, UploadFile, HTTPException
-from fastapi.responses import StreamingResponse
-from datetime import datetime
+import io
+import json
+import logging
+import os
+import re
 import sqlite3
 import tempfile
-import os
-import logging
-import io
 import zipfile
-import re
-import json
+from datetime import datetime
+from typing import List
 
-from src.parsers.eds_parser import parse_eds_file, parse_eds_file_legacy
-from src.parsers.eds_package_parser import EDSPackageParser
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
+
+from src.database import get_connection, get_db_path
 from src.parsers.eds_diagnostics import Severity
+from src.parsers.eds_package_parser import EDSPackageParser
+from src.parsers.eds_parser import parse_eds_file, parse_eds_file_legacy
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
 # Create router
 router = APIRouter(prefix="/api/eds", tags=["EDS Files"])
-
-# Database path will be set when router is included
-db_path = None
-
-def get_db_path():
-    """Get database path from manager"""
-    if db_path is None:
-        return "greenstack.db"
-    return db_path
 
 
 @router.post("/upload")
@@ -993,20 +986,30 @@ async def bulk_delete_eds_files(request: dict):
     cursor = conn.cursor()
 
     # Delete all associated data for each EDS file
-    placeholders = ','.join('?' * len(eds_ids))
-    cursor.execute(f"DELETE FROM eds_diagnostics WHERE eds_file_id IN ({placeholders})", eds_ids)
-    cursor.execute(f"DELETE FROM eds_tspecs WHERE eds_file_id IN ({placeholders})", eds_ids)
-    cursor.execute(f"DELETE FROM eds_capacity WHERE eds_file_id IN ({placeholders})", eds_ids)
-    cursor.execute(f"DELETE FROM eds_groups WHERE eds_file_id IN ({placeholders})", eds_ids)
-    cursor.execute(f"DELETE FROM eds_ports WHERE eds_file_id IN ({placeholders})", eds_ids)
-    cursor.execute(f"DELETE FROM eds_modules WHERE eds_file_id IN ({placeholders})", eds_ids)
-    cursor.execute(f"DELETE FROM eds_variable_assemblies WHERE eds_file_id IN ({placeholders})", eds_ids)
-    cursor.execute(f"DELETE FROM eds_assemblies WHERE eds_file_id IN ({placeholders})", eds_ids)
-    cursor.execute(f"DELETE FROM eds_connections WHERE eds_file_id IN ({placeholders})", eds_ids)
-    cursor.execute(f"DELETE FROM eds_parameters WHERE eds_file_id IN ({placeholders})", eds_ids)
+    # Note: Using parameterized queries for security - placeholders are literal '?' chars
+    placeholders_str = ','.join('?' * len(eds_ids))
 
-    # Finally delete all specified EDS files
-    cursor.execute(f"DELETE FROM eds_files WHERE id IN ({placeholders})", eds_ids)
+    # List of tables to delete from (in order of dependencies)
+    tables_to_delete = [
+        "eds_diagnostics",
+        "eds_tspecs",
+        "eds_capacity",
+        "eds_groups",
+        "eds_ports",
+        "eds_modules",
+        "eds_variable_assemblies",
+        "eds_assemblies",
+        "eds_connections",
+        "eds_parameters"
+    ]
+
+    # Delete from child tables first
+    for table in tables_to_delete:
+        query = f"DELETE FROM {table} WHERE eds_file_id IN ({placeholders_str})"
+        cursor.execute(query, eds_ids)
+
+    # Finally delete all specified EDS files from parent table
+    cursor.execute(f"DELETE FROM eds_files WHERE id IN ({placeholders_str})", eds_ids)
 
     deleted_count = cursor.rowcount
     conn.commit()
@@ -1292,7 +1295,7 @@ async def upload_eds_package(file: UploadFile = File(...)):
                 imported_count += 1
 
             except Exception as e:
-                print(f"Error importing EDS from package: {e}")
+                logger.error("importing EDS from package: {e}")
                 continue
 
         # Insert package metadata files

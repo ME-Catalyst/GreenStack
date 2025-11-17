@@ -3,10 +3,15 @@ Parsing Quality Analysis System
 Comprehensive diagnostics and quality scoring for EDS and IODD files
 """
 
-import sqlite3
-from typing import Dict, List, Any, Optional
-from pathlib import Path
 import json
+import logging
+import sqlite3
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ParsingQualityAnalyzer:
@@ -288,10 +293,10 @@ class ParsingQualityAnalyzer:
 if __name__ == "__main__":
     analyzer = ParsingQualityAnalyzer()
 
-    print("=== EDS Parsing Quality Analysis ===")
+    logger.info("=== EDS Parsing Quality Analysis ===")
     eds_quality = analyzer.analyze_eds_quality()
-    print(json.dumps(eds_quality, indent=2))
+    logger.info(json.dumps(eds_quality, indent=2))
 
-    print("\n=== IODD Parsing Quality Analysis ===")
+    logger.info("=== IODD Parsing Quality Analysis ===")
     iodd_quality = analyzer.analyze_iodd_quality()
-    print(json.dumps(iodd_quality, indent=2))
+    logger.info(json.dumps(iodd_quality, indent=2))

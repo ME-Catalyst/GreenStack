@@ -3,9 +3,10 @@ Advanced Search API Routes
 Provides global search across all EDS and IODD data including parameters, assemblies, connections
 """
 
-from fastapi import APIRouter, Query
-from typing import Optional, List
 import sqlite3
+from typing import List, Optional
+
+from fastapi import APIRouter, Query
 
 router = APIRouter(prefix="/api/search", tags=["Search"])
 

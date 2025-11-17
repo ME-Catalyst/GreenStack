@@ -3,10 +3,10 @@ EDS Parsing Diagnostics System
 Provides structured error reporting and validation feedback
 """
 
-from enum import Enum
 from dataclasses import dataclass
-from typing import Optional, List
 from datetime import datetime
+from enum import Enum
+from typing import List, Optional
 
 
 class Severity(Enum):

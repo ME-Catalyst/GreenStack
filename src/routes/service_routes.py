@@ -3,16 +3,17 @@ Service Management Routes
 Provides REST API endpoints for managing application services (MQTT, InfluxDB, Node-RED, Grafana)
 with port configuration and conflict detection
 """
+import json
+import os
+import shutil
+import socket
+import subprocess
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import psutil
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
-import subprocess
-import psutil
-import os
-import json
-import socket
-import shutil
-from pathlib import Path
 
 router = APIRouter()
 
@@ -110,7 +111,7 @@ def load_service_config() -> Dict[str, Dict]:
                                 config[service][key] = value
                 return config
         except Exception as e:
-            print(f"Error loading service config: {e}")
+            logger.error("loading service config: {e}")
             return DEFAULT_SERVICES.copy()
     return DEFAULT_SERVICES.copy()
 
@@ -120,7 +121,7 @@ def save_service_config(config: Dict[str, Dict]):
         with open(SERVICE_CONFIG_FILE, 'w') as f:
             json.dump(config, f, indent=2)
     except Exception as e:
-        print(f"Error saving service config: {e}")
+        logger.error("saving service config: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to save configuration: {str(e)}")
 
 def check_port_available(port: int) -> tuple[bool, Optional[Dict]]:

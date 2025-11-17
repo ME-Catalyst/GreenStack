@@ -4,9 +4,9 @@ Greenstack Parsers
 Parsers for EDS and IODD file formats.
 """
 
-from .eds_parser import EDSParser
+from .eds_diagnostics import Diagnostic, DiagnosticCollector, Severity
 from .eds_package_parser import EDSPackageParser
-from .eds_diagnostics import DiagnosticCollector, Severity, Diagnostic
+from .eds_parser import EDSParser
 
 __all__ = [
     "EDSParser",

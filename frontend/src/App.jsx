@@ -5079,7 +5079,6 @@ const IODDManager = () => {
 
           // Check if it's a database locked error and we have retries left
           if (errorMsg.includes('database is locked') && attempt < retries) {
-            console.log(`Database locked for ${file.name}, retrying (attempt ${attempt}/${retries})...`);
             // Wait before retry with exponential backoff (2s, 4s, 6s, 8s)
             await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
             continue;
@@ -5154,11 +5153,9 @@ const IODDManager = () => {
 
   const handleEdsFileUpload = async (files) => {
     if (!files || files.length === 0) {
-      console.log('handleEdsFileUpload: No files provided');
       return;
     }
 
-    console.log(`handleEdsFileUpload: Processing ${files.length} file(s)`, files);
     setLoading(true);
     let successCount = 0;
     let failCount = 0;
@@ -5197,13 +5194,11 @@ const IODDManager = () => {
 
           // Handle duplicate packages (409 Conflict) - don't count as failure
           if (error.response?.status === 409) {
-            console.log(`Package ${file.name} already exists, skipping`);
             return { success: true, count: 0, isDuplicate: true };
           }
 
           // Check if it's a database locked error and we have retries left
           if (errorMsg.includes('database is locked') && attempt < retries) {
-            console.log(`Database locked for ${file.name}, retrying (attempt ${attempt}/${retries})...`);
             // Wait before retry with exponential backoff (2s, 4s, 6s, 8s)
             await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
             continue;
@@ -5222,7 +5217,6 @@ const IODDManager = () => {
       const progress = Math.round(((i) / totalFiles) * 100);
       setUploadProgress(progress);
 
-      console.log(`Processing file ${i + 1}/${totalFiles}: ${file.name}`);
 
       // Show current file being processed
       toast({
