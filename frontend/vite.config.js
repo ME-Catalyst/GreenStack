@@ -12,6 +12,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    strictPort: false, // Automatically find next available port if 5173 is occupied
     host: true,
     proxy: {
       '/api': {

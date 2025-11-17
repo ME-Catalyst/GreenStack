@@ -8,6 +8,7 @@ Uses python-dotenv to load from .env file if present.
 import os
 from pathlib import Path
 from typing import List
+
 from dotenv import load_dotenv
 
 # Load .env file if it exists

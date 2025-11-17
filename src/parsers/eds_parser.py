@@ -3,13 +3,19 @@ EDS (Electronic Data Sheet) File Parser
 Parses EDS files for EtherNet/IP devices with comprehensive section extraction
 """
 
-import re
 import base64
-import json
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Any
 import hashlib
+import json
+import logging
+import re
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
 from src.parsers.eds_diagnostics import DiagnosticCollector, validate_eds_data
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 
 
 class EDSParser:
@@ -129,7 +135,7 @@ class EDSParser:
             try:
                 icon_data = base64.b64decode(icon_contents)
             except Exception as e:
-                print(f"Failed to decode icon data: {e}")
+                logger.info("Failed to decode icon data: {e}")
 
         return {
             'vendor_code': self._parse_int(data.get('VendCode')),

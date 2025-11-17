@@ -4,19 +4,20 @@ IODD Management System - Core Implementation
 A comprehensive tool for managing IODD files and generating custom adapters
 """
 
-import json
-import zipfile
 import hashlib
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Union, Tuple
-from dataclasses import dataclass, field
-from enum import Enum
-from abc import ABC, abstractmethod
-import xml.etree.ElementTree as ET
-from datetime import datetime
-import sqlite3
+import json
 import logging
-from jinja2 import Template, Environment, FileSystemLoader
+import sqlite3
+import xml.etree.ElementTree as ET
+import zipfile
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from jinja2 import Environment, FileSystemLoader, Template
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -1317,8 +1318,8 @@ class IODDIngester:
             logger.info(f"Found {len(zip_files)} child package(s) in nested ZIP")
 
             # Process each child ZIP
-            import tempfile
             import os
+            import tempfile
 
             for zip_file_name in zip_files:
                 try:
@@ -2454,28 +2455,28 @@ def main():
     if args.command == 'import':
         try:
             device_id = manager.import_iodd(args.file)
-            print(f"Successfully imported device with ID: {device_id}")
+            logger.info("Successfully imported device with ID: %d", device_id)
         except Exception as e:
-            print(f"Error importing IODD: {e}")
+            logger.error("Error importing IODD: %s", e)
             
     elif args.command == 'generate':
         try:
             output_dir = manager.generate_adapter(args.device_id, args.platform, args.output)
-            print(f"Generated adapter in: {output_dir}")
+            logger.info("Generated adapter in: %s", output_dir)
         except Exception as e:
-            print(f"Error generating adapter: {e}")
+            logger.error("Error generating adapter: %s", e)
             
     elif args.command == 'list':
         devices = manager.list_devices()
         if devices:
-            print("\nImported Devices:")
-            print("-" * 80)
+            logger.info("\nImported Devices:")
+            logger.info("-" * 80)
             for device in devices:
-                print(f"ID: {device['id']} | {device['product_name']} | "
-                      f"Vendor: {device['manufacturer']} | "
-                      f"Imported: {device['import_date']}")
+                logger.info("ID: %d | %s | Vendor: %s | Imported: %s",
+                           device['id'], device['product_name'],
+                           device['manufacturer'], device['import_date'])
         else:
-            print("No devices imported yet")
+            logger.info("No devices imported yet")
     
     else:
         parser.print_help()

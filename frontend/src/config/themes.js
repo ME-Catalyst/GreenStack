@@ -405,8 +405,6 @@ export function generateCSSVariables(theme) {
 export function applyTheme(theme) {
   const root = document.documentElement;
 
-  console.log('[applyTheme] Applying theme:', theme.name, 'mode:', theme.mode);
-  console.log('[applyTheme] Before - classList:', root.className);
 
   // CSS structure: :root has dark mode, .light class has light mode
   // So for dark mode, remove .light class; for light mode, add .light class
@@ -418,7 +416,6 @@ export function applyTheme(theme) {
     root.classList.remove('dark');
   }
 
-  console.log('[applyTheme] After - classList:', root.className);
 }
 
 export default {

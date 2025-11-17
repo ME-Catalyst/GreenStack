@@ -2,13 +2,18 @@
 MQTT Broker Management Routes
 Provides REST API endpoints for managing and monitoring the MQTT broker
 """
+import asyncio
+import json
+import logging
+import os
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
-import os
-import json
-import asyncio
-from datetime import datetime
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Try to import paho-mqtt, but make it optional
 try:
@@ -16,7 +21,7 @@ try:
     MQTT_AVAILABLE = True
 except ImportError:
     MQTT_AVAILABLE = False
-    print("Warning: paho-mqtt not installed. MQTT features will be disabled.")
+    logger.warning("paho-mqtt not installed. MQTT features will be disabled.")
 
 router = APIRouter()
 
@@ -66,15 +71,15 @@ def setup_mqtt_client():
         global mqtt_connected
         if rc == 0:
             mqtt_connected = True
-            print(f"API MQTT client connected to broker at {MQTT_BROKER}:{MQTT_PORT}")
+            logger.info("API MQTT client connected to broker at %s:%d", MQTT_BROKER, MQTT_PORT)
         else:
             mqtt_connected = False
-            print(f"Failed to connect to MQTT broker. Return code: {rc}")
+            logger.error("Failed to connect to MQTT broker. Return code: %d", rc)
 
     def on_disconnect(client, userdata, rc):
         global mqtt_connected
         mqtt_connected = False
-        print("API MQTT client disconnected from broker")
+        logger.info("API MQTT client disconnected from broker")
 
     def on_message(client, userdata, msg):
         """Handle incoming MQTT messages and forward to websocket clients"""
@@ -307,7 +312,7 @@ async def websocket_endpoint(websocket: WebSocket):
         if websocket in websocket_clients:
             websocket_clients.remove(websocket)
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error("WebSocket error: %s", e, exc_info=True)
         if websocket in websocket_clients:
             websocket_clients.remove(websocket)
 

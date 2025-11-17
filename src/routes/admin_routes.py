@@ -3,19 +3,20 @@ Admin Console API Routes
 Provides system administration, monitoring, and management endpoints
 """
 
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
-import sqlite3
+import json
 import os
 import shutil
+import sqlite3
+import tempfile
 from datetime import datetime
 from pathlib import Path
-import tempfile
-import json
+
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
+
+from src.database import get_connection, get_db_path
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Console"])
-
-DB_PATH = "greenstack.db"
 
 
 @router.get("/stats/overview")
@@ -26,7 +27,7 @@ async def get_system_overview():
     Returns:
         System-wide metrics including device counts, storage info, and health status
     """
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
 
     # Device counts
@@ -98,7 +99,7 @@ async def get_system_overview():
     conn.close()
 
     # File system info
-    db_file_size = os.path.getsize(DB_PATH) if os.path.exists(DB_PATH) else 0
+    db_file_size = os.path.getsize(get_db_path()) if os.path.exists(get_db_path()) else 0
 
     # Check for attachments directory
     attachments_dir = Path("ticket_attachments")
@@ -147,7 +148,7 @@ async def get_system_overview():
         },
         "database": {
             "table_count": table_count,
-            "path": DB_PATH
+            "path": get_db_path()
         },
         "timestamp": datetime.now().isoformat()
     }
@@ -156,7 +157,7 @@ async def get_system_overview():
 @router.get("/stats/devices-by-vendor")
 async def get_devices_by_vendor():
     """Get device distribution by vendor"""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
 
     # IODD devices by vendor
@@ -194,7 +195,7 @@ async def get_database_health():
 
     Returns detailed issue detection and resolution recommendations
     """
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
 
     issues = []
@@ -272,7 +273,7 @@ async def get_database_health():
     missing_indexes = []
     for table, columns in expected_indexes.items():
         # Check if table exists
-        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,))
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,))
         if cursor.fetchone():
             for col in columns:
                 # Simple check - in production you'd verify actual index coverage
@@ -370,7 +371,7 @@ async def vacuum_database():
         # Get size before
         size_before = os.path.getsize(DB_PATH)
 
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(get_db_path())
         conn.execute("VACUUM")
         conn.close()
 
@@ -439,7 +440,7 @@ async def download_backup():
 @router.get("/diagnostics/eds-summary")
 async def get_eds_diagnostics_summary():
     """Get summary of EDS parsing diagnostics"""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
 
     # Get files with issues
@@ -544,7 +545,7 @@ async def get_eds_diagnostics_summary():
 @router.get("/diagnostics/iodd-summary")
 async def get_iodd_diagnostics_summary():
     """Get summary of IODD parsing quality"""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
 
     # Get total files
@@ -654,7 +655,7 @@ async def delete_all_iodd_devices():
     WARNING: This is a destructive operation that cannot be undone.
     Deletes all IODD devices, parameters, assets, and all related metadata.
     """
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
 
     try:
@@ -710,7 +711,7 @@ async def delete_all_eds_files():
     WARNING: This is a destructive operation that cannot be undone.
     Deletes all EDS files, parameters, packages, assemblies, modules, ports, connections, and diagnostics.
     """
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
 
     try:
@@ -761,7 +762,7 @@ async def delete_all_tickets():
     WARNING: This is a destructive operation that cannot be undone.
     Deletes all tickets, comments, and their associated attachments from both database and filesystem.
     """
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
 
     try:
@@ -809,7 +810,7 @@ async def delete_all_data():
     Deletes all IODD devices, EDS files, parameters, tickets, and all related data.
     The database structure (tables) will remain, but all content will be removed.
     """
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
 
     try:

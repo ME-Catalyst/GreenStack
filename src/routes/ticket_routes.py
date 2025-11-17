@@ -3,18 +3,19 @@ Ticket/Bug Tracking System API Routes
 Handles ticket CRUD operations, comments, and CSV export
 """
 
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File
-from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel
-from typing import Optional, List
-from datetime import datetime
-import sqlite3
 import csv
 import io
 import os
 import shutil
+import sqlite3
 import zipfile
+from datetime import datetime
 from pathlib import Path
+from typing import List, Optional
+
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse, StreamingResponse
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/tickets", tags=["Tickets"])
 
@@ -619,7 +620,7 @@ async def delete_attachment(ticket_id: int, attachment_id: int):
         if os.path.exists(file_path):
             os.remove(file_path)
     except Exception as e:
-        print(f"Warning: Failed to delete file {file_path}: {e}")
+        logger.warning("Failed to delete file {file_path}: {e}")
 
     return {"message": "Attachment deleted successfully"}
 

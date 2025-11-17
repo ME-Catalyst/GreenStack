@@ -80,7 +80,6 @@ export const ThemeProvider = ({ children }) => {
   // Apply theme on mount and when theme changes
   useEffect(() => {
     const themeToApply = customTheme || getThemePreset(themePreset);
-    console.log('[ThemeContext useEffect] Preset:', themePreset, 'Theme to apply:', themeToApply.name, 'Mode:', themeToApply.mode);
     setCurrentTheme(themeToApply);
     applyTheme(themeToApply);
 
@@ -127,8 +126,6 @@ export const ThemeProvider = ({ children }) => {
     // Check current theme's mode, not the preset name
     const currentMode = currentTheme?.mode || 'dark';
     const newPreset = currentMode === 'light' ? 'greenstack' : 'light';
-    console.log('[toggleTheme] Current mode:', currentMode, '-> New preset:', newPreset);
-    console.log('[toggleTheme] Current theme:', currentTheme);
     setThemePresetState(newPreset);
     setCustomThemeState(null); // Clear custom theme
   };

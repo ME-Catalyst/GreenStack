@@ -3,14 +3,20 @@ EDS Package Parser
 Handles extraction and parsing of EDS package ZIP files
 """
 
-import re
-import zipfile
-import tempfile
 import hashlib
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+import logging
+import re
+import tempfile
+import zipfile
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
 from src.parsers.eds_parser import parse_eds_file
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 
 
 class EDSPackageParser:
@@ -98,7 +104,7 @@ class EDSPackageParser:
 
                     # Validate that we got a dictionary
                     if not isinstance(parsed_data, dict):
-                        print(f"Error parsing {eds_file}: parse_eds_file returned {type(parsed_data)} instead of dict")
+                        logger.error("parsing {eds_file}: parse_eds_file returned {type(parsed_data)} instead of dict")
                         continue
 
                     # Get relative path within package
@@ -143,7 +149,7 @@ class EDSPackageParser:
                             result['product_name'] = device_info.get('product_name')
 
                 except Exception as e:
-                    print(f"Error parsing {eds_file}: {e}")
+                    logger.error("parsing {eds_file}: {e}")
                     import traceback
                     traceback.print_exc()
                     continue
@@ -167,7 +173,7 @@ class EDSPackageParser:
                         'content': content.encode('utf-8'),
                     })
                 except Exception as e:
-                    print(f"Error reading {readme_file}: {e}")
+                    logger.error("reading {readme_file}: {e}")
 
             # Parse changelog files
             changelog_files = list(temp_path.rglob('*[Cc]hange*.txt'))
@@ -183,7 +189,7 @@ class EDSPackageParser:
                         'content': content.encode('utf-8'),
                     })
                 except Exception as e:
-                    print(f"Error reading {changelog_file}: {e}")
+                    logger.error("reading {changelog_file}: {e}")
 
             # Parse IOLM XML files
             iolm_files = list(temp_path.rglob('*.xml'))
@@ -199,7 +205,7 @@ class EDSPackageParser:
                         'content': content,
                     })
                 except Exception as e:
-                    print(f"Error reading {iolm_file}: {e}")
+                    logger.error("reading {iolm_file}: {e}")
 
             # Parse images (PNG logos, etc.)
             image_files = list(temp_path.rglob('*.png'))
@@ -215,7 +221,7 @@ class EDSPackageParser:
                         'content': content,
                     })
                 except Exception as e:
-                    print(f"Error reading {image_file}: {e}")
+                    logger.error("reading {image_file}: {e}")
 
         # Convert sets to lists for JSON serialization
         result['versions'] = sorted(list(result['versions']))

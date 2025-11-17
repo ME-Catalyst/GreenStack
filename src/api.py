@@ -5,24 +5,28 @@ FastAPI-based REST API for intelligent device management
 Currently supports IO-Link (IODD) and EtherNet/IP (EDS) device configurations
 """
 
-from typing import List, Optional, Dict, Any, Union
-from pathlib import Path
-from datetime import datetime
 import json
-import tempfile
+import logging
 import shutil
+import tempfile
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, Request, UploadFile
+
+# Configure logging
+logger = logging.getLogger(__name__)
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+from pydantic import BaseModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
-from src.greenstack import (
-    IODDManager, DeviceProfile, Parameter,
-    IODDDataType, AccessRights
-)
 from src import config
+from src.greenstack import AccessRights, DeviceProfile, IODDDataType, IODDManager, Parameter
 from src.parsers.eds_parser import parse_eds_file
 
 # ============================================================================
@@ -247,6 +251,25 @@ app = FastAPI(
     redoc_url="/redoc" if config.ENABLE_DOCS else None,
 )
 
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Request ID tracking middleware
+@app.middleware("http")
+async def add_request_id(request, call_next):
+    """Add unique request ID to each request for tracking and logging"""
+    import uuid
+    request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
+
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+
+    return response
+
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -254,7 +277,7 @@ app.add_middleware(
     allow_credentials=config.CORS_CREDENTIALS,
     allow_methods=config.CORS_METHODS,
     allow_headers=["*"],
-    expose_headers=["content-disposition"],  # Allow frontend to read Content-Disposition header
+    expose_headers=["content-disposition", "X-Request-ID"],  # Allow frontend to read headers
 )
 
 # Initialize Greenstack
@@ -262,27 +285,33 @@ manager = IODDManager()
 
 # Include EDS routes
 from src.routes import eds_routes
+
 eds_routes.db_path = manager.storage.db_path
 app.include_router(eds_routes.router)
 
 # Include Ticket routes
 from src.routes import ticket_routes
+
 app.include_router(ticket_routes.router)
 
 # Include Search routes
 from src.routes import search_routes
+
 app.include_router(search_routes.router)
 
 # Include Configuration Export routes
 from src.routes import config_export_routes
+
 app.include_router(config_export_routes.router)
 
 # Include Admin Console routes
 from src.routes import admin_routes
+
 app.include_router(admin_routes.router)
 
 # Include MQTT Broker Management routes
 from src.routes import mqtt_routes
+
 app.include_router(mqtt_routes.router, prefix="/api/mqtt", tags=["MQTT"])
 
 # Include WebSocket for MQTT
@@ -290,10 +319,12 @@ app.add_websocket_route("/ws/mqtt", mqtt_routes.websocket_endpoint)
 
 # Include Service Management routes
 from src.routes import service_routes
+
 app.include_router(service_routes.router, tags=["Services"])
 
 # Include Theme Management routes
 from src.routes import theme_routes
+
 theme_routes.db_path = manager.storage.db_path
 app.include_router(theme_routes.router)
 
@@ -323,7 +354,9 @@ async def root():
 @app.post("/api/iodd/upload",
           response_model=Union[UploadResponse, MultiUploadResponse],
           tags=["IODD Management"])
+@limiter.limit("10/minute")  # Rate limit: 10 uploads per minute
 async def upload_iodd(
+    request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...)
 ):
@@ -738,7 +771,7 @@ async def get_device_document_info(device_id: int):
                             device_family = external_text.get('value')
         except Exception as e:
             # If XML parsing fails, just return basic info
-            print(f"Warning: Failed to parse XML for vendor info: {e}")
+            logger.warning("Failed to parse XML for vendor info: %s", e)
 
     return DocumentInfoModel(
         copyright=row[0],
@@ -799,8 +832,8 @@ async def get_device_communication_profile(device_id: int):
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
 
-    import sqlite3
     import json
+    import sqlite3
     conn = sqlite3.connect(manager.storage.db_path)
     cursor = conn.cursor()
 
@@ -1283,9 +1316,9 @@ async def export_iodd(device_id: int, format: str = "zip"):
     Returns:
         ZIP file with all IODD files or just the XML file
     """
+    import io
     import sqlite3
     import zipfile
-    import io
 
     conn = sqlite3.connect(manager.storage.db_path)
     cursor = conn.cursor()
@@ -1422,8 +1455,8 @@ async def get_device_xml(device_id: int):
          tags=["IODD Management"])
 async def get_device_thumbnail(device_id: int):
     """Get the thumbnail/icon image for a device"""
-    import sqlite3
     import mimetypes
+    import sqlite3
 
     conn = sqlite3.connect(manager.storage.db_path)
     cursor = conn.cursor()
@@ -1472,8 +1505,8 @@ async def get_device_thumbnail(device_id: int):
          tags=["IODD Management"])
 async def get_asset(device_id: int, asset_id: int):
     """Get a specific asset file (e.g., image)"""
-    import sqlite3
     import mimetypes
+    import sqlite3
 
     conn = sqlite3.connect(manager.storage.db_path)
     cursor = conn.cursor()
@@ -1589,11 +1622,9 @@ async def generate_adapter(request: GenerateRequest):
     try:
         # For demonstration, we'll create a simple mock profile
         # In production, this would be properly deserialized from the database
-        from src.greenstack import (
-            DeviceProfile, VendorInfo, DeviceInfo as DeviceInfoModel,
-            ProcessDataCollection
-        )
-        
+        from src.greenstack import DeviceInfo as DeviceInfoModel
+        from src.greenstack import DeviceProfile, ProcessDataCollection, VendorInfo
+
         # Create mock profile (simplified)
         profile = DeviceProfile(
             vendor_info=VendorInfo(
@@ -1650,10 +1681,10 @@ async def generate_adapter(request: GenerateRequest):
          tags=["Adapter Generation"])
 async def download_generated_adapter(device_id: int, platform: str):
     """Download generated adapter as a zip file"""
+    import io
     import sqlite3
     import zipfile
-    import io
-    
+
     # Get generated adapter from database
     conn = sqlite3.connect(manager.storage.db_path)
     cursor = conn.cursor()
@@ -1698,9 +1729,9 @@ async def download_generated_adapter(device_id: int, platform: str):
 
 @app.get("/api/health", tags=["System"])
 async def health_check():
-    """Health check endpoint"""
+    """Comprehensive health check endpoint"""
     import sqlite3
-    
+
     try:
         # Check database connection
         conn = sqlite3.connect(manager.storage.db_path)
@@ -1708,7 +1739,7 @@ async def health_check():
         cursor.execute("SELECT COUNT(*) FROM devices")
         device_count = cursor.fetchone()[0]
         conn.close()
-        
+
         return {
             "status": "healthy",
             "database": "connected",
@@ -1724,6 +1755,44 @@ async def health_check():
                 "timestamp": datetime.now().isoformat()
             }
         )
+
+
+@app.get("/api/health/live", tags=["System"])
+async def liveness_probe():
+    """Kubernetes liveness probe - indicates if application is running"""
+    return {"status": "alive"}
+
+
+@app.get("/api/health/ready", tags=["System"])
+async def readiness_probe():
+    """Kubernetes readiness probe - comprehensive health check"""
+    import shutil
+    import sqlite3
+
+    checks = {}
+    overall_status = "ready"
+
+    # Database check
+    try:
+        conn = sqlite3.connect(manager.storage.db_path, timeout=2.0)
+        conn.execute("SELECT 1").fetchone()
+        conn.close()
+        checks["database"] = {"status": "ok"}
+    except Exception as e:
+        checks["database"] = {"status": "error", "message": str(e)}
+        overall_status = "not_ready"
+
+    # Disk space check
+    try:
+        stat = shutil.disk_usage("/")
+        free_percent = (stat.free / stat.total) * 100
+        checks["disk"] = {"status": "ok" if free_percent >= 10 else "warning", "free_percent": round(free_percent, 2)}
+        if free_percent < 10:
+            overall_status = "degraded"
+    except Exception as e:
+        checks["disk"] = {"status": "error", "message": str(e)}
+
+    return {"status": overall_status, "timestamp": datetime.now().isoformat(), "checks": checks}
 
 @app.get("/api/stats", tags=["System"])
 async def get_statistics():

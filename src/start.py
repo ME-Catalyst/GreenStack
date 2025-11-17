@@ -5,15 +5,15 @@ Greenstack - Startup Script
 Launches both the backend API and frontend web interface
 """
 
+import argparse
+import logging
 import os
+import signal
+import subprocess
 import sys
 import time
-import subprocess
 import webbrowser
-import argparse
 from pathlib import Path
-import logging
-import signal
 
 from src import config
 
