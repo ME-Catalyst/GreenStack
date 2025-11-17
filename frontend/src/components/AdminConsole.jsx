@@ -4,7 +4,8 @@ import {
   Download, Trash2, BarChart3, Server, Cpu, Clock, Package, FileText,
   RefreshCw, Shield, Zap, TrendingUp, Users, Calendar, Info, BookOpen,
   ExternalLink, Home, Rocket, Terminal, Github, Bug, Eye, Search, GitBranch,
-  Wifi, WifiOff, Play, StopCircle, RotateCw, Palette
+  Wifi, WifiOff, Play, StopCircle, RotateCw, Palette, AlertCircle, XCircle,
+  Target, BarChart, ArrowRight, ChevronDown, ChevronRight
 } from 'lucide-react';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from './ui';
@@ -12,6 +13,7 @@ import { Button } from './ui';
 import { Badge } from './ui';
 import TicketsPage from './TicketsPage';
 import ThemeManager from './ThemeManager';
+import PQAConsole from './PQAConsole';
 
 /**
  * Comprehensive Admin Console - System management hub
@@ -306,7 +308,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
             { id: 'tickets', label: 'Tickets', icon: Bug },
             { id: 'appearance', label: 'Appearance', icon: Palette },
             { id: 'database', label: 'Database', icon: Database },
-            { id: 'diagnostics', label: 'Diagnostics', icon: Activity },
+            { id: 'diagnostics', label: 'Parser Diagnostics', icon: Activity },
             { id: 'system', label: 'System', icon: Server }
           ].map((tab) => {
             const Icon = tab.icon;
@@ -359,11 +361,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
       )}
 
       {activeTab === 'diagnostics' && (
-        <DiagnosticsTab
-          edsDiagnostics={edsDiagnostics}
-          ioddDiagnostics={ioddDiagnostics}
-          vendorStats={vendorStats}
-        />
+        <PQAConsole API_BASE={API_BASE} toast={toast} />
       )}
 
       {activeTab === 'system' && (
