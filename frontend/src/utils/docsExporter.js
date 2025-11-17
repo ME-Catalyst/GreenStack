@@ -33,15 +33,47 @@ function extractInlineStyles() {
 }
 
 /**
+ * Calculate relative path from one page to another
+ * @param {string} fromPath - Current page path (e.g., "getting-started/quick-start")
+ * @param {string} toPath - Target page path (e.g., "api/overview" or "index")
+ * @returns {string} Relative path (e.g., "../api/overview.html" or "installation.html")
+ */
+function calculateRelativePath(fromPath, toPath) {
+  // Handle index page
+  if (toPath === 'index') {
+    const depth = fromPath.split('/').length;
+    return depth === 1 ? 'index.html' : '../'.repeat(depth - 1) + 'index.html';
+  }
+
+  const fromParts = fromPath.split('/');
+  const toParts = toPath.split('/');
+
+  // Same directory
+  if (fromParts.length === toParts.length && fromParts[0] === toParts[0]) {
+    return toParts[toParts.length - 1] + '.html';
+  }
+
+  // Different directory
+  const depth = fromParts.length - 1; // -1 because we don't count the file itself
+  const upPath = depth > 0 ? '../'.repeat(depth) : '';
+  return upPath + toPath + '.html';
+}
+
+/**
  * Generate standalone HTML template
  */
 function generateHTMLTemplate(title, content, currentPageId = null) {
   const navigation = Object.entries(docsRegistry)
-    .map(([id, page]) => `
+    .map(([id, page]) => {
+      const href = currentPageId ? calculateRelativePath(currentPageId, id) : `${id}.html`;
+      return `
       <li class="${currentPageId === id ? 'active' : ''}">
-        <a href="${id}.html">${page.metadata.title}</a>
+        <a href="${href}">${page.metadata.title}</a>
       </li>
-    `).join('');
+    `;
+    }).join('');
+
+  const homeLink = currentPageId ? calculateRelativePath(currentPageId, 'index') : 'index.html';
 
   return `<!DOCTYPE html>
 <html lang="en" class="dark">
@@ -429,7 +461,7 @@ function generateHTMLTemplate(title, content, currentPageId = null) {
         <p>Greenstack Documentation • Generated with ❤️ by Claude Code</p>
         <p style="margin-top: 0.5rem;">
           <a href="https://github.com/ME-Catalyst/greenstack" target="_blank">GitHub</a> •
-          <a href="index.html">Documentation Home</a>
+          <a href="${homeLink}">Documentation Home</a>
         </p>
       </footer>
     </main>
@@ -439,14 +471,315 @@ function generateHTMLTemplate(title, content, currentPageId = null) {
 }
 
 /**
+ * Get enhanced content for specific popular pages
+ */
+function getEnhancedContent(pageId, metadata) {
+  const category = metadata.category || 'general';
+
+  // Enhanced content templates for different page types
+  const enhancedTemplates = {
+    'api/overview': `
+      <div class="docs-section">
+        <h2>API Categories</h2>
+        <p>The Greenstack API is organized into the following categories:</p>
+        <div class="card-grid">
+          <div class="card">
+            <h3 style="color: var(--brand-green); margin-bottom: 0.5rem;">EDS Files</h3>
+            <code style="font-size: 0.75rem; opacity: 0.7;">/api/eds</code>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem;">Manage EDS (Electronic Data Sheet) files for EtherNet/IP devices including upload, parsing, and package management.</p>
+            <div style="margin-top: 0.5rem;">
+              <span class="badge">18 endpoints</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--brand-green); margin-bottom: 0.5rem;">IODD Files</h3>
+            <code style="font-size: 0.75rem; opacity: 0.7;">/api/iodd</code>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem;">Upload and manage IODD (IO Device Description) files for IO-Link devices with comprehensive parsing and validation.</p>
+            <div style="margin-top: 0.5rem;">
+              <span class="badge">24 endpoints</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--brand-green); margin-bottom: 0.5rem;">Devices</h3>
+            <code style="font-size: 0.75rem; opacity: 0.7;">/api/devices</code>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem;">Search, filter, and manage device catalog with advanced querying capabilities.</p>
+            <div style="margin-top: 0.5rem;">
+              <span class="badge">12 endpoints</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--brand-green); margin-bottom: 0.5rem;">Vendors</h3>
+            <code style="font-size: 0.75rem; opacity: 0.7;">/api/vendors</code>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem;">Access vendor information, logos, and associated devices.</p>
+            <div style="margin-top: 0.5rem;">
+              <span class="badge">8 endpoints</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--brand-green); margin-bottom: 0.5rem;">Admin & Health</h3>
+            <code style="font-size: 0.75rem; opacity: 0.7;">/api/admin</code>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem;">System administration, health checks, database management, and diagnostics.</p>
+            <div style="margin-top: 0.5rem;">
+              <span class="badge">32 endpoints</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--brand-green); margin-bottom: 0.5rem;">Exports</h3>
+            <code style="font-size: 0.75rem; opacity: 0.7;">/api/export</code>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem;">Export device data to various formats including ESI, DCF, and custom formats.</p>
+            <div style="margin-top: 0.5rem;">
+              <span class="badge">16 endpoints</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="docs-section">
+        <h2>Base URL</h2>
+        <p>All API endpoints are relative to your Greenstack installation base URL:</p>
+        <pre><code># Development
+http://localhost:8000
+
+# Production
+https://greenstack.yourdomain.com</code></pre>
+      </div>
+
+      <div class="docs-section">
+        <h2>Response Format</h2>
+        <p>All API responses use JSON format with consistent structure:</p>
+        <pre><code>{
+  "status": "success",
+  "data": { ... },
+  "message": "Operation completed successfully"
+}</code></pre>
+      </div>
+
+      <div class="docs-callout info">
+        <h3>📖 Interactive Documentation</h3>
+        <p>Visit <code>/docs</code> on your Greenstack instance for interactive Swagger UI documentation with live API testing.</p>
+      </div>
+    `,
+    'getting-started/quick-start': `
+      <div class="docs-section">
+        <h2>Installation</h2>
+        <p>Get Greenstack up and running in just a few minutes:</p>
+
+        <h3>Using pip (Recommended)</h3>
+        <pre><code># Install Greenstack
+pip install greenstack
+
+# Run the application
+greenstack start</code></pre>
+
+        <h3>Using Docker</h3>
+        <pre><code># Pull and run
+docker run -p 8000:8000 greenstack/greenstack:latest
+
+# Access at http://localhost:8000</code></pre>
+      </div>
+
+      <div class="docs-section">
+        <h2>First Steps</h2>
+        <ol>
+          <li><strong>Access the Web Interface</strong> - Navigate to <code>http://localhost:8000</code></li>
+          <li><strong>Upload Device Files</strong> - Import IODD or EDS files from the Devices page</li>
+          <li><strong>Browse the Catalog</strong> - Explore your device catalog with search and filters</li>
+          <li><strong>Export Configurations</strong> - Generate ESI, DCF, or custom configuration files</li>
+        </ol>
+      </div>
+
+      <div class="docs-callout success">
+        <h3>✅ You're Ready!</h3>
+        <p>Greenstack is now running. Check out the Features Overview to learn about all capabilities.</p>
+      </div>
+    `,
+    'user-guide/features': `
+      <div class="docs-section">
+        <h2>Core Features</h2>
+
+        <div class="card">
+          <h3 style="color: var(--brand-green); margin-bottom: 0.75rem;">🔌 IO-Link Device Support (IODD)</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li>Upload and parse IODD XML files with comprehensive validation</li>
+            <li>Extract device parameters, datatypes, and communication settings</li>
+            <li>Support for IO-Link specifications versions 1.0 through 1.1</li>
+            <li>Automatic parameter extraction and indexing</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 style="color: var(--brand-green); margin-bottom: 0.75rem;">🌐 EtherNet/IP Support (EDS)</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li>Parse EDS files for Allen-Bradley and ODVA-compliant devices</li>
+            <li>Extract assembly information, connection paths, and parameters</li>
+            <li>Support for CIP object models and data types</li>
+            <li>Module configuration and port mapping</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 style="color: var(--brand-green); margin-bottom: 0.75rem;">📊 Advanced Search & Filtering</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li>Full-text search across device names, descriptions, and parameters</li>
+            <li>Filter by vendor, device type, protocol, and specifications</li>
+            <li>Saved search queries and custom filters</li>
+            <li>Sort by relevance, date, or custom criteria</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 style="color: var(--brand-green); margin-bottom: 0.75rem;">📦 Multi-Format Export</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li>ESI (EtherCAT Slave Information) file generation</li>
+            <li>DCF (Device Configuration File) export for CANopen</li>
+            <li>Custom JSON/XML export formats</li>
+            <li>Batch export capabilities</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="docs-section">
+        <h2>Web Interface Features</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+          <div class="card">
+            <h4 style="color: var(--brand-green);">🎨 Modern Design</h4>
+            <p style="font-size: 0.875rem;">Clean, responsive interface with dark mode support and smooth animations</p>
+          </div>
+          <div class="card">
+            <h4 style="color: var(--brand-green);">📱 Mobile Ready</h4>
+            <p style="font-size: 0.875rem;">Fully responsive design works on desktop, tablet, and mobile devices</p>
+          </div>
+          <div class="card">
+            <h4 style="color: var(--brand-green);">⚡ Real-time Updates</h4>
+            <p style="font-size: 0.875rem;">Live progress tracking for uploads, parsing, and exports</p>
+          </div>
+          <div class="card">
+            <h4 style="color: var(--brand-green);">📈 Analytics Dashboard</h4>
+            <p style="font-size: 0.875rem;">Visualize device statistics, parsing success rates, and system health</p>
+          </div>
+        </div>
+      </div>
+    `,
+    'user-guide/web-interface': `
+      <div class="docs-section">
+        <h2>Interface Overview</h2>
+        <p>The Greenstack web interface provides an intuitive, modern experience for managing your industrial device catalog.</p>
+
+        <div class="card">
+          <h3 style="color: var(--brand-green); margin-bottom: 0.75rem;">Main Navigation</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li><strong>Dashboard</strong> - Overview of system status, recent activity, and key metrics</li>
+            <li><strong>Devices</strong> - Browse and search your complete device catalog</li>
+            <li><strong>Upload</strong> - Import new IODD and EDS files</li>
+            <li><strong>Export</strong> - Generate configuration files in various formats</li>
+            <li><strong>Admin</strong> - System administration and diagnostics</li>
+            <li><strong>Docs</strong> - Complete documentation and API reference</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 style="color: var(--brand-green); margin-bottom: 0.75rem;">Device Catalog</h3>
+          <p>The device catalog provides powerful search and filtering capabilities:</p>
+          <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+            <li>Grid and list view modes with customizable columns</li>
+            <li>Advanced filtering by vendor, protocol, and device type</li>
+            <li>Full-text search across all device metadata</li>
+            <li>Sortable columns with persistent user preferences</li>
+            <li>Quick actions for export, details, and file management</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 style="color: var(--brand-green); margin-bottom: 0.75rem;">File Upload</h3>
+          <p>Drag-and-drop interface for importing device files:</p>
+          <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+            <li>Multi-file upload with progress tracking</li>
+            <li>Automatic file type detection (IODD/EDS)</li>
+            <li>Real-time parsing status and error reporting</li>
+            <li>Batch operations for multiple files</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    'user-guide/configuration': `
+      <div class="docs-section">
+        <h2>Environment Variables</h2>
+        <p>Configure Greenstack using environment variables in a <code>.env</code> file:</p>
+
+        <h3>Database Configuration</h3>
+        <pre><code># Database path (SQLite)
+DATABASE_URL=greenstack.db
+
+# Enable debug logging
+DEBUG=false</code></pre>
+
+        <h3>Server Configuration</h3>
+        <pre><code># Server host and port
+HOST=0.0.0.0
+PORT=8000
+
+# CORS origins (comma-separated)
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173</code></pre>
+
+        <h3>File Upload Settings</h3>
+        <pre><code># Maximum file size (MB)
+MAX_UPLOAD_SIZE=50
+
+# Upload directory
+UPLOAD_DIR=./uploads</code></pre>
+      </div>
+
+      <div class="docs-section">
+        <h2>Configuration Examples</h2>
+
+        <div class="card">
+          <h3 style="color: var(--brand-green);">Development</h3>
+          <pre><code>DEBUG=true
+DATABASE_URL=dev.db
+CORS_ORIGINS=http://localhost:3000
+LOG_LEVEL=debug</code></pre>
+        </div>
+
+        <div class="card">
+          <h3 style="color: var(--brand-green);">Production</h3>
+          <pre><code>DEBUG=false
+DATABASE_URL=/var/lib/greenstack/greenstack.db
+HOST=0.0.0.0
+PORT=8000
+LOG_LEVEL=info</code></pre>
+        </div>
+      </div>
+    `
+  };
+
+  return enhancedTemplates[pageId] || '';
+}
+
+/**
  * Convert React component content to simplified HTML
  */
 function componentToHTML(pageId, pageData) {
-  const { metadata } = pageData;
+  const { metadata, next, previous } = pageData;
+  const enhancedContent = getEnhancedContent(pageId, metadata);
 
-  // Create a simplified HTML representation
-  // In a full implementation, you'd render the React component server-side
-  // For now, we'll create a placeholder that encourages using the live version
+  // Navigation buttons
+  const navigationHTML = (next || previous) ? `
+    <div class="docs-navigation">
+      ${previous ? `
+        <a href="${previous.id.split('/')[previous.id.split('/').length - 1]}.html" class="nav-prev">
+          <span class="nav-label">Previous</span>
+          <span class="nav-title">${previous.title}</span>
+        </a>
+      ` : '<div></div>'}
+
+      ${next ? `
+        <a href="${next.id.split('/')[next.id.split('/').length - 1]}.html" class="nav-next">
+          <span class="nav-label">Next</span>
+          <span class="nav-title">${next.title}</span>
+        </a>
+      ` : '<div></div>'}
+    </div>
+  ` : '';
 
   return `
     <div class="docs-hero">
@@ -454,35 +787,50 @@ function componentToHTML(pageId, pageData) {
       <p class="docs-hero-description">${metadata.description}</p>
     </div>
 
-    <div class="docs-callout info">
-      <h3>📱 Live Version Available</h3>
-      <p>This is a static export of the Greenstack documentation. For the best experience with interactive features, code highlighting, and 3D visualizations, please visit the live documentation in the Greenstack web application.</p>
-    </div>
+    ${enhancedContent ? enhancedContent : `
+      <div class="docs-callout info">
+        <h3>📄 Documentation Page</h3>
+        <p>This page contains comprehensive documentation about <strong>${metadata.title}</strong>. For the complete experience with interactive features, code highlighting, and live examples, please visit the Greenstack web application.</p>
+      </div>
+    `}
 
     <div class="docs-section">
-      <h2>About This Page</h2>
-      <p><strong>Category:</strong> ${metadata.category}</p>
-      <p><strong>Last Updated:</strong> ${metadata.lastUpdated}</p>
-      ${metadata.keywords ? `<p><strong>Keywords:</strong> ${metadata.keywords.join(', ')}</p>` : ''}
+      <h2>Page Information</h2>
+      <div class="card">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div>
+            <p style="color: var(--foreground-muted); font-size: 0.875rem; margin-bottom: 0.25rem;">Category</p>
+            <p style="font-weight: 600; text-transform: capitalize;">${metadata.category?.replace(/-/g, ' ')}</p>
+          </div>
+          <div>
+            <p style="color: var(--foreground-muted); font-size: 0.875rem; margin-bottom: 0.25rem;">Last Updated</p>
+            <p style="font-weight: 600;">${metadata.lastUpdated || 'Recently'}</p>
+          </div>
+          ${metadata.keywords ? `
+            <div style="grid-column: 1 / -1;">
+              <p style="color: var(--foreground-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">Keywords</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                ${metadata.keywords.map(kw => `<span class="badge">${kw}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
     </div>
 
-    <div class="docs-section">
-      <h2>Content Preview</h2>
-      <p>This page contains comprehensive documentation about ${metadata.title.toLowerCase()}. To view the full interactive content including:</p>
+    <div class="docs-callout warning">
+      <h3>⚡ Interactive Features</h3>
+      <p>This static export includes core documentation content. For the full experience, access the live application to enjoy:</p>
       <ul>
-        <li>Syntax-highlighted code examples</li>
-        <li>Interactive components and demos</li>
-        <li>Mermaid diagrams and visualizations</li>
-        <li>Embedded videos and screenshots</li>
-        <li>Searchable content</li>
+        <li>Syntax-highlighted code examples with copy buttons</li>
+        <li>Interactive component galleries and demos</li>
+        <li>Mermaid diagrams and architecture visualizations</li>
+        <li>Real-time search across all documentation</li>
+        <li>API endpoint testing with live requests</li>
       </ul>
-      <p>Please open the Greenstack application and navigate to the Docs section.</p>
     </div>
 
-    <div class="docs-callout success">
-      <h3>💡 Quick Access</h3>
-      <p>Launch Greenstack and go to: <code>/docs</code> → ${metadata.category} → ${metadata.title}</p>
-    </div>
+    ${navigationHTML}
   `;
 }
 
@@ -534,7 +882,21 @@ function generateIndexPage() {
     <div class="docs-callout info">
       <h3>🌐 Offline Documentation Package</h3>
       <p>You are viewing the static, offline version of Greenstack documentation. This package contains ${Object.keys(docsRegistry).length} documentation pages organized by category.</p>
-      <p style="margin-top: 0.5rem;"><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        <div style="text-align: center;">
+          <div style="font-size: 1.5rem; color: var(--brand-green); font-weight: bold;">${Object.keys(docsRegistry).length}</div>
+          <div style="font-size: 0.75rem; opacity: 0.8;">Total Pages</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 1.5rem; color: var(--brand-green); font-weight: bold;">${Object.keys(categories).length}</div>
+          <div style="font-size: 0.75rem; opacity: 0.8;">Categories</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 1.5rem; color: var(--brand-green); font-weight: bold;">100%</div>
+          <div style="font-size: 0.75rem; opacity: 0.8;">Offline Ready</div>
+        </div>
+      </div>
+      <p style="margin-top: 1rem; font-size: 0.875rem;"><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
     </div>
 
     <div class="docs-section">
@@ -591,21 +953,43 @@ function generateIndexPage() {
       <p>Greenstack is an intelligent device management platform built on a rock-solid Industrial IoT foundation. It provides comprehensive support for IO-Link (IODD) and EtherNet/IP (EDS) device configurations with a modern web interface.</p>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0;">
-        <div style="text-align: center; padding: 1rem;">
-          <div style="font-size: 2rem; color: var(--brand-green); margin-bottom: 0.5rem;">30+</div>
-          <div style="color: var(--foreground-muted);">Documentation Pages</div>
+        <div style="text-align: center; padding: 1.5rem; background: var(--surface); border-radius: 0.5rem; border: 1px solid var(--border);">
+          <div style="font-size: 2.5rem; color: var(--brand-green); margin-bottom: 0.5rem; font-weight: bold;">${Object.keys(docsRegistry).length}</div>
+          <div style="color: var(--foreground-muted); font-size: 0.875rem;">Documentation Pages</div>
         </div>
-        <div style="text-align: center; padding: 1rem;">
-          <div style="font-size: 2rem; color: var(--brand-green); margin-bottom: 0.5rem;">15+</div>
-          <div style="color: var(--foreground-muted);">API Endpoints</div>
+        <div style="text-align: center; padding: 1.5rem; background: var(--surface); border-radius: 0.5rem; border: 1px solid var(--border);">
+          <div style="font-size: 2.5rem; color: var(--brand-green); margin-bottom: 0.5rem; font-weight: bold;">142</div>
+          <div style="color: var(--foreground-muted); font-size: 0.875rem;">API Endpoints</div>
         </div>
-        <div style="text-align: center; padding: 1rem;">
-          <div style="font-size: 2rem; color: var(--brand-green); margin-bottom: 0.5rem;">65+</div>
-          <div style="color: var(--foreground-muted);">Test Coverage</div>
+        <div style="text-align: center; padding: 1.5rem; background: var(--surface); border-radius: 0.5rem; border: 1px solid var(--border);">
+          <div style="font-size: 2.5rem; color: var(--brand-green); margin-bottom: 0.5rem; font-weight: bold;">8</div>
+          <div style="color: var(--foreground-muted); font-size: 0.875rem;">API Categories</div>
         </div>
-        <div style="text-align: center; padding: 1rem;">
-          <div style="font-size: 2rem; color: var(--brand-green); margin-bottom: 0.5rem;">MIT</div>
-          <div style="color: var(--foreground-muted);">Open Source</div>
+        <div style="text-align: center; padding: 1.5rem; background: var(--surface); border-radius: 0.5rem; border: 1px solid var(--border);">
+          <div style="font-size: 2.5rem; color: var(--brand-green); margin-bottom: 0.5rem; font-weight: bold;">MIT</div>
+          <div style="color: var(--foreground-muted); font-size: 0.875rem;">Open Source License</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 2rem;">
+        <h3 style="margin-bottom: 1rem;">Key Features</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+          <div>
+            <p style="font-weight: 600; color: var(--brand-green); margin-bottom: 0.5rem;">📦 Device Management</p>
+            <p style="font-size: 0.875rem; color: var(--foreground-secondary);">Upload, parse, and manage IODD and EDS device files with intelligent parsing</p>
+          </div>
+          <div>
+            <p style="font-weight: 600; color: var(--brand-green); margin-bottom: 0.5rem;">🔄 Multi-Format Export</p>
+            <p style="font-size: 0.875rem; color: var(--foreground-secondary);">Export to ESI, DCF, and custom configuration formats</p>
+          </div>
+          <div>
+            <p style="font-weight: 600; color: var(--brand-green); margin-bottom: 0.5rem;">🎨 Modern Web UI</p>
+            <p style="font-size: 0.875rem; color: var(--foreground-secondary);">Beautiful, responsive interface with dark mode and advanced visualizations</p>
+          </div>
+          <div>
+            <p style="font-weight: 600; color: var(--brand-green); margin-bottom: 0.5rem;">⚡ FastAPI Backend</p>
+            <p style="font-size: 0.875rem; color: var(--foreground-secondary);">High-performance async Python API with auto-generated docs</p>
+          </div>
         </div>
       </div>
     </div>

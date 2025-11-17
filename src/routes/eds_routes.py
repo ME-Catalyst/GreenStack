@@ -539,7 +539,7 @@ async def get_device_revisions(vendor_code: int, product_code: int):
         SELECT
             id, vendor_code, vendor_name, product_code, product_name,
             catalog_number, major_revision, minor_revision,
-            import_date, description
+            import_date, description, mod_date, mod_time
         FROM eds_files
         WHERE vendor_code = ? AND product_code = ?
         ORDER BY major_revision DESC, minor_revision DESC, import_date DESC
@@ -558,6 +558,8 @@ async def get_device_revisions(vendor_code: int, product_code: int):
             "minor_revision": row[7],
             "import_date": row[8],
             "description": row[9],
+            "mod_date": row[10],
+            "mod_time": row[11],
             "revision_string": f"v{row[6]}.{row[7]}"
         })
 
@@ -1003,19 +1005,30 @@ async def bulk_delete_eds_files(request: dict):
         "eds_parameters"
     ]
 
-    # Delete from child tables first
-    for table in tables_to_delete:
-        query = f"DELETE FROM {table} WHERE eds_file_id IN ({placeholders_str})"
-        cursor.execute(query, eds_ids)
+    try:
+        # Delete from child tables first
+        for table in tables_to_delete:
+            query = f"DELETE FROM {table} WHERE eds_file_id IN ({placeholders_str})"
+            cursor.execute(query, eds_ids)
+            print(f"Deleted from {table}: {cursor.rowcount} rows")
 
-    # Finally delete all specified EDS files from parent table
-    cursor.execute(f"DELETE FROM eds_files WHERE id IN ({placeholders_str})", eds_ids)
+        # Finally delete all specified EDS files from parent table
+        cursor.execute(f"DELETE FROM eds_files WHERE id IN ({placeholders_str})", eds_ids)
+        deleted_count = cursor.rowcount
 
-    deleted_count = cursor.rowcount
-    conn.commit()
-    conn.close()
+        # Commit the transaction
+        conn.commit()
+        print(f"Successfully deleted {deleted_count} EDS files from database")
 
-    return {"message": f"Successfully deleted {deleted_count} EDS file(s)"}
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        print(f"Error during bulk delete: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete EDS files: {str(e)}")
+    finally:
+        conn.close()
+
+    return {"message": f"Successfully deleted {deleted_count} EDS file(s)", "deleted_count": deleted_count}
 
 
 @router.post("/upload-package")

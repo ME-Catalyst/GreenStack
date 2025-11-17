@@ -328,6 +328,11 @@ from src.routes import theme_routes
 theme_routes.db_path = manager.storage.db_path
 app.include_router(theme_routes.router)
 
+# Include Parser Quality Assurance (PQA) routes
+from src.routes import pqa_routes
+
+app.include_router(pqa_routes.router)
+
 # ============================================================================
 # API Endpoints
 # ============================================================================
@@ -1475,6 +1480,55 @@ async def get_device_xml(device_id: int):
 
     return {"xml_content": xml_content}
 
+@app.get("/api/iodd/{device_id}/languages",
+         tags=["IODD Management"])
+async def get_device_languages(device_id: int):
+    """Get all available languages and text data for a device
+
+    Returns:
+        {
+            "languages": ["en", "de", "fr"],
+            "text_data": {
+                "TN_DeviceName": {"en": "Sensor", "de": "Sensor"},
+                "TN_M_Ident": {"en": "Identification", "de": "Identifikation"}
+            }
+        }
+    """
+    import sqlite3
+
+    conn = sqlite3.connect(manager.storage.db_path)
+    cursor = conn.cursor()
+
+    # Get all distinct languages for this device
+    cursor.execute(
+        """SELECT DISTINCT language_code FROM iodd_text
+           WHERE device_id = ?
+           ORDER BY language_code""",
+        (device_id,)
+    )
+    languages = [row[0] for row in cursor.fetchall()]
+
+    # Get all text data
+    cursor.execute(
+        """SELECT text_id, language_code, text_value FROM iodd_text
+           WHERE device_id = ?
+           ORDER BY text_id, language_code""",
+        (device_id,)
+    )
+
+    text_data = {}
+    for text_id, language_code, text_value in cursor.fetchall():
+        if text_id not in text_data:
+            text_data[text_id] = {}
+        text_data[text_id][language_code] = text_value
+
+    conn.close()
+
+    return {
+        "languages": languages,
+        "text_data": text_data
+    }
+
 @app.get("/api/iodd/{device_id}/thumbnail",
          tags=["IODD Management"])
 async def get_device_thumbnail(device_id: int):
@@ -1580,6 +1634,331 @@ async def get_asset(device_id: int, asset_id: int):
         media_type=mime_type,
         filename=file_name
     )
+
+# -----------------------------------------------------------------------------
+# Phase 1: UI Rendering Metadata Endpoints
+# -----------------------------------------------------------------------------
+
+@app.get("/api/iodd/{device_id}/processdata/ui-info",
+         tags=["IODD Management"])
+async def get_process_data_ui_info(device_id: int):
+    """Get UI rendering metadata for process data (gradient, offset, unit codes, display formats)"""
+    import sqlite3
+
+    conn = sqlite3.connect(manager.storage.db_path)
+    cursor = conn.cursor()
+
+    # Verify device exists
+    cursor.execute("SELECT id FROM devices WHERE id = ?", (device_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Get UI info for all process data
+    cursor.execute("""
+        SELECT pd.pd_id, ui.subindex, ui.gradient, ui.offset, ui.unit_code, ui.display_format
+        FROM process_data_ui_info ui
+        JOIN process_data pd ON ui.process_data_id = pd.id
+        WHERE pd.device_id = ?
+        ORDER BY pd.pd_id, ui.subindex
+    """, (device_id,))
+
+    ui_info = {}
+    for row in cursor.fetchall():
+        pd_id = row[0]
+        if pd_id not in ui_info:
+            ui_info[pd_id] = []
+        ui_info[pd_id].append({
+            'subindex': row[1],
+            'gradient': row[2],
+            'offset': row[3],
+            'unit_code': row[4],
+            'display_format': row[5]
+        })
+
+    conn.close()
+    return ui_info
+
+# -----------------------------------------------------------------------------
+# Phase 2: Device Variants and Conditions Endpoints
+# -----------------------------------------------------------------------------
+
+@app.get("/api/iodd/{device_id}/variants",
+         tags=["IODD Management"])
+async def get_device_variants(device_id: int):
+    """Get all device variants with images and descriptions"""
+    import sqlite3
+
+    conn = sqlite3.connect(manager.storage.db_path)
+    cursor = conn.cursor()
+
+    # Verify device exists
+    cursor.execute("SELECT id FROM devices WHERE id = ?", (device_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    cursor.execute("""
+        SELECT product_id, device_symbol, device_icon, name, description
+        FROM device_variants
+        WHERE device_id = ?
+        ORDER BY product_id
+    """, (device_id,))
+
+    variants = []
+    for row in cursor.fetchall():
+        variants.append({
+            'product_id': row[0],
+            'device_symbol': row[1],
+            'device_icon': row[2],
+            'name': row[3],
+            'description': row[4]
+        })
+
+    conn.close()
+    return variants
+
+@app.get("/api/iodd/{device_id}/processdata/conditions",
+         tags=["IODD Management"])
+async def get_process_data_conditions(device_id: int):
+    """Get conditional process data configurations"""
+    import sqlite3
+
+    conn = sqlite3.connect(manager.storage.db_path)
+    cursor = conn.cursor()
+
+    # Verify device exists
+    cursor.execute("SELECT id FROM devices WHERE id = ?", (device_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    cursor.execute("""
+        SELECT pd.pd_id, pd.name, pd.direction, c.condition_variable_id, c.condition_value
+        FROM process_data_conditions c
+        JOIN process_data pd ON c.process_data_id = pd.id
+        WHERE pd.device_id = ?
+        ORDER BY pd.direction, pd.pd_id
+    """, (device_id,))
+
+    conditions = []
+    for row in cursor.fetchall():
+        conditions.append({
+            'pd_id': row[0],
+            'name': row[1],
+            'direction': row[2],
+            'condition_variable_id': row[3],
+            'condition_value': row[4]
+        })
+
+    conn.close()
+    return conditions
+
+# -----------------------------------------------------------------------------
+# Phase 3: Button Configurations Endpoints
+# -----------------------------------------------------------------------------
+
+@app.get("/api/iodd/{device_id}/menu-buttons",
+         tags=["IODD Management"])
+async def get_menu_buttons(device_id: int):
+    """Get menu button configurations (system commands, actions)"""
+    import sqlite3
+
+    conn = sqlite3.connect(manager.storage.db_path)
+    cursor = conn.cursor()
+
+    # Verify device exists
+    cursor.execute("SELECT id FROM devices WHERE id = ?", (device_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    cursor.execute("""
+        SELECT m.menu_id, mi.variable_id, b.button_value, b.description, b.action_started_message
+        FROM ui_menu_buttons b
+        JOIN ui_menu_items mi ON b.menu_item_id = mi.id
+        JOIN ui_menus m ON mi.menu_id = m.id
+        WHERE m.device_id = ?
+        ORDER BY m.menu_id, mi.variable_id
+    """, (device_id,))
+
+    buttons = []
+    for row in cursor.fetchall():
+        buttons.append({
+            'menu_id': row[0],
+            'variable_id': row[1],
+            'button_value': row[2],
+            'description': row[3],
+            'action_started_message': row[4]
+        })
+
+    conn.close()
+    return buttons
+
+# -----------------------------------------------------------------------------
+# Phase 4: Wiring and Testing Endpoints
+# -----------------------------------------------------------------------------
+
+@app.get("/api/iodd/{device_id}/wiring",
+         tags=["IODD Management"])
+async def get_wiring_configuration(device_id: int):
+    """Get wire connection configurations for installation"""
+    import sqlite3
+
+    conn = sqlite3.connect(manager.storage.db_path)
+    cursor = conn.cursor()
+
+    # Verify device exists
+    cursor.execute("SELECT id FROM devices WHERE id = ?", (device_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    cursor.execute("""
+        SELECT connection_type, wire_number, wire_color, wire_function, wire_description
+        FROM wire_configurations
+        WHERE device_id = ?
+        ORDER BY connection_type, wire_number
+    """, (device_id,))
+
+    wires = {}
+    for row in cursor.fetchall():
+        conn_type = row[0]
+        if conn_type not in wires:
+            wires[conn_type] = []
+        wires[conn_type].append({
+            'wire_number': row[1],
+            'wire_color': row[2],
+            'wire_function': row[3],
+            'wire_description': row[4]
+        })
+
+    conn.close()
+    return wires
+
+@app.get("/api/iodd/{device_id}/test-config",
+         tags=["IODD Management"])
+async def get_test_configuration(device_id: int):
+    """Get device test configurations for validation"""
+    import sqlite3
+
+    conn = sqlite3.connect(manager.storage.db_path)
+    cursor = conn.cursor()
+
+    # Verify device exists
+    cursor.execute("SELECT id FROM devices WHERE id = ?", (device_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    cursor.execute("""
+        SELECT id, config_type, param_index, test_value
+        FROM device_test_config
+        WHERE device_id = ?
+        ORDER BY config_type
+    """, (device_id,))
+
+    test_configs = []
+    for row in cursor.fetchall():
+        test_config_id = row[0]
+
+        # Get event triggers for this config
+        cursor.execute("""
+            SELECT appear_value, disappear_value
+            FROM device_test_event_triggers
+            WHERE test_config_id = ?
+        """, (test_config_id,))
+
+        triggers = []
+        for trigger_row in cursor.fetchall():
+            triggers.append({
+                'appear_value': trigger_row[0],
+                'disappear_value': trigger_row[1]
+            })
+
+        test_configs.append({
+            'config_type': row[1],
+            'param_index': row[2],
+            'test_value': row[3],
+            'event_triggers': triggers
+        })
+
+    conn.close()
+    return test_configs
+
+# -----------------------------------------------------------------------------
+# Phase 5: Custom Datatypes Endpoints
+# -----------------------------------------------------------------------------
+
+@app.get("/api/iodd/{device_id}/custom-datatypes",
+         tags=["IODD Management"])
+async def get_custom_datatypes(device_id: int):
+    """Get custom datatype definitions"""
+    import sqlite3
+
+    conn = sqlite3.connect(manager.storage.db_path)
+    cursor = conn.cursor()
+
+    # Verify device exists
+    cursor.execute("SELECT id FROM devices WHERE id = ?", (device_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    cursor.execute("""
+        SELECT id, datatype_id, datatype_xsi_type, bit_length, subindex_access_supported
+        FROM custom_datatypes
+        WHERE device_id = ?
+        ORDER BY datatype_id
+    """, (device_id,))
+
+    datatypes = []
+    for row in cursor.fetchall():
+        datatype_db_id = row[0]
+
+        # Get single values
+        cursor.execute("""
+            SELECT value, name
+            FROM custom_datatype_single_values
+            WHERE datatype_id = ?
+        """, (datatype_db_id,))
+
+        single_values = []
+        for sv_row in cursor.fetchall():
+            single_values.append({
+                'value': sv_row[0],
+                'name': sv_row[1]
+            })
+
+        # Get record items
+        cursor.execute("""
+            SELECT subindex, bit_offset, bit_length, datatype_ref, name
+            FROM custom_datatype_record_items
+            WHERE datatype_id = ?
+            ORDER BY subindex
+        """, (datatype_db_id,))
+
+        record_items = []
+        for ri_row in cursor.fetchall():
+            record_items.append({
+                'subindex': ri_row[0],
+                'bit_offset': ri_row[1],
+                'bit_length': ri_row[2],
+                'datatype_ref': ri_row[3],
+                'name': ri_row[4]
+            })
+
+        datatypes.append({
+            'datatype_id': row[1],
+            'datatype_xsi_type': row[2],
+            'bit_length': row[3],
+            'subindex_access_supported': bool(row[4]),
+            'single_values': single_values,
+            'record_items': record_items
+        })
+
+    conn.close()
+    return datatypes
 
 # -----------------------------------------------------------------------------
 # Adapter Generation Endpoints

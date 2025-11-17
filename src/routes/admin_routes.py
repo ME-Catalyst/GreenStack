@@ -4,6 +4,7 @@ Provides system administration, monitoring, and management endpoints
 """
 
 import json
+import logging
 import os
 import shutil
 import sqlite3
@@ -15,6 +16,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from src.database import get_connection, get_db_path
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Console"])
 
@@ -269,8 +273,9 @@ async def get_database_health():
     # 4. Check for missing recommended indexes
     expected_indexes = {
         "eds_files": ["vendor_name", "product_code"],
-        "iodd_files": ["vendor_id", "device_id"],
-        "parameters": ["eds_file_id", "iodd_file_id"],
+        "devices": ["vendor_id"],
+        "iodd_files": ["device_id"],
+        "parameters": ["device_id"],
         "tickets": ["status", "priority", "created_at"]
     }
 
@@ -310,7 +315,7 @@ async def get_database_health():
     cursor.execute("""
         SELECT COUNT(*)
         FROM iodd_assets
-        WHERE iodd_file_id NOT IN (SELECT id FROM iodd_files)
+        WHERE device_id NOT IN (SELECT id FROM devices)
     """)
     orphaned_assets = cursor.fetchone()[0]
 

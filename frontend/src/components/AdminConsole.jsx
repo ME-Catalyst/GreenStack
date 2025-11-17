@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Settings, Database, HardDrive, Activity, AlertTriangle, CheckCircle,
+  Settings, Database, HardDrive, Activity, AlertTriangle, CheckCircle, CheckCircle2,
   Download, Trash2, BarChart3, Server, Cpu, Clock, Package, FileText,
   RefreshCw, Shield, Zap, TrendingUp, Users, Calendar, Info, BookOpen,
   ExternalLink, Home, Rocket, Terminal, Github, Bug, Eye, Search, GitBranch,
@@ -290,9 +290,10 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
         </div>
         <Button
           onClick={loadData}
+          disabled={loading}
           className="bg-secondary hover:bg-muted text-foreground"
         >
-          <RefreshCw className="w-4 h-4 mr-2" />
+          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
@@ -329,7 +330,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
 
       {/* Tab Content */}
       {activeTab === 'hub' && (
-        <HubTab overview={overview} onNavigate={onNavigate} />
+        <HubTab overview={overview} onNavigate={onNavigate} API_BASE={API_BASE} />
       )}
 
       {activeTab === 'tickets' && (
@@ -345,6 +346,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
           overview={overview}
           dbHealth={dbHealth}
           handleVacuum={handleVacuum}
+          handleCleanFKViolations={handleCleanFKViolations}
           handleBackup={handleBackup}
           handleDownloadBackup={handleDownloadBackup}
           handleDeleteIODD={handleDeleteIODD}
@@ -374,7 +376,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
 /**
  * Hub Tab - Visual starting point with quick links and resources
  */
-const HubTab = ({ overview, onNavigate }) => {
+const HubTab = ({ overview, onNavigate, API_BASE }) => {
   const [mqttStatus, setMqttStatus] = useState(null);
   const [mqttLoading, setMqttLoading] = useState(false);
 
@@ -441,20 +443,20 @@ const HubTab = ({ overview, onNavigate }) => {
       title: 'Documentation',
       icon: BookOpen,
       items: [
-        { label: 'User Manual', href: 'https://github.com/ME-Catalyst/greenstack/blob/main/docs/user/USER_MANUAL.md' },
-        { label: 'API Reference', href: 'https://github.com/ME-Catalyst/greenstack/blob/main/docs/developer/API_SPECIFICATION.md' },
-        { label: 'Configuration Guide', href: 'https://github.com/ME-Catalyst/greenstack/blob/main/docs/user/CONFIGURATION.md' },
-        { label: 'Troubleshooting', href: 'https://github.com/ME-Catalyst/greenstack/blob/main/docs/troubleshooting/TROUBLESHOOTING.md' }
+        { label: 'README', onClick: () => onNavigate('docs'), internal: true },
+        { label: 'API Docs (Swagger)', href: `${API_BASE}/docs`, external: true },
+        { label: 'Changelog', href: '/docs/CHANGELOG.md', external: true },
+        { label: 'Contributing Guide', href: '/docs/CONTRIBUTING.md', external: true }
       ]
     },
     {
       title: 'Development',
       icon: Terminal,
       items: [
-        { label: 'Architecture', href: 'https://github.com/ME-Catalyst/greenstack/blob/main/docs/architecture/ARCHITECTURE.md' },
-        { label: 'Developer Reference', href: 'https://github.com/ME-Catalyst/greenstack/blob/main/docs/developer/DEVELOPER_REFERENCE.md' },
-        { label: 'Contributing Guide', href: 'https://github.com/ME-Catalyst/greenstack/blob/main/CONTRIBUTING.md' },
-        { label: 'API Docs (Swagger)', href: '/docs', external: true }
+        { label: 'GitHub Repository', href: 'https://github.com/ME-Catalyst/greenstack' },
+        { label: 'Report Issues', href: 'https://github.com/ME-Catalyst/greenstack/issues' },
+        { label: 'View Source', href: 'https://github.com/ME-Catalyst/greenstack/tree/main' },
+        { label: 'API Docs (Swagger)', href: `${API_BASE}/docs`, external: true }
       ]
     },
     {
@@ -463,8 +465,8 @@ const HubTab = ({ overview, onNavigate }) => {
       items: [
         { label: 'GitHub Repository', href: 'https://github.com/ME-Catalyst/greenstack' },
         { label: 'Report Issues', href: 'https://github.com/ME-Catalyst/greenstack/issues' },
-        { label: 'View Changelog', href: 'https://github.com/ME-Catalyst/greenstack/blob/main/CHANGELOG.md' },
-        { label: 'License (MIT)', href: 'https://github.com/ME-Catalyst/greenstack/blob/main/LICENSE.md' }
+        { label: 'Archived Docs', href: '/docs/archive', external: true },
+        { label: 'License', href: 'https://github.com/ME-Catalyst/greenstack/blob/main/LICENSE' }
       ]
     }
   ];
@@ -561,18 +563,32 @@ const HubTab = ({ overview, onNavigate }) => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {section.items.map((item, itemIdx) => (
-                      <a
-                        key={itemIdx}
-                        href={item.href}
-                        target={item.external ? '_self' : '_blank'}
-                        rel={item.external ? undefined : 'noopener noreferrer'}
-                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-green transition-colors group"
-                      >
-                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <span>{item.label}</span>
-                      </a>
-                    ))}
+                    {section.items.map((item, itemIdx) => {
+                      if (item.internal && item.onClick) {
+                        return (
+                          <button
+                            key={itemIdx}
+                            onClick={item.onClick}
+                            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-green transition-colors group w-full text-left"
+                          >
+                            <Home className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <span>{item.label}</span>
+                          </button>
+                        );
+                      }
+                      return (
+                        <a
+                          key={itemIdx}
+                          href={item.href}
+                          target={item.external ? '_self' : '_blank'}
+                          rel={item.external ? undefined : 'noopener noreferrer'}
+                          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-green transition-colors group"
+                        >
+                          <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <span>{item.label}</span>
+                        </a>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -606,6 +622,9 @@ const HubTab = ({ overview, onNavigate }) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Message broker for device telemetry & communication
+              </p>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Port:</span>
@@ -651,15 +670,6 @@ const HubTab = ({ overview, onNavigate }) => {
                   </>
                 )}
               </div>
-              <a
-                href="http://localhost:1883"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-brand-green hover:text-brand-green/80 flex items-center gap-1"
-              >
-                <ExternalLink className="w-3 h-3" />
-                Broker Details
-              </a>
             </CardContent>
           </Card>
 
@@ -727,7 +737,7 @@ const HubTab = ({ overview, onNavigate }) => {
                 rel="noopener noreferrer"
                 className="block"
               >
-                <Button size="sm" className="w-full bg-error hover:bg-error/80">
+                <Button size="sm" className="w-full bg-brand-green hover:bg-brand-green/80">
                   <ExternalLink className="w-3 h-3 mr-1" />
                   Open Node-RED
                 </Button>
@@ -851,7 +861,7 @@ const HubTab = ({ overview, onNavigate }) => {
 /**
  * Database Tab
  */
-const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDownloadBackup, handleDeleteIODD, handleDeleteEDS, handleDeleteTickets, handleDeleteTemp, handleDeleteAll, toast }) => {
+const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleCleanFKViolations, handleBackup, handleDownloadBackup, handleDeleteIODD, handleDeleteEDS, handleDeleteTickets, handleDeleteTemp, handleDeleteAll, toast }) => {
   return (
     <div className="space-y-6">
       {/* Health Status */}

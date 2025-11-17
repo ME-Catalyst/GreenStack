@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Server, Globe, Database, Zap, Shield, Palette, BarChart3, Package, Code, Cloud, FileText } from 'lucide-react';
+import { Sparkles, Server, Globe, Database, Zap, Shield, Palette, BarChart3, Package, Code, FileText, Settings, AlertCircle } from 'lucide-react';
 import DocsPage from '../../../components/docs/DocsPage';
 import DocsHero from '../../../components/docs/DocsHero';
 import DocsSection from '../../../components/docs/DocsSection';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge } from
 export const metadata = {
   id: 'user-guide/features',
   title: 'Features Overview',
-  description: 'Comprehensive overview of Greenstack features and capabilities',
+  description: 'Comprehensive overview of GreenStack features and capabilities',
   category: 'user-guide',
   order: 1,
   keywords: ['features', 'capabilities', 'overview', 'functionality'],
@@ -22,103 +22,37 @@ export default function Features({ onNavigate }) {
     <DocsPage>
       <DocsHero
         title="Features Overview"
-        description="Discover the powerful features that make Greenstack the ultimate industrial device management platform"
+        description="Industrial device configuration management for IODD and EDS files with modern web interface"
         icon={<Sparkles className="w-12 h-12 text-brand-green" />}
       />
 
       {/* Core Features */}
-      <DocsSection title="Core Device Management">
+      <DocsSection title="Device Configuration Management">
         <DocsParagraph>
-          Greenstack provides comprehensive device configuration management for industrial IoT protocols.
-        </DocsParagraph>
-
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 my-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <Server className="w-6 h-6 text-brand-green" />
-                <Badge>Core</Badge>
-              </div>
-              <CardTitle className="text-base">IO-Link (IODD) Support</CardTitle>
-              <CardDescription>Full IO-Link device description management</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• XML parsing and validation</li>
-                <li>• Parameter extraction</li>
-                <li>• Interactive menu rendering</li>
-                <li>• Multi-language support</li>
-                <li>• ZIP package handling</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <Server className="w-6 h-6 text-brand-green" />
-                <Badge>Core</Badge>
-              </div>
-              <CardTitle className="text-base">EtherNet/IP (EDS) Support</CardTitle>
-              <CardDescription>Complete EDS file parsing</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• INI file parsing</li>
-                <li>• Assembly configuration</li>
-                <li>• Module parameters</li>
-                <li>• Connection data</li>
-                <li>• Category organization</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <Package className="w-6 h-6 text-brand-green" />
-                <Badge>Core</Badge>
-              </div>
-              <CardTitle className="text-base">Multi-File Import</CardTitle>
-              <CardDescription>Flexible file upload options</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Single file upload</li>
-                <li>• ZIP package extraction</li>
-                <li>• Nested archive support</li>
-                <li>• Drag & drop interface</li>
-                <li>• Bulk import capability</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-      </DocsSection>
-
-      {/* Modern Web Interface */}
-      <DocsSection title="Modern Web Interface">
-        <DocsParagraph>
-          Beautiful, responsive interface with advanced visualizations and smooth animations.
+          GreenStack specializes in parsing, storing, and visualizing industrial device configuration files
+          for IO-Link (IODD) and EtherNet/IP (EDS) protocols.
         </DocsParagraph>
 
         <div className="grid gap-6 md:grid-cols-2 my-6">
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
-                <Globe className="w-6 h-6 text-brand-green" />
-                <Badge variant="secondary">UI/UX</Badge>
+                <Server className="w-6 h-6 text-brand-green" />
+                <Badge>Core</Badge>
               </div>
-              <CardTitle className="text-base">React Dashboard</CardTitle>
-              <CardDescription>Modern, interactive user interface</CardDescription>
+              <CardTitle className="text-base">IO-Link IODD Support</CardTitle>
+              <CardDescription>Complete device description file parsing</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• React 18 with Vite</li>
-                <li>• Tailwind CSS styling</li>
-                <li>• Radix UI components</li>
-                <li>• Framer Motion animations</li>
-                <li>• Three.js 3D visualizations</li>
-                <li>• Chart.js analytics</li>
+                <li>• Full IODD 1.0/1.1 XML parsing</li>
+                <li>• Parameter extraction and organization</li>
+                <li>• Menu structure parsing</li>
+                <li>• Error/event code mapping</li>
+                <li>• Process data visualization</li>
+                <li>• Multi-language text support</li>
+                <li>• Nested ZIP package support</li>
+                <li>• Asset file management (icons, PDFs)</li>
               </ul>
             </CardContent>
           </Card>
@@ -126,20 +60,54 @@ export default function Features({ onNavigate }) {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
-                <Palette className="w-6 h-6 text-brand-green" />
-                <Badge variant="secondary">UI/UX</Badge>
+                <Server className="w-6 h-6 text-brand-green" />
+                <Badge>Core</Badge>
               </div>
-              <CardTitle className="text-base">Theme System</CardTitle>
-              <CardDescription>Customizable dark/light themes</CardDescription>
+              <CardTitle className="text-base">EtherNet/IP EDS Support</CardTitle>
+              <CardDescription>Complete EDS file parsing and management</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• 4 built-in theme presets</li>
-                <li>• Custom theme creation</li>
-                <li>• Dark/light mode toggle</li>
-                <li>• System preference detection</li>
-                <li>• Brand color preservation</li>
-                <li>• localStorage persistence</li>
+                <li>• INI file parsing with section handling</li>
+                <li>• Assembly configuration parsing</li>
+                <li>• Port and module data extraction</li>
+                <li>• Connection parameter mapping</li>
+                <li>• Parameter categorization</li>
+                <li>• Multi-revision support</li>
+                <li>• Icon file extraction and display</li>
+                <li>• Device grouping by vendor/product</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </DocsSection>
+
+      {/* Web Interface */}
+      <DocsSection title="Modern Web Interface">
+        <DocsParagraph>
+          React-based dashboard with responsive design, interactive visualizations, and smooth animations.
+        </DocsParagraph>
+
+        <div className="grid gap-6 md:grid-cols-2 my-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2 mb-2">
+                <Package className="w-6 h-6 text-brand-green" />
+                <Badge variant="secondary">UI/UX</Badge>
+              </div>
+              <CardTitle className="text-base">Device Library</CardTitle>
+              <CardDescription>Browse and manage device configurations</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Card-based device grid with thumbnails</li>
+                <li>• Real-time search and filtering</li>
+                <li>• Sort by vendor, product, or date</li>
+                <li>• Bulk selection and deletion</li>
+                <li>• Drag-and-drop file upload</li>
+                <li>• Detailed device view with tabs</li>
+                <li>• Parameter browsing by category</li>
+                <li>• Export to JSON/ZIP</li>
               </ul>
             </CardContent>
           </Card>
@@ -151,16 +119,17 @@ export default function Features({ onNavigate }) {
                 <Badge variant="secondary">UI/UX</Badge>
               </div>
               <CardTitle className="text-base">Analytics Dashboard</CardTitle>
-              <CardDescription>Rich data visualization</CardDescription>
+              <CardDescription>Visual insights into your device library</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>• Manufacturer distribution charts</li>
+                <li>• Device type breakdowns (IODD vs EDS)</li>
+                <li>• Parameter count statistics</li>
                 <li>• I/O configuration analysis</li>
-                <li>• Parameter statistics</li>
-                <li>• Device type breakdowns</li>
-                <li>• Real-time metrics</li>
-                <li>• Export capabilities</li>
+                <li>• Storage usage metrics</li>
+                <li>• Recent activity tracking</li>
+                <li>• Interactive 3D visualizations</li>
               </ul>
             </CardContent>
           </Card>
@@ -168,20 +137,41 @@ export default function Features({ onNavigate }) {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-6 h-6 text-brand-green" />
+                <Palette className="w-6 h-6 text-brand-green" />
                 <Badge variant="secondary">UI/UX</Badge>
               </div>
-              <CardTitle className="text-base">Interactive Features</CardTitle>
-              <CardDescription>Enhanced user experience</CardDescription>
+              <CardTitle className="text-base">Theme System</CardTitle>
+              <CardDescription>4 built-in themes with dark/light modes</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Keyboard shortcuts (20+)</li>
-                <li>• Search & filtering</li>
-                <li>• Sort & pagination</li>
-                <li>• Responsive tables</li>
-                <li>• Modal dialogs</li>
-                <li>• Toast notifications</li>
+                <li>• Default, Blue, Purple, Orange themes</li>
+                <li>• Dark/light mode toggle</li>
+                <li>• System preference detection</li>
+                <li>• Smooth theme transitions</li>
+                <li>• localStorage persistence</li>
+                <li>• Consistent brand colors</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="w-6 h-6 text-brand-green" />
+                <Badge variant="secondary">UI/UX</Badge>
+              </div>
+              <CardTitle className="text-base">Ticket System</CardTitle>
+              <CardDescription>Track issues and feature requests</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Create tickets for devices</li>
+                <li>• Priority levels (Low/Medium/High/Critical)</li>
+                <li>• Status tracking (Open/In Progress/Resolved)</li>
+                <li>• File attachments support</li>
+                <li>• Comment threads</li>
+                <li>• Device linkage</li>
               </ul>
             </CardContent>
           </Card>
@@ -191,7 +181,7 @@ export default function Features({ onNavigate }) {
       {/* Backend & API */}
       <DocsSection title="Backend & API">
         <DocsParagraph>
-          Robust FastAPI backend with comprehensive REST API and database management.
+          FastAPI-powered backend with SQLite database and comprehensive REST API.
         </DocsParagraph>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 my-6">
@@ -205,11 +195,11 @@ export default function Features({ onNavigate }) {
             </CardHeader>
             <CardContent>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>• Python 3.10+</li>
-                <li>• Async/await support</li>
-                <li>• OpenAPI documentation</li>
-                <li>• Type hints & validation</li>
-                <li>• Pydantic models</li>
+                <li>• Python 3.10+ async/await</li>
+                <li>• Auto-generated OpenAPI docs</li>
+                <li>• Type validation with Pydantic</li>
+                <li>• Hot reload in development</li>
+                <li>• CORS support</li>
               </ul>
             </CardContent>
           </Card>
@@ -220,15 +210,15 @@ export default function Features({ onNavigate }) {
                 <Database className="w-6 h-6 text-brand-green" />
                 <Badge variant="outline">Backend</Badge>
               </div>
-              <CardTitle className="text-base">Database Management</CardTitle>
+              <CardTitle className="text-base">Database</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>• SQLAlchemy ORM</li>
-                <li>• SQLite / PostgreSQL</li>
-                <li>• Alembic migrations</li>
-                <li>• Relationship mapping</li>
-                <li>• Query optimization</li>
+                <li>• SQLite with foreign keys</li>
+                <li>• 30+ normalized tables</li>
+                <li>• Full-text search indexes</li>
+                <li>• BLOB storage for assets</li>
+                <li>• Database health monitoring</li>
               </ul>
             </CardContent>
           </Card>
@@ -239,88 +229,50 @@ export default function Features({ onNavigate }) {
                 <Shield className="w-6 h-6 text-brand-green" />
                 <Badge variant="outline">Backend</Badge>
               </div>
-              <CardTitle className="text-base">Security Features</CardTitle>
+              <CardTitle className="text-base">API Features</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>• CORS configuration</li>
-                <li>• Input validation</li>
-                <li>• SQL injection prevention</li>
-                <li>• File upload limits</li>
-                <li>• Request sanitization</li>
+                <li>• RESTful endpoints (40+)</li>
+                <li>• File upload/download</li>
+                <li>• Bulk operations</li>
+                <li>• Advanced search & filtering</li>
+                <li>• Health check endpoint</li>
               </ul>
             </CardContent>
           </Card>
         </div>
 
-        <DocsCallout type="info" title="RESTful API">
+        <DocsCallout type="info" title="Interactive API Documentation">
           <DocsParagraph>
-            Complete REST API with 15+ endpoints for device management, search, filtering, and export.
-            Full OpenAPI/Swagger documentation available at <code>/docs</code>.
+            Full Swagger/OpenAPI documentation is available at <code>http://localhost:8000/docs</code> when
+            the server is running. Test all endpoints directly from your browser.
           </DocsParagraph>
         </DocsCallout>
       </DocsSection>
 
-      {/* IoT Foundation */}
-      <DocsSection title="Industrial IoT Foundation">
+      {/* Admin Features */}
+      <DocsSection title="Administration & Management">
         <DocsParagraph>
-          Forward-looking IoT stack ready for device connectivity and real-time monitoring.
+          Comprehensive admin console for system monitoring and database management.
         </DocsParagraph>
 
         <div className="grid gap-6 md:grid-cols-2 my-6">
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
-                <Cloud className="w-6 h-6 text-brand-green" />
-                <Badge variant="destructive">Future</Badge>
+                <Settings className="w-6 h-6 text-brand-green" />
+                <Badge>Admin</Badge>
               </div>
-              <CardTitle className="text-base">MQTT Broker</CardTitle>
-              <CardDescription>Eclipse Mosquitto for device messaging</CardDescription>
+              <CardTitle className="text-base">System Monitoring</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Pre-configured in Docker stack</li>
-                <li>• Ready for device pub/sub</li>
-                <li>• TLS/SSL support ready</li>
-                <li>• WebSocket support</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <BarChart3 className="w-6 h-6 text-brand-green" />
-                <Badge variant="destructive">Future</Badge>
-              </div>
-              <CardTitle className="text-base">Grafana Dashboards</CardTitle>
-              <CardDescription>Data visualization platform</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Pre-installed in stack</li>
-                <li>• InfluxDB integration</li>
-                <li>• Custom dashboard creation</li>
-                <li>• Real-time monitoring</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-6 h-6 text-brand-green" />
-                <Badge variant="destructive">Future</Badge>
-              </div>
-              <CardTitle className="text-base">Node-RED</CardTitle>
-              <CardDescription>Visual workflow automation</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Flow-based programming</li>
-                <li>• Device automation</li>
-                <li>• Protocol conversion</li>
-                <li>• Custom integrations</li>
+                <li>• Real-time statistics overview</li>
+                <li>• Database health checks</li>
+                <li>• Foreign key integrity validation</li>
+                <li>• Storage usage tracking</li>
+                <li>• Recent activity logs</li>
               </ul>
             </CardContent>
           </Card>
@@ -329,232 +281,207 @@ export default function Features({ onNavigate }) {
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
                 <Database className="w-6 h-6 text-brand-green" />
-                <Badge variant="destructive">Future</Badge>
+                <Badge>Admin</Badge>
               </div>
-              <CardTitle className="text-base">InfluxDB</CardTitle>
-              <CardDescription>Time-series data storage</CardDescription>
+              <CardTitle className="text-base">Database Management</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Optimized for IoT data</li>
-                <li>• High-performance writes</li>
-                <li>• Data retention policies</li>
-                <li>• Query language (InfluxQL)</li>
+                <li>• Bulk deletion operations</li>
+                <li>• Database export/backup</li>
+                <li>• Integrity repair tools</li>
+                <li>• Table statistics</li>
+                <li>• Orphaned record cleanup</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </DocsSection>
+
+      {/* Documentation */}
+      <DocsSection title="Built-in Documentation">
+        <DocsParagraph>
+          Comprehensive in-platform documentation with search and navigation.
+        </DocsParagraph>
+
+        <div className="grid gap-6 md:grid-cols-3 my-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">User Guide</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Features overview</li>
+                <li>• Web interface guide</li>
+                <li>• Device management</li>
+                <li>• Advanced features</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">API Reference</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Endpoint documentation</li>
+                <li>• Request/response examples</li>
+                <li>• OpenAPI specification</li>
+                <li>• Authentication guide</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Developer Docs</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Architecture overview</li>
+                <li>• Setup instructions</li>
+                <li>• Contributing guide</li>
+                <li>• Code examples</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </DocsSection>
+
+      {/* Technical Stack */}
+      <DocsSection title="Technical Stack">
+        <div className="grid gap-6 md:grid-cols-2 my-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Frontend Technologies</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• React 18 with hooks</li>
+                <li>• Vite for fast builds</li>
+                <li>• Tailwind CSS for styling</li>
+                <li>• Radix UI components</li>
+                <li>• Axios for API calls</li>
+                <li>• Lucide React icons</li>
+                <li>• Chart.js for analytics</li>
+                <li>• Three.js for 3D visualizations</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Backend Technologies</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• FastAPI framework</li>
+                <li>• Python 3.10+</li>
+                <li>• SQLite database</li>
+                <li>• Uvicorn ASGI server</li>
+                <li>• Pydantic for validation</li>
+                <li>• lxml for XML parsing</li>
+                <li>• configparser for INI files</li>
+                <li>• PIL for image processing</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </DocsSection>
+
+      {/* Current Limitations */}
+      <DocsSection title="Current Limitations">
+        <DocsParagraph className="mb-4">
+          GreenStack is actively developed. Some features are planned for future releases:
+        </DocsParagraph>
+
+        <div className="space-y-3">
+          <Card className="border-yellow-500/20">
+            <CardHeader>
+              <CardTitle className="text-base text-yellow-600 dark:text-yellow-400">Not Yet Implemented</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• User authentication and authorization</li>
+                <li>• Multi-user support with permissions</li>
+                <li>• Real-time device connectivity (IO-Link, EtherNet/IP)</li>
+                <li>• Live telemetry monitoring</li>
+                <li>• MQTT broker integration</li>
+                <li>• Advanced rate limiting (use reverse proxy)</li>
               </ul>
             </CardContent>
           </Card>
         </div>
 
-        <DocsCallout type="success" title="Ready for Growth">
+        <DocsCallout type="warning" title="Production Deployment">
           <DocsParagraph>
-            While device connectivity features are planned for future releases, the complete IoT
-            infrastructure is already integrated and ready. The Docker stack includes MQTT, Grafana,
-            Node-RED, and InfluxDB, providing a solid foundation for future expansion.
+            For production use, deploy behind a reverse proxy (nginx, Traefik) for authentication,
+            rate limiting, and SSL/TLS termination. GreenStack focuses on device configuration
+            management, not security infrastructure.
           </DocsParagraph>
         </DocsCallout>
       </DocsSection>
 
-      {/* Developer Features */}
-      <DocsSection title="Developer Experience">
-        <DocsParagraph>
-          Built with developer productivity and code quality in mind.
-        </DocsParagraph>
-
-        <div className="grid gap-6 md:grid-cols-2 my-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="w-5 h-5 text-brand-green" />
-                Documentation
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• 28-page in-platform docs</li>
-                <li>• OpenAPI/Swagger specs</li>
-                <li>• Mermaid diagrams</li>
-                <li>• Code examples</li>
-                <li>• Interactive tutorials</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Code className="w-5 h-5 text-brand-green" />
-                Code Quality
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• 65+ pytest tests</li>
-                <li>• Black code formatting</li>
-                <li>• Ruff linting</li>
-                <li>• MyPy type checking</li>
-                <li>• ESLint for JavaScript</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Package className="w-5 h-5 text-brand-green" />
-                Deployment
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Docker & docker-compose</li>
-                <li>• One-click Windows setup</li>
-                <li>• PyPI package available</li>
-                <li>• GitHub Actions CI/CD</li>
-                <li>• Container registry</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Zap className="w-5 h-5 text-brand-green" />
-                Development Tools
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Hot module replacement</li>
-                <li>• Auto-reload backend</li>
-                <li>• Database migrations</li>
-                <li>• Development server</li>
-                <li>• Debug logging</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-      </DocsSection>
-
-      {/* Unique Capabilities */}
-      <DocsSection title="What Makes Greenstack Unique">
+      {/* What Makes It Unique */}
+      <DocsSection title="What Makes GreenStack Unique">
         <div className="grid gap-4 md:grid-cols-2 my-6">
           <Card className="border-brand-green/20">
             <CardHeader>
-              <CardTitle className="text-base">All-in-One Platform</CardTitle>
+              <CardTitle className="text-base">Dual Protocol Support</CardTitle>
             </CardHeader>
             <CardContent>
               <DocsParagraph className="text-sm">
-                Unlike other device management tools, Greenstack combines IODD and EDS support with a
-                complete IoT stack, providing everything needed for industrial device management in one platform.
+                Unlike most tools that support only one protocol, GreenStack handles both IODD (IO-Link)
+                and EDS (EtherNet/IP) files in a single unified platform.
               </DocsParagraph>
             </CardContent>
           </Card>
 
           <Card className="border-brand-green/20">
             <CardHeader>
-              <CardTitle className="text-base">Modern Architecture</CardTitle>
+              <CardTitle className="text-base">Modern UX</CardTitle>
             </CardHeader>
             <CardContent>
               <DocsParagraph className="text-sm">
-                Built with cutting-edge technologies (React 18, FastAPI, Three.js), Greenstack delivers
-                performance and user experience that rivals enterprise-grade commercial solutions.
+                Industrial tools don't have to look dated. GreenStack delivers a modern, responsive
+                interface with 3D visualizations and smooth animations that rivals consumer applications.
               </DocsParagraph>
             </CardContent>
           </Card>
 
           <Card className="border-brand-green/20">
             <CardHeader>
-              <CardTitle className="text-base">Open Source & Extensible</CardTitle>
+              <CardTitle className="text-base">Self-Contained</CardTitle>
             </CardHeader>
             <CardContent>
               <DocsParagraph className="text-sm">
-                MIT licensed with clean, well-documented code. Easy to customize, extend, and integrate
-                with existing systems. Active development and community contributions welcome.
+                No complex setup or external dependencies. GreenStack runs entirely on your local machine
+                with SQLite - perfect for engineers who need quick access to device configurations.
               </DocsParagraph>
             </CardContent>
           </Card>
 
           <Card className="border-brand-green/20">
             <CardHeader>
-              <CardTitle className="text-base">Production Ready</CardTitle>
+              <CardTitle className="text-base">Open Source</CardTitle>
             </CardHeader>
             <CardContent>
               <DocsParagraph className="text-sm">
-                Comprehensive testing, security features, deployment options, and monitoring capabilities
-                make Greenstack suitable for both development and production environments.
+                MIT licensed with clean, well-documented code. Customize it, extend it, integrate it
+                with your existing tools. No vendor lock-in, no licensing fees.
               </DocsParagraph>
             </CardContent>
           </Card>
-        </div>
-      </DocsSection>
-
-      {/* Feature Comparison */}
-      <DocsSection title="Feature Status">
-        <DocsParagraph className="mb-4">
-          Overview of current and planned capabilities:
-        </DocsParagraph>
-
-        <div className="overflow-x-auto">
-          <table className="w-full border border-border">
-            <thead>
-              <tr className="bg-surface border-b border-border">
-                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Feature</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-foreground">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-foreground">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-border">
-                <td className="px-4 py-3 text-sm text-foreground">IODD File Parsing</td>
-                <td className="px-4 py-3 text-center"><Badge>Available</Badge></td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">Full XML parsing with validation</td>
-              </tr>
-              <tr className="border-b border-border">
-                <td className="px-4 py-3 text-sm text-foreground">EDS File Parsing</td>
-                <td className="px-4 py-3 text-center"><Badge>Available</Badge></td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">Complete INI parsing support</td>
-              </tr>
-              <tr className="border-b border-border">
-                <td className="px-4 py-3 text-sm text-foreground">Web Dashboard</td>
-                <td className="px-4 py-3 text-center"><Badge>Available</Badge></td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">React UI with 3D visualization</td>
-              </tr>
-              <tr className="border-b border-border">
-                <td className="px-4 py-3 text-sm text-foreground">REST API</td>
-                <td className="px-4 py-3 text-center"><Badge>Available</Badge></td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">15+ endpoints with OpenAPI docs</td>
-              </tr>
-              <tr className="border-b border-border">
-                <td className="px-4 py-3 text-sm text-foreground">Device Connectivity</td>
-                <td className="px-4 py-3 text-center"><Badge variant="warning">Planned</Badge></td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">Real-time device communication</td>
-              </tr>
-              <tr className="border-b border-border">
-                <td className="px-4 py-3 text-sm text-foreground">Authentication</td>
-                <td className="px-4 py-3 text-center"><Badge variant="warning">Planned</Badge></td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">API keys, JWT, OAuth2</td>
-              </tr>
-              <tr className="border-b border-border">
-                <td className="px-4 py-3 text-sm text-foreground">Rate Limiting</td>
-                <td className="px-4 py-3 text-center"><Badge variant="warning">Planned</Badge></td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">Use reverse proxy for now</td>
-              </tr>
-              <tr className="border-b border-border">
-                <td className="px-4 py-3 text-sm text-foreground">Telemetry Monitoring</td>
-                <td className="px-4 py-3 text-center"><Badge variant="warning">Planned</Badge></td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">Infrastructure ready (MQTT, Grafana)</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </DocsSection>
 
       {/* Related Resources */}
-      <DocsSection title="Explore Features">
+      <DocsSection title="Learn More">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-6">
-          <DocsLink href="/docs/user-guide/web-interface" external={false} onNavigate={onNavigate} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">
-            <h5 className="font-semibold text-foreground mb-1">Web Interface</h5>
-            <p className="text-sm text-muted-foreground">Explore the dashboard</p>
+          <DocsLink href="/docs/user-guide/getting-started" external={false} onNavigate={onNavigate} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">
+            <h5 className="font-semibold text-foreground mb-1">Getting Started</h5>
+            <p className="text-sm text-muted-foreground">Quick start guide</p>
           </DocsLink>
 
           <DocsLink href="/docs/user-guide/device-management" external={false} onNavigate={onNavigate} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">

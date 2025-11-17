@@ -115,6 +115,8 @@ class ProcessData:
     data_type: str
     record_items: List[RecordItem] = field(default_factory=list)
     description: Optional[str] = None
+    # Phase 2: Conditional process data
+    condition: Optional['ProcessDataCondition'] = None
 
 @dataclass
 class ProcessDataCollection:
@@ -181,6 +183,11 @@ class MenuItem:
     unit_code: Optional[str] = None
     button_value: Optional[str] = None
     menu_ref: Optional[str] = None
+    # Phase 1: UI rendering metadata
+    gradient: Optional[float] = None
+    offset: Optional[float] = None
+    # Phase 3: Button configuration
+    buttons: List['MenuButton'] = field(default_factory=list)
 
 @dataclass
 class Menu:
@@ -206,6 +213,71 @@ class SingleValue:
     description: Optional[str] = None
 
 @dataclass
+class ProcessDataUIInfo:
+    """UI rendering metadata for process data record items"""
+    process_data_id: str
+    subindex: int
+    gradient: Optional[float] = None
+    offset: Optional[float] = None
+    unit_code: Optional[str] = None
+    display_format: Optional[str] = None
+
+@dataclass
+class DeviceVariant:
+    """Device variant information"""
+    product_id: str
+    device_symbol: Optional[str] = None
+    device_icon: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+@dataclass
+class ProcessDataCondition:
+    """Conditional process data definition"""
+    variable_id: str
+    value: str
+
+@dataclass
+class MenuButton:
+    """UI menu button configuration"""
+    button_value: str
+    description: Optional[str] = None
+    action_started_message: Optional[str] = None
+
+@dataclass
+class WireConfiguration:
+    """Wire connection configuration"""
+    connection_type: str
+    wire_number: int
+    wire_color: Optional[str] = None
+    wire_function: Optional[str] = None
+    wire_description: Optional[str] = None
+
+@dataclass
+class TestEventTrigger:
+    """Test event trigger configuration"""
+    appear_value: str
+    disappear_value: str
+
+@dataclass
+class DeviceTestConfig:
+    """Device test configuration"""
+    config_type: str
+    param_index: int
+    test_value: str
+    event_triggers: List[TestEventTrigger] = field(default_factory=list)
+
+@dataclass
+class CustomDatatype:
+    """Custom datatype definition"""
+    datatype_id: str
+    datatype_xsi_type: str
+    bit_length: Optional[int] = None
+    subindex_access_supported: bool = False
+    single_values: List[SingleValue] = field(default_factory=list)
+    record_items: List[RecordItem] = field(default_factory=list)
+
+@dataclass
 class DeviceProfile:
     """Complete device profile from IODD"""
     vendor_info: VendorInfo
@@ -222,6 +294,29 @@ class DeviceProfile:
     schema_version: str = ""
     import_date: datetime = field(default_factory=datetime.now)
     raw_xml: Optional[str] = None
+    all_text_data: Dict[str, Dict[str, str]] = field(default_factory=dict)  # Multi-language text data
+
+    # Phase 1: UI Rendering metadata
+    process_data_ui_info: List[ProcessDataUIInfo] = field(default_factory=list)
+    menu_item_ui_attrs: Dict[str, Dict[str, Any]] = field(default_factory=dict)  # Store gradient/offset for menu items
+
+    # Phase 2: Device Variants and Conditions
+    device_variants: List[DeviceVariant] = field(default_factory=list)
+    process_data_conditions: Dict[str, ProcessDataCondition] = field(default_factory=dict)  # pd_id -> condition
+
+    # Phase 3: Button Configurations
+    menu_buttons: Dict[str, List[MenuButton]] = field(default_factory=dict)  # menu_item_id -> buttons
+
+    # Phase 4: Wiring and Testing
+    wire_configurations: List[WireConfiguration] = field(default_factory=list)
+    test_configurations: List[DeviceTestConfig] = field(default_factory=list)
+
+    # Phase 5: Custom Datatypes
+    custom_datatypes: List[CustomDatatype] = field(default_factory=list)
+    vendor_logo_filename: Optional[str] = None
+    stamp_crc: Optional[str] = None
+    checker_name: Optional[str] = None
+    checker_version: Optional[str] = None
 
 # ============================================================================
 # IODD Parser
@@ -238,9 +333,10 @@ class IODDParser:
         self.xml_content = xml_content
         self.root = ET.fromstring(xml_content)
         self.text_lookup = self._build_text_lookup()
+        self.all_text_data = self._build_all_text_data()
 
     def _build_text_lookup(self) -> Dict[str, str]:
-        """Build lookup table for textId references from ExternalTextCollection"""
+        """Build lookup table for textId references from ExternalTextCollection (English only for backwards compatibility)"""
         text_map = {}
 
         # Find all PrimaryLanguage/Text elements
@@ -252,8 +348,45 @@ class IODDParser:
 
         return text_map
 
+    def _build_all_text_data(self) -> Dict[str, Dict[str, str]]:
+        """Build complete text lookup for ALL languages from ExternalTextCollection
+
+        Returns:
+            Dict[text_id, Dict[language_code, text_value]]
+            Example: {
+                'TN_DeviceName': {'en': 'CALIS Level Sensor', 'de': 'CALIS Füllstandssensor'},
+                'TN_M_Ident': {'en': 'Identification', 'de': 'Identifikation'}
+            }
+        """
+        all_text = {}
+
+        # Extract primary language (usually English)
+        primary_lang = self.root.find('.//iodd:ExternalTextCollection/iodd:PrimaryLanguage', self.NAMESPACES)
+        if primary_lang is not None:
+            lang_code = primary_lang.get('{http://www.w3.org/XML/1998/namespace}lang', 'en')
+            for text_elem in primary_lang.findall('.//iodd:Text', self.NAMESPACES):
+                text_id = text_elem.get('id')
+                text_value = text_elem.get('value', '')
+                if text_id:
+                    if text_id not in all_text:
+                        all_text[text_id] = {}
+                    all_text[text_id][lang_code] = text_value
+
+        # Extract all secondary languages
+        for language_elem in self.root.findall('.//iodd:ExternalTextCollection/iodd:Language', self.NAMESPACES):
+            lang_code = language_elem.get('{http://www.w3.org/XML/1998/namespace}lang', 'unknown')
+            for text_elem in language_elem.findall('.//iodd:Text', self.NAMESPACES):
+                text_id = text_elem.get('id')
+                text_value = text_elem.get('value', '')
+                if text_id:
+                    if text_id not in all_text:
+                        all_text[text_id] = {}
+                    all_text[text_id][lang_code] = text_value
+
+        return all_text
+
     def _resolve_text(self, text_id: Optional[str]) -> Optional[str]:
-        """Resolve a textId reference to its actual text value"""
+        """Resolve a textId reference to its actual text value (English only for backwards compatibility)"""
         if not text_id:
             return None
         return self.text_lookup.get(text_id)
@@ -302,6 +435,12 @@ class IODDParser:
         """Parse complete IODD file"""
         logger.info("Parsing IODD file...")
 
+        # Extract stamp/validation metadata
+        stamp_data = self._extract_stamp_metadata()
+
+        # Extract vendor logo
+        vendor_logo = self._extract_vendor_logo()
+
         return DeviceProfile(
             vendor_info=self._extract_vendor_info(),
             device_info=self._extract_device_info(),
@@ -315,7 +454,21 @@ class IODDParser:
             ui_menus=self._extract_ui_menus(),
             iodd_version=self._get_iodd_version(),
             schema_version=self._get_schema_version(),
-            raw_xml=self.xml_content
+            raw_xml=self.xml_content,
+            all_text_data=self.all_text_data,  # Include all multi-language text data
+            # Phase 1: UI Rendering metadata
+            process_data_ui_info=self._extract_process_data_ui_info(),
+            # Phase 2: Device Variants and Conditions
+            device_variants=self._extract_device_variants(),
+            # Phase 4: Wiring and Testing
+            wire_configurations=self._extract_wire_configurations(),
+            test_configurations=self._extract_test_configurations(),
+            # Phase 5: Custom Datatypes and metadata
+            custom_datatypes=self._extract_custom_datatypes(),
+            vendor_logo_filename=vendor_logo,
+            stamp_crc=stamp_data.get('crc'),
+            checker_name=stamp_data.get('checker_name'),
+            checker_version=stamp_data.get('checker_version')
         )
     
     def _extract_vendor_info(self) -> VendorInfo:
@@ -648,6 +801,23 @@ class IODDParser:
         """Extract process data configuration"""
         collection = ProcessDataCollection()
 
+        # Build a condition lookup for process data (Phase 2)
+        condition_lookup = {}
+        for pd_wrapper in self.root.findall('.//iodd:ProcessDataCollection/iodd:ProcessData', self.NAMESPACES):
+            condition_elem = pd_wrapper.find('.//iodd:Condition', self.NAMESPACES)
+            if condition_elem is not None:
+                var_id = condition_elem.get('variableId')
+                value = condition_elem.get('value')
+                if var_id and value:
+                    # Find the ProcessDataIn or ProcessDataOut ID inside this wrapper
+                    pd_in = pd_wrapper.find('.//iodd:ProcessDataIn', self.NAMESPACES)
+                    pd_out = pd_wrapper.find('.//iodd:ProcessDataOut', self.NAMESPACES)
+                    pd_elem = pd_in if pd_in is not None else pd_out
+                    if pd_elem is not None:
+                        pd_id = pd_elem.get('id')
+                        if pd_id:
+                            condition_lookup[pd_id] = ProcessDataCondition(variable_id=var_id, value=value)
+
         # Extract input process data
         pd_in_elems = self.root.findall('.//iodd:ProcessDataIn', self.NAMESPACES)
         for pd_in in pd_in_elems:
@@ -744,7 +914,8 @@ class IODDParser:
                 name=name,
                 bit_length=bit_length,
                 data_type=data_type,
-                record_items=record_items
+                record_items=record_items,
+                condition=condition_lookup.get(pd_id)  # Apply condition if exists (Phase 2)
             )
             collection.inputs.append(process_data)
             collection.total_input_bits += bit_length
@@ -845,7 +1016,8 @@ class IODDParser:
                 name=name,
                 bit_length=bit_length,
                 data_type=data_type,
-                record_items=record_items
+                record_items=record_items,
+                condition=condition_lookup.get(pd_id)  # Apply condition if exists (Phase 2)
             )
             collection.outputs.append(process_data)
             collection.total_output_bits += bit_length
@@ -1163,21 +1335,53 @@ class IODDParser:
 
             # Extract variable references
             for var_ref in menu_elem.findall('.//iodd:VariableRef', self.NAMESPACES):
+                # Parse gradient and offset (Phase 1)
+                gradient = var_ref.get('gradient')
+                offset = var_ref.get('offset')
+
+                # Extract button configurations (Phase 3)
+                buttons = []
+                for button_elem in var_ref.findall('.//iodd:Button', self.NAMESPACES):
+                    button_value = button_elem.get('buttonValue')
+                    desc_elem = button_elem.find('.//iodd:Description', self.NAMESPACES)
+                    desc_text_id = desc_elem.get('textId') if desc_elem is not None else None
+                    description = self._resolve_text(desc_text_id)
+
+                    action_msg_elem = button_elem.find('.//iodd:ActionStartedMessage', self.NAMESPACES)
+                    action_msg_text_id = action_msg_elem.get('textId') if action_msg_elem is not None else None
+                    action_started_message = self._resolve_text(action_msg_text_id)
+
+                    if button_value:
+                        buttons.append(MenuButton(
+                            button_value=button_value,
+                            description=description,
+                            action_started_message=action_started_message
+                        ))
+
                 items.append(MenuItem(
                     variable_id=var_ref.get('variableId'),
                     access_right_restriction=var_ref.get('accessRightRestriction'),
                     display_format=var_ref.get('displayFormat'),
-                    unit_code=var_ref.get('unitCode')
+                    unit_code=var_ref.get('unitCode'),
+                    gradient=float(gradient) if gradient else None,
+                    offset=float(offset) if offset else None,
+                    buttons=buttons
                 ))
 
             # Extract record item references
             for record_ref in menu_elem.findall('.//iodd:RecordItemRef', self.NAMESPACES):
+                # Parse gradient and offset (Phase 1)
+                gradient = record_ref.get('gradient')
+                offset = record_ref.get('offset')
+
                 items.append(MenuItem(
                     record_item_ref=record_ref.get('variableId'),
                     subindex=int(record_ref.get('subindex')) if record_ref.get('subindex') else None,
                     access_right_restriction=record_ref.get('accessRightRestriction'),
                     display_format=record_ref.get('displayFormat'),
-                    unit_code=record_ref.get('unitCode')
+                    unit_code=record_ref.get('unitCode'),
+                    gradient=float(gradient) if gradient else None,
+                    offset=float(offset) if offset else None
                 ))
 
             # Extract menu references (sub-menus)
@@ -1229,6 +1433,239 @@ class IODDParser:
             maintenance_role_menus=maintenance_menus,
             specialist_role_menus=specialist_menus
         )
+
+    def _extract_process_data_ui_info(self) -> List[ProcessDataUIInfo]:
+        """Extract UI rendering metadata for process data (Phase 1)"""
+        ui_info_list = []
+
+        # Find ProcessDataRefCollection in UserInterface
+        ui_elem = self.root.find('.//iodd:UserInterface', self.NAMESPACES)
+        if ui_elem is None:
+            return ui_info_list
+
+        for pd_ref in ui_elem.findall('.//iodd:ProcessDataRefCollection/iodd:ProcessDataRef', self.NAMESPACES):
+            process_data_id = pd_ref.get('processDataId')
+            if not process_data_id:
+                continue
+
+            # Extract ProcessDataRecordItemInfo elements
+            for item_info in pd_ref.findall('.//iodd:ProcessDataRecordItemInfo', self.NAMESPACES):
+                subindex = item_info.get('subindex')
+                if subindex is not None:
+                    ui_info_list.append(ProcessDataUIInfo(
+                        process_data_id=process_data_id,
+                        subindex=int(subindex),
+                        gradient=float(item_info.get('gradient')) if item_info.get('gradient') else None,
+                        offset=float(item_info.get('offset')) if item_info.get('offset') else None,
+                        unit_code=item_info.get('unitCode'),
+                        display_format=item_info.get('displayFormat')
+                    ))
+
+        logger.info(f"Extracted {len(ui_info_list)} process data UI info entries")
+        return ui_info_list
+
+    def _extract_device_variants(self) -> List[DeviceVariant]:
+        """Extract device variants (Phase 2)"""
+        variants = []
+
+        device_identity = self.root.find('.//iodd:DeviceIdentity', self.NAMESPACES)
+        if device_identity is None:
+            return variants
+
+        for variant_elem in device_identity.findall('.//iodd:DeviceVariantCollection/iodd:DeviceVariant', self.NAMESPACES):
+            product_id = variant_elem.get('productId')
+            if not product_id:
+                continue
+
+            # Get name from textId
+            name_elem = variant_elem.find('.//iodd:Name', self.NAMESPACES)
+            name_text_id = name_elem.get('textId') if name_elem is not None else None
+            name = self._resolve_text(name_text_id)
+
+            # Get description from textId
+            desc_elem = variant_elem.find('.//iodd:Description', self.NAMESPACES)
+            desc_text_id = desc_elem.get('textId') if desc_elem is not None else None
+            description = self._resolve_text(desc_text_id)
+
+            variants.append(DeviceVariant(
+                product_id=product_id,
+                device_symbol=variant_elem.get('deviceSymbol'),
+                device_icon=variant_elem.get('deviceIcon'),
+                name=name,
+                description=description
+            ))
+
+        logger.info(f"Extracted {len(variants)} device variants")
+        return variants
+
+    def _extract_wire_configurations(self) -> List[WireConfiguration]:
+        """Extract wire configurations from physical layer (Phase 4)"""
+        wires = []
+
+        # Find physical layer connection
+        for connection in self.root.findall('.//iodd:CommNetworkProfile/iodd:TransportLayers/iodd:PhysicalLayer/iodd:Connection', self.NAMESPACES):
+            connection_type = connection.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+            if not connection_type:
+                continue
+
+            # Extract wire information (Wire1, Wire2, Wire3, Wire4, Wire5)
+            for wire_num in range(1, 6):
+                wire_elem = connection.find(f'.//iodd:Wire{wire_num}', self.NAMESPACES)
+                if wire_elem is not None:
+                    # Get wire description from Name element
+                    name_elem = wire_elem.find('.//iodd:Name', self.NAMESPACES)
+                    name_text_id = name_elem.get('textId') if name_elem is not None else None
+                    wire_description = self._resolve_text(name_text_id)
+
+                    wires.append(WireConfiguration(
+                        connection_type=connection_type,
+                        wire_number=wire_num,
+                        wire_color=wire_elem.get('color'),
+                        wire_function=wire_elem.get('function'),
+                        wire_description=wire_description
+                    ))
+
+        logger.info(f"Extracted {len(wires)} wire configurations")
+        return wires
+
+    def _extract_test_configurations(self) -> List[DeviceTestConfig]:
+        """Extract device test configurations (Phase 4)"""
+        test_configs = []
+
+        # Find Test element
+        test_elem = self.root.find('.//iodd:CommNetworkProfile/iodd:Test', self.NAMESPACES)
+        if test_elem is None:
+            return test_configs
+
+        # Extract Config1, Config2, Config3
+        for config_type in ['Config1', 'Config2', 'Config3']:
+            config_elem = test_elem.find(f'.//iodd:{config_type}', self.NAMESPACES)
+            if config_elem is not None:
+                index = config_elem.get('index')
+                test_value = config_elem.get('testValue')
+                if index and test_value:
+                    test_configs.append(DeviceTestConfig(
+                        config_type=config_type,
+                        param_index=int(index),
+                        test_value=test_value
+                    ))
+
+        # Extract Config7 with event triggers
+        config7_elem = test_elem.find('.//iodd:Config7', self.NAMESPACES)
+        if config7_elem is not None:
+            index = config7_elem.get('index')
+            if index:
+                event_triggers = []
+                for trigger_elem in config7_elem.findall('.//iodd:EventTrigger', self.NAMESPACES):
+                    appear_value = trigger_elem.get('appearValue')
+                    disappear_value = trigger_elem.get('disappearValue')
+                    if appear_value and disappear_value:
+                        event_triggers.append(TestEventTrigger(
+                            appear_value=appear_value,
+                            disappear_value=disappear_value
+                        ))
+
+                test_configs.append(DeviceTestConfig(
+                    config_type='Config7',
+                    param_index=int(index),
+                    test_value='',
+                    event_triggers=event_triggers
+                ))
+
+        logger.info(f"Extracted {len(test_configs)} test configurations")
+        return test_configs
+
+    def _extract_custom_datatypes(self) -> List[CustomDatatype]:
+        """Extract custom datatypes from DatatypeCollection (Phase 5)"""
+        datatypes = []
+
+        for datatype_elem in self.root.findall('.//iodd:DatatypeCollection/iodd:Datatype', self.NAMESPACES):
+            datatype_id = datatype_elem.get('id')
+            if not datatype_id:
+                continue
+
+            xsi_type = datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+            bit_length = datatype_elem.get('bitLength')
+            subindex_access = datatype_elem.get('subindexAccessSupported', 'false').lower() == 'true'
+
+            # Extract single values
+            single_values = []
+            for single_val in datatype_elem.findall('.//iodd:SingleValue', self.NAMESPACES):
+                value = single_val.get('value')
+                name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
+                if name_elem is not None and value is not None:
+                    text_id = name_elem.get('textId')
+                    text_value = self._resolve_text(text_id)
+                    if text_value:
+                        single_values.append(SingleValue(
+                            value=value,
+                            name=text_value
+                        ))
+
+            # Extract record items (for RecordT types)
+            record_items = []
+            for record_item_elem in datatype_elem.findall('.//iodd:RecordItem', self.NAMESPACES):
+                subindex = record_item_elem.get('subindex')
+                bit_offset = record_item_elem.get('bitOffset')
+
+                # Get name
+                name_elem = record_item_elem.find('.//iodd:Name', self.NAMESPACES)
+                name_text_id = name_elem.get('textId') if name_elem is not None else None
+                item_name = self._resolve_text(name_text_id) or f"Item_{subindex}"
+
+                # Get datatype reference or inline datatype
+                datatype_ref_elem = record_item_elem.find('.//iodd:DatatypeRef', self.NAMESPACES)
+                if datatype_ref_elem is not None:
+                    datatype_ref = datatype_ref_elem.get('datatypeId')
+                else:
+                    # Inline datatype
+                    simple_datatype_elem = record_item_elem.find('.//iodd:SimpleDatatype', self.NAMESPACES)
+                    if simple_datatype_elem is not None:
+                        datatype_ref = simple_datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                    else:
+                        datatype_ref = 'Unknown'
+
+                if subindex and bit_offset:
+                    record_items.append(RecordItem(
+                        subindex=int(subindex),
+                        name=item_name,
+                        bit_offset=int(bit_offset),
+                        bit_length=int(record_item_elem.get('bitLength', 0)),
+                        data_type=datatype_ref or 'Unknown'
+                    ))
+
+            datatypes.append(CustomDatatype(
+                datatype_id=datatype_id,
+                datatype_xsi_type=xsi_type or 'Unknown',
+                bit_length=int(bit_length) if bit_length else None,
+                subindex_access_supported=subindex_access,
+                single_values=single_values,
+                record_items=record_items
+            ))
+
+        logger.info(f"Extracted {len(datatypes)} custom datatypes")
+        return datatypes
+
+    def _extract_vendor_logo(self) -> Optional[str]:
+        """Extract vendor logo filename (Phase 5)"""
+        device_identity = self.root.find('.//iodd:DeviceIdentity', self.NAMESPACES)
+        if device_identity is not None:
+            logo_elem = device_identity.find('.//iodd:VendorLogo', self.NAMESPACES)
+            if logo_elem is not None:
+                return logo_elem.get('name')
+        return None
+
+    def _extract_stamp_metadata(self) -> Dict[str, Optional[str]]:
+        """Extract stamp/validation metadata (Phase 5)"""
+        stamp_elem = self.root.find('.//iodd:Stamp', self.NAMESPACES)
+        if stamp_elem is not None:
+            checker_elem = stamp_elem.find('.//iodd:Checker', self.NAMESPACES)
+            return {
+                'crc': stamp_elem.get('crc'),
+                'checker_name': checker_elem.get('name') if checker_elem is not None else None,
+                'checker_version': checker_elem.get('version') if checker_elem is not None else None
+            }
+        return {'crc': None, 'checker_name': None, 'checker_version': None}
 
 # ============================================================================
 # IODD Ingester
@@ -1960,8 +2397,8 @@ class StorageManager:
                     cursor.execute("""
                         INSERT INTO ui_menu_items (menu_id, variable_id, record_item_ref, subindex,
                                                    access_right_restriction, display_format, unit_code,
-                                                   button_value, menu_ref, item_order)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                                   button_value, menu_ref, item_order, gradient, offset)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, (
                         menu_db_id,
                         item.variable_id,
@@ -1972,8 +2409,23 @@ class StorageManager:
                         item.unit_code,
                         item.button_value,
                         item.menu_ref,
-                        idx
+                        idx,
+                        item.gradient,
+                        item.offset
                     ))
+                    menu_item_db_id = cursor.lastrowid
+
+                    # Save button configurations (Phase 3)
+                    for button in item.buttons:
+                        cursor.execute("""
+                            INSERT INTO ui_menu_buttons (menu_item_id, button_value, description, action_started_message)
+                            VALUES (?, ?, ?, ?)
+                        """, (
+                            menu_item_db_id,
+                            button.button_value,
+                            button.description,
+                            button.action_started_message
+                        ))
 
             # Save role menu mappings
             for menu_type, menu_id in profile.ui_menus.observer_role_menus.items():
@@ -1993,6 +2445,170 @@ class StorageManager:
                     INSERT INTO ui_menu_roles (device_id, role_type, menu_type, menu_id)
                     VALUES (?, ?, ?, ?)
                 """, (device_id, 'specialist', menu_type, menu_id))
+
+        # Save multi-language text data
+        if profile.all_text_data:
+            for text_id, languages in profile.all_text_data.items():
+                for language_code, text_value in languages.items():
+                    cursor.execute("""
+                        INSERT INTO iodd_text (device_id, text_id, language_code, text_value)
+                        VALUES (?, ?, ?, ?)
+                    """, (device_id, text_id, language_code, text_value))
+            logger.info(f"Saved {sum(len(langs) for langs in profile.all_text_data.values())} text entries across {len(profile.all_text_data)} text IDs")
+
+        # ===== PHASE 1: Save Process Data UI Info =====
+        if profile.process_data_ui_info:
+            # First, get process data IDs mapping
+            pd_id_map = {}
+            cursor.execute("SELECT id, pd_id FROM process_data WHERE device_id = ?", (device_id,))
+            for row in cursor.fetchall():
+                pd_id_map[row[1]] = row[0]
+
+            for ui_info in profile.process_data_ui_info:
+                process_data_db_id = pd_id_map.get(ui_info.process_data_id)
+                if process_data_db_id:
+                    cursor.execute("""
+                        INSERT INTO process_data_ui_info (process_data_id, subindex, gradient, offset, unit_code, display_format)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (
+                        process_data_db_id,
+                        ui_info.subindex,
+                        ui_info.gradient,
+                        ui_info.offset,
+                        ui_info.unit_code,
+                        ui_info.display_format
+                    ))
+            logger.info(f"Saved {len(profile.process_data_ui_info)} process data UI info entries")
+
+        # ===== PHASE 2: Save Device Variants =====
+        if profile.device_variants:
+            for variant in profile.device_variants:
+                cursor.execute("""
+                    INSERT INTO device_variants (device_id, product_id, device_symbol, device_icon, name, description)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    device_id,
+                    variant.product_id,
+                    variant.device_symbol,
+                    variant.device_icon,
+                    variant.name,
+                    variant.description
+                ))
+            logger.info(f"Saved {len(profile.device_variants)} device variants")
+
+        # ===== PHASE 2: Save Process Data Conditions =====
+        # Get process data with conditions
+        cursor.execute("SELECT id, pd_id FROM process_data WHERE device_id = ?", (device_id,))
+        pd_id_map = {row[1]: row[0] for row in cursor.fetchall()}
+
+        for pd in profile.process_data.inputs + profile.process_data.outputs:
+            if pd.condition:
+                process_data_db_id = pd_id_map.get(pd.id)
+                if process_data_db_id:
+                    cursor.execute("""
+                        INSERT INTO process_data_conditions (process_data_id, condition_variable_id, condition_value)
+                        VALUES (?, ?, ?)
+                    """, (
+                        process_data_db_id,
+                        pd.condition.variable_id,
+                        pd.condition.value
+                    ))
+
+        # ===== PHASE 4: Save Wire Configurations =====
+        if profile.wire_configurations:
+            for wire in profile.wire_configurations:
+                cursor.execute("""
+                    INSERT INTO wire_configurations (device_id, connection_type, wire_number, wire_color, wire_function, wire_description)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    device_id,
+                    wire.connection_type,
+                    wire.wire_number,
+                    wire.wire_color,
+                    wire.wire_function,
+                    wire.wire_description
+                ))
+            logger.info(f"Saved {len(profile.wire_configurations)} wire configurations")
+
+        # ===== PHASE 4: Save Test Configurations =====
+        if profile.test_configurations:
+            for test_config in profile.test_configurations:
+                cursor.execute("""
+                    INSERT INTO device_test_config (device_id, config_type, param_index, test_value)
+                    VALUES (?, ?, ?, ?)
+                """, (
+                    device_id,
+                    test_config.config_type,
+                    test_config.param_index,
+                    test_config.test_value
+                ))
+                test_config_db_id = cursor.lastrowid
+
+                # Save event triggers
+                for trigger in test_config.event_triggers:
+                    cursor.execute("""
+                        INSERT INTO device_test_event_triggers (test_config_id, appear_value, disappear_value)
+                        VALUES (?, ?, ?)
+                    """, (
+                        test_config_db_id,
+                        trigger.appear_value,
+                        trigger.disappear_value
+                    ))
+            logger.info(f"Saved {len(profile.test_configurations)} test configurations")
+
+        # ===== PHASE 5: Save Custom Datatypes =====
+        if profile.custom_datatypes:
+            for datatype in profile.custom_datatypes:
+                cursor.execute("""
+                    INSERT INTO custom_datatypes (device_id, datatype_id, datatype_xsi_type, bit_length, subindex_access_supported)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    device_id,
+                    datatype.datatype_id,
+                    datatype.datatype_xsi_type,
+                    datatype.bit_length,
+                    1 if datatype.subindex_access_supported else 0
+                ))
+                datatype_db_id = cursor.lastrowid
+
+                # Save single values
+                for single_val in datatype.single_values:
+                    cursor.execute("""
+                        INSERT INTO custom_datatype_single_values (datatype_id, value, name)
+                        VALUES (?, ?, ?)
+                    """, (
+                        datatype_db_id,
+                        single_val.value,
+                        single_val.name
+                    ))
+
+                # Save record items
+                for record_item in datatype.record_items:
+                    cursor.execute("""
+                        INSERT INTO custom_datatype_record_items (datatype_id, subindex, bit_offset, bit_length, datatype_ref, name)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (
+                        datatype_db_id,
+                        record_item.subindex,
+                        record_item.bit_offset,
+                        record_item.bit_length,
+                        record_item.data_type,
+                        record_item.name
+                    ))
+            logger.info(f"Saved {len(profile.custom_datatypes)} custom datatypes")
+
+        # ===== PHASE 5: Update device with vendor logo =====
+        if profile.vendor_logo_filename:
+            cursor.execute("""
+                UPDATE devices SET vendor_logo_filename = ? WHERE id = ?
+            """, (profile.vendor_logo_filename, device_id))
+
+        # ===== PHASE 5: Update iodd_files with stamp metadata =====
+        if profile.stamp_crc or profile.checker_name or profile.checker_version:
+            cursor.execute("""
+                UPDATE iodd_files SET stamp_crc = ?, checker_name = ?, checker_version = ?
+                WHERE device_id = ?
+            """, (profile.stamp_crc, profile.checker_name, profile.checker_version, device_id))
 
         conn.commit()
         conn.close()
@@ -2049,8 +2665,35 @@ class StorageManager:
 
         if added_count > 0:
             logger.info(f"Added {added_count} new asset file(s) for device {device_id}")
-        if skipped_count > 0:
-            logger.info(f"Skipped {skipped_count} existing asset file(s) for device {device_id}")
+
+    def save_text_data(self, device_id: int, all_text_data: Dict[str, Dict[str, str]]) -> None:
+        """Save multi-language text data to iodd_text table
+
+        Args:
+            device_id: The device ID to associate text with
+            all_text_data: Dict[text_id, Dict[language_code, text_value]]
+                Example: {
+                    'TN_DeviceName': {'en': 'Sensor', 'de': 'Sensor'},
+                    'TN_M_Ident': {'en': 'Identification', 'de': 'Identifikation'}
+                }
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        text_count = 0
+
+        for text_id, languages in all_text_data.items():
+            for language_code, text_value in languages.items():
+                cursor.execute("""
+                    INSERT INTO iodd_text (device_id, text_id, language_code, text_value)
+                    VALUES (?, ?, ?, ?)
+                """, (device_id, text_id, language_code, text_value))
+                text_count += 1
+
+        conn.commit()
+        conn.close()
+
+        logger.info(f"Saved {text_count} text entries across {len(all_text_data)} text IDs for device {device_id}")
 
     def get_assets(self, device_id: int) -> List[Dict[str, Any]]:
         """Retrieve all asset files for a device

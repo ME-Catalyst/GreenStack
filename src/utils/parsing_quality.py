@@ -244,13 +244,13 @@ class ParsingQualityAnalyzer:
         # Get parameter statistics
         cursor.execute("""
             SELECT
-                COUNT(DISTINCT iodd_file_id) as files_with_params,
+                COUNT(DISTINCT device_id) as files_with_params,
                 COUNT(*) as total_params,
                 AVG(param_count) as avg_params_per_file
             FROM (
-                SELECT iodd_file_id, COUNT(*) as param_count
-                FROM iodd_parameters
-                GROUP BY iodd_file_id
+                SELECT device_id, COUNT(*) as param_count
+                FROM parameters
+                GROUP BY device_id
             )
         """)
         param_stats = cursor.fetchone()
@@ -258,7 +258,7 @@ class ParsingQualityAnalyzer:
         # Get variable statistics
         cursor.execute("""
             SELECT
-                COUNT(DISTINCT iodd_file_id) as files_with_vars,
+                COUNT(DISTINCT device_id) as files_with_vars,
                 COUNT(*) as total_vars
             FROM iodd_variables
         """)

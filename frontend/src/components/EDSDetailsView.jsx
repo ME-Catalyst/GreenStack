@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   ArrowLeft, Download, FileText, Server, ArrowUpRight, ArrowDownRight,
-  Users, Activity, Clock, Package, Code, Database, FileCode, ChevronDown, ChevronRight, Info, Filter, Boxes, Network, Cpu, GitCompare
+  Users, Activity, Clock, Package, Code, Database, FileCode, ChevronDown, ChevronRight, Info, Filter, Boxes, Network, Cpu, GitCompare, AlertTriangle
 } from 'lucide-react';
 import AssembliesSection from './AssembliesSection';
 import PortsSection from './PortsSection';
@@ -28,6 +28,8 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
   const [groups, setGroups] = useState([]);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [comparisonMode, setComparisonMode] = useState(false);
+  const [comparisonRevisionId, setComparisonRevisionId] = useState(null);
+  const [comparisonEds, setComparisonEds] = useState(null);
   const [previousRevisionData, setPreviousRevisionData] = useState(null);
   const [parameterDiffs, setParameterDiffs] = useState(new Map());
 
@@ -168,6 +170,7 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Package },
+    ...(comparisonMode && comparisonEds ? [{ id: 'differences', label: `Differences (${parameterDiffs.size})`, icon: AlertTriangle }] : []),
     { id: 'parameters', label: `Parameters (${selectedEds.parameters?.length || 0})`, icon: Database },
     { id: 'connections', label: `Connections (${selectedEds.connections?.length || 0})`, icon: Activity },
     { id: 'assemblies', label: 'Assemblies', icon: Boxes },
@@ -209,7 +212,7 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
                     className="text-foreground focus:bg-muted"
                   >
                     {rev.revision_string}
-                    {rev.import_date && ` (${new Date(rev.import_date).toLocaleDateString()})`}
+                    {rev.mod_date && ` (${rev.mod_date})`}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -220,14 +223,62 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
             <div className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border rounded-md">
               <GitCompare className="w-4 h-4 text-muted-foreground" />
               <Label htmlFor="comparison-mode" className="text-sm text-foreground cursor-pointer">
-                Compare
+                Compare Revisions
               </Label>
               <Switch
                 id="comparison-mode"
                 checked={comparisonMode}
-                onCheckedChange={toggleComparisonMode}
+                onCheckedChange={(enabled) => {
+                  setComparisonMode(enabled);
+                  if (!enabled) {
+                    setComparisonRevisionId(null);
+                    setComparisonEds(null);
+                    setPreviousRevisionData(null);
+                    setParameterDiffs(new Map());
+                  }
+                }}
               />
             </div>
+          )}
+
+          {/* Second Revision Selector (for comparison) */}
+          {comparisonMode && availableRevisions.length > 1 && (
+            <Select
+              value={comparisonRevisionId?.toString() || ""}
+              onValueChange={async (value) => {
+                const revId = parseInt(value);
+                setComparisonRevisionId(revId);
+
+                // Fetch the comparison revision data
+                try {
+                  const response = await axios.get(`${API_BASE}/api/eds/${revId}`);
+                  setComparisonEds(response.data);
+
+                  // Compute parameter differences
+                  computeParameterDifferences(selectedEds, response.data);
+                } catch (error) {
+                  console.error('Failed to fetch comparison revision:', error);
+                }
+              }}
+            >
+              <SelectTrigger className="w-[200px] bg-background border-border text-foreground">
+                <SelectValue placeholder="Select revision to compare" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-border">
+                {availableRevisions
+                  .filter(rev => rev.id !== selectedRevisionId)
+                  .map((rev) => (
+                  <SelectItem
+                    key={rev.id}
+                    value={rev.id.toString()}
+                    className="text-foreground focus:bg-muted"
+                  >
+                    {rev.revision_string}
+                    {rev.mod_date && ` (${rev.mod_date})`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
           <Button
             onClick={onExportJSON}
@@ -326,6 +377,7 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
       {/* Tab Content */}
       <div className="min-h-[600px]">
         {activeTab === 'overview' && <OverviewTab selectedEds={selectedEds} />}
+        {activeTab === 'differences' && <DifferencesTab parameterDiffs={parameterDiffs} previousRevisionData={previousRevisionData} selectedEds={selectedEds} />}
         {activeTab === 'parameters' && <ParametersTab selectedEds={selectedEds} groups={groups} comparisonMode={comparisonMode} parameterDiffs={parameterDiffs} />}
         {activeTab === 'connections' && <ConnectionsTab selectedEds={selectedEds} />}
         {activeTab === 'assemblies' && <AssembliesSection edsId={selectedEds.id} />}
@@ -1156,6 +1208,196 @@ const RawContentTab = ({ selectedEds }) => {
       <p className="text-sm text-muted-foreground">
         This is the raw EDS file content as it was uploaded. Line count: {selectedEds.eds_content?.split('\n').length || 0}
       </p>
+    </div>
+  );
+};
+
+
+// Differences Tab Component
+const DifferencesTab = ({ parameterDiffs, previousRevisionData, selectedEds }) => {
+  if (!previousRevisionData || parameterDiffs.size === 0) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="p-12 text-center">
+          <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-30" />
+          <h3 className="text-xl font-semibold mb-2 text-foreground">No Differences Found</h3>
+          <p className="text-muted-foreground">
+            {!previousRevisionData
+              ? 'Enable comparison mode and select different revisions to view differences'
+              : 'The selected revisions have identical parameters'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Organize differences by type
+  const added = [];
+  const removed = [];
+  const modified = [];
+
+  parameterDiffs.forEach((diff, paramNumber) => {
+    if (diff.type === 'added') {
+      added.push({ ...diff, paramNumber });
+    } else if (diff.type === 'removed') {
+      removed.push({ ...diff, paramNumber });
+    } else if (diff.type === 'modified') {
+      modified.push({ ...diff, paramNumber });
+    }
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Card */}
+      <Card className="bg-gradient-to-br from-warning/10 to-warning/5 border-warning/30">
+        <CardHeader>
+          <CardTitle className="text-foreground flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-warning" />
+            Revision Comparison Summary
+          </CardTitle>
+          <CardDescription className="text-muted-foreground mt-2">
+            Comparing <strong>v{previousRevisionData.major_revision}.{previousRevisionData.minor_revision}</strong> with{' '}
+            <strong>v{selectedEds.major_revision}.{selectedEds.minor_revision}</strong>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-success/10 border border-success/30 rounded-lg">
+              <div className="text-3xl font-bold text-success">{added.length}</div>
+              <div className="text-sm text-muted-foreground mt-1">Added Parameters</div>
+            </div>
+            <div className="text-center p-4 bg-warning/10 border border-warning/30 rounded-lg">
+              <div className="text-3xl font-bold text-warning">{modified.length}</div>
+              <div className="text-sm text-muted-foreground mt-1">Modified Parameters</div>
+            </div>
+            <div className="text-center p-4 bg-error/10 border border-error/30 rounded-lg">
+              <div className="text-3xl font-bold text-error">{removed.length}</div>
+              <div className="text-sm text-muted-foreground mt-1">Removed Parameters</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Added Parameters */}
+      {added.length > 0 && (
+        <Card className="bg-card border-success/30">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <Badge className="bg-success/20 text-success">+{added.length}</Badge>
+              Added Parameters
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {added.map((diff, index) => (
+              <div key={index} className="p-4 bg-success/5 border border-success/20 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-foreground">
+                    {diff.current.param_name || `Parameter ${diff.paramNumber}`}
+                  </span>
+                  <Badge className="bg-success/20 text-success text-xs">NEW</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Type:</span>
+                    <span className="ml-2 text-foreground">{diff.current.data_type || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Default:</span>
+                    <span className="ml-2 text-foreground">{diff.current.default_value ?? 'N/A'}</span>
+                  </div>
+                </div>
+                {diff.current.description && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {diff.current.description}
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Modified Parameters */}
+      {modified.length > 0 && (
+        <Card className="bg-card border-warning/30">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <Badge className="bg-warning/20 text-warning">~{modified.length}</Badge>
+              Modified Parameters
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {modified.map((diff, index) => (
+              <div key={index} className="p-4 bg-warning/5 border border-warning/20 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-foreground">
+                    {diff.current.param_name || `Parameter ${diff.paramNumber}`}
+                  </span>
+                  <Badge className="bg-warning/20 text-warning text-xs">MODIFIED</Badge>
+                </div>
+                <div className="space-y-2">
+                  {diff.changes.map((change, changeIndex) => (
+                    <div key={changeIndex} className="text-sm">
+                      <div className="text-muted-foreground font-medium mb-1 capitalize">
+                        {change.field.replace(/_/g, ' ')}:
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="p-2 bg-error/10 border border-error/20 rounded">
+                          <div className="text-xs text-error font-medium mb-1">Before:</div>
+                          <div className="text-foreground break-words">{change.previous ?? 'N/A'}</div>
+                        </div>
+                        <div className="p-2 bg-success/10 border border-success/20 rounded">
+                          <div className="text-xs text-success font-medium mb-1">After:</div>
+                          <div className="text-foreground break-words">{change.current ?? 'N/A'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Removed Parameters */}
+      {removed.length > 0 && (
+        <Card className="bg-card border-error/30">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <Badge className="bg-error/20 text-error">-{removed.length}</Badge>
+              Removed Parameters
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {removed.map((diff, index) => (
+              <div key={index} className="p-4 bg-error/5 border border-error/20 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-foreground">
+                    {diff.previous.param_name || `Parameter ${diff.paramNumber}`}
+                  </span>
+                  <Badge className="bg-error/20 text-error text-xs">REMOVED</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Type:</span>
+                    <span className="ml-2 text-foreground">{diff.previous.data_type || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Default:</span>
+                    <span className="ml-2 text-foreground">{diff.previous.default_value ?? 'N/A'}</span>
+                  </div>
+                </div>
+                {diff.previous.description && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {diff.previous.description}
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
