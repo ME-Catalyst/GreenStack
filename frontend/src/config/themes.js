@@ -406,6 +406,12 @@ export function applyTheme(theme) {
   const root = document.documentElement;
   const variables = generateCSSVariables(theme);
 
+  console.log('[applyTheme] Applying theme:', {
+    name: theme.name,
+    mode: theme.mode,
+    id: theme.id
+  });
+
   // Apply CSS variables to root element
   Object.entries(variables).forEach(([key, value]) => {
     root.style.setProperty(key, value);
@@ -414,12 +420,16 @@ export function applyTheme(theme) {
   // Apply Tailwind dark mode class
   // Tailwind's dark mode uses the 'dark' class on the root element
   if (theme.mode === 'light') {
+    console.log('[applyTheme] Setting LIGHT mode - adding "light" class, removing "dark" class');
     root.classList.add('light');
     root.classList.remove('dark');
   } else {
+    console.log('[applyTheme] Setting DARK mode - adding "dark" class, removing "light" class');
     root.classList.add('dark');
     root.classList.remove('light');
   }
+
+  console.log('[applyTheme] Final HTML classes:', root.className);
 
 }
 

@@ -80,6 +80,13 @@ export const ThemeProvider = ({ children }) => {
   // Apply theme on mount and when theme changes
   useEffect(() => {
     const themeToApply = customTheme || getThemePreset(themePreset);
+    console.log('[ThemeContext] Applying theme:', {
+      presetId: themePreset,
+      themeName: themeToApply.name,
+      mode: themeToApply.mode,
+      hasCustomTheme: !!customTheme
+    });
+
     setCurrentTheme(themeToApply);
     applyTheme(themeToApply);
 
@@ -89,6 +96,9 @@ export const ThemeProvider = ({ children }) => {
     // Save to localStorage
     localStorage.setItem('greenstack-theme-mode', themeToApply.mode || 'dark');
     localStorage.setItem('greenstack-theme-preset', themePreset);
+
+    // Debug: Check what's actually on the HTML element
+    console.log('[ThemeContext] HTML classes after apply:', document.documentElement.className);
   }, [themePreset, customTheme]);
 
   // Listen for system theme changes
@@ -126,6 +136,14 @@ export const ThemeProvider = ({ children }) => {
     // Check current theme's mode, not the preset name
     const currentMode = currentTheme?.mode || 'dark';
     const newPreset = currentMode === 'light' ? 'greenstack' : 'light';
+
+    console.log('[ThemeContext] Toggle theme:', {
+      currentMode,
+      currentPreset: themePreset,
+      newPreset,
+      currentThemeName: currentTheme?.name
+    });
+
     setThemePresetState(newPreset);
     setCustomThemeState(null); // Clear custom theme
   };
@@ -155,6 +173,33 @@ export const ThemeProvider = ({ children }) => {
     localStorage.removeItem('greenstack-custom-theme');
   };
 
+  // Debug function to reset theme (exposed globally in dev mode)
+  const resetTheme = () => {
+    console.log('[ThemeContext] Resetting theme to default (dark/greenstack)');
+    localStorage.removeItem('greenstack-theme-mode');
+    localStorage.removeItem('greenstack-theme-preset');
+    localStorage.removeItem('greenstack-custom-theme');
+    setThemePresetState('greenstack');
+    setCustomThemeState(null);
+    window.location.reload();
+  };
+
+  // Expose debug function globally in development
+  if (typeof window !== 'undefined' && import.meta.env.DEV) {
+    window.resetTheme = resetTheme;
+    window.debugThemeState = () => {
+      console.log('=== THEME STATE DEBUG ===');
+      console.log('Current theme mode:', theme);
+      console.log('Current theme preset:', themePreset);
+      console.log('Current theme object:', currentTheme);
+      console.log('Has custom theme:', !!customTheme);
+      console.log('HTML classes:', document.documentElement.className);
+      console.log('LocalStorage theme-mode:', localStorage.getItem('greenstack-theme-mode'));
+      console.log('LocalStorage theme-preset:', localStorage.getItem('greenstack-theme-preset'));
+      console.log('========================');
+    };
+  }
+
   const value = {
     // Legacy API (for backward compatibility)
     theme,
@@ -171,6 +216,9 @@ export const ThemeProvider = ({ children }) => {
     brandGreen: BRAND_GREEN,
     availablePresets: getAllThemePresets(),
     applyTheme,
+
+    // Debug (dev only)
+    resetTheme,
   };
 
   return (
