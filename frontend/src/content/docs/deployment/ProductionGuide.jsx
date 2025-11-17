@@ -19,7 +19,7 @@ export const metadata = {
   lastUpdated: '2025-01-17',
 };
 
-export default function ProductionGuide() {
+export default function ProductionGuide({ onNavigate }) {
   return (
     <DocsPage>
       <DocsHero

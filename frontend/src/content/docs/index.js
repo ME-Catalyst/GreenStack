@@ -12,11 +12,15 @@ import { lazy } from 'react';
 // Lazy load all documentation components
 const QuickStart = lazy(() => import('./getting-started/QuickStart'));
 const Installation = lazy(() => import('./getting-started/Installation'));
+const WindowsInstallation = lazy(() => import('./getting-started/WindowsInstallation'));
+const DockerSetup = lazy(() => import('./getting-started/DockerSetup'));
 const Configuration = lazy(() => import('./user-guide/Configuration'));
 const WebInterface = lazy(() => import('./user-guide/WebInterface'));
 const Troubleshooting = lazy(() => import('./user-guide/Troubleshooting'));
 const ApiOverview = lazy(() => import('./api/Overview'));
 const ApiEndpoints = lazy(() => import('./api/Endpoints'));
+const ApiAuthentication = lazy(() => import('./api/Authentication'));
+const ApiErrors = lazy(() => import('./api/Errors'));
 const ComponentsOverview = lazy(() => import('./components/Overview'));
 const DeveloperOverview = lazy(() => import('./developer/Overview'));
 const BackendDevelopment = lazy(() => import('./developer/Backend'));
@@ -27,11 +31,15 @@ const ProductionGuide = lazy(() => import('./deployment/ProductionGuide'));
 // Import metadata synchronously (metadata is lightweight)
 export { metadata as quickStartMeta } from './getting-started/QuickStart';
 export { metadata as installationMeta } from './getting-started/Installation';
+export { metadata as windowsInstallationMeta } from './getting-started/WindowsInstallation';
+export { metadata as dockerSetupMeta } from './getting-started/DockerSetup';
 export { metadata as configurationMeta } from './user-guide/Configuration';
 export { metadata as webInterfaceMeta } from './user-guide/WebInterface';
 export { metadata as troubleshootingMeta } from './user-guide/Troubleshooting';
 export { metadata as apiOverviewMeta } from './api/Overview';
 export { metadata as apiEndpointsMeta } from './api/Endpoints';
+export { metadata as apiAuthenticationMeta } from './api/Authentication';
+export { metadata as apiErrorsMeta } from './api/Errors';
 export { metadata as componentsOverviewMeta } from './components/Overview';
 export { metadata as developerOverviewMeta } from './developer/Overview';
 export { metadata as backendDevelopmentMeta } from './developer/Backend';
@@ -42,11 +50,15 @@ export { metadata as productionGuideMeta } from './deployment/ProductionGuide';
 // Import metadata for registry
 import { metadata as quickStartMeta } from './getting-started/QuickStart';
 import { metadata as installationMeta } from './getting-started/Installation';
+import { metadata as windowsInstallationMeta } from './getting-started/WindowsInstallation';
+import { metadata as dockerSetupMeta } from './getting-started/DockerSetup';
 import { metadata as configurationMeta } from './user-guide/Configuration';
 import { metadata as webInterfaceMeta } from './user-guide/WebInterface';
 import { metadata as troubleshootingMeta } from './user-guide/Troubleshooting';
 import { metadata as apiOverviewMeta } from './api/Overview';
 import { metadata as apiEndpointsMeta } from './api/Endpoints';
+import { metadata as apiAuthenticationMeta } from './api/Authentication';
+import { metadata as apiErrorsMeta } from './api/Errors';
 import { metadata as componentsOverviewMeta } from './components/Overview';
 import { metadata as developerOverviewMeta } from './developer/Overview';
 import { metadata as backendDevelopmentMeta } from './developer/Backend';
@@ -80,14 +92,8 @@ export const docsRegistry = {
   },
 
   'getting-started/windows-installation': {
-    component: null,
-    metadata: {
-      id: 'getting-started/windows-installation',
-      title: 'Windows Installation',
-      description: 'Step-by-step Windows installation guide',
-      category: 'getting-started',
-      keywords: ['windows', 'install', 'setup'],
-    },
+    component: WindowsInstallation,
+    metadata: windowsInstallationMeta,
     previous: {
       id: 'getting-started/installation',
       title: 'Installation Guide'
@@ -99,14 +105,8 @@ export const docsRegistry = {
   },
 
   'getting-started/docker': {
-    component: null,
-    metadata: {
-      id: 'getting-started/docker',
-      title: 'Docker Setup',
-      description: 'Deploy Greenstack with Docker',
-      category: 'getting-started',
-      keywords: ['docker', 'container', 'deployment'],
-    },
+    component: DockerSetup,
+    metadata: dockerSetupMeta,
     previous: {
       id: 'getting-started/windows-installation',
       title: 'Windows Installation'
@@ -173,30 +173,34 @@ export const docsRegistry = {
       title: 'API Overview'
     },
     next: {
-      id: 'components/overview',
-      title: 'Component Gallery'
+      id: 'api/authentication',
+      title: 'API Authentication'
     }
   },
 
   'api/authentication': {
-    component: null,
-    metadata: {
-      id: 'api/authentication',
-      title: 'Authentication',
-      description: 'API authentication and security',
-      category: 'api-reference',
-      keywords: ['auth', 'security', 'token', 'api-key'],
+    component: ApiAuthentication,
+    metadata: apiAuthenticationMeta,
+    previous: {
+      id: 'api/endpoints',
+      title: 'API Endpoints Reference'
+    },
+    next: {
+      id: 'api/errors',
+      title: 'Error Handling'
     }
   },
 
   'api/errors': {
-    component: null,
-    metadata: {
-      id: 'api/errors',
-      title: 'Error Handling',
-      description: 'API error codes and handling',
-      category: 'api-reference',
-      keywords: ['errors', 'exceptions', 'debugging'],
+    component: ApiErrors,
+    metadata: apiErrorsMeta,
+    previous: {
+      id: 'api/authentication',
+      title: 'API Authentication'
+    },
+    next: {
+      id: 'components/overview',
+      title: 'Component Gallery'
     }
   },
 

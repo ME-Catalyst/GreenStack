@@ -20,7 +20,7 @@ export const metadata = {
   lastUpdated: '2025-01-17',
 };
 
-export default function WebInterface() {
+export default function WebInterface({ onNavigate }) {
   return (
     <DocsPage>
       <DocsHero
@@ -733,7 +733,7 @@ tail -f logs/greenstack.log`}
 
         <DocsCallout type="info" title="Theme Customization">
           <DocsParagraph>
-            Visit the <DocsLink href="/theme-manager" external={false}>Theme Manager</DocsLink> to customize colors,
+            Visit the <DocsLink href="/theme-manager" external={false} onNavigate={onNavigate}>Theme Manager</DocsLink> to customize colors,
             create custom themes, and export your theme configurations.
           </DocsParagraph>
         </DocsCallout>
@@ -752,7 +752,7 @@ tail -f logs/greenstack.log`}
         </DocsCodeBlock>
 
         <DocsParagraph className="mt-4">
-          For more details on theme customization, see the <DocsLink href="/docs/components/theme-manager" external={false}>
+          For more details on theme customization, see the <DocsLink href="/docs/components/theme-system" external={false} onNavigate={onNavigate}>
           Theme Manager Documentation</DocsLink>.
         </DocsParagraph>
       </DocsSection>
@@ -763,22 +763,22 @@ tail -f logs/greenstack.log`}
         </DocsParagraph>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 my-6">
-          <DocsLink href="/docs/getting-started/quick-start" external={false} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">
+          <DocsLink href="/docs/getting-started/quick-start" external={false} onNavigate={onNavigate} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">
             <h5 className="font-semibold text-foreground mb-1">Quick Start Guide</h5>
             <p className="text-sm text-muted-foreground">Get started with Greenstack in minutes</p>
           </DocsLink>
 
-          <DocsLink href="/docs/user-guide/configuration" external={false} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">
+          <DocsLink href="/docs/user-guide/configuration" external={false} onNavigate={onNavigate} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">
             <h5 className="font-semibold text-foreground mb-1">Configuration</h5>
             <p className="text-sm text-muted-foreground">Configure Greenstack for your environment</p>
           </DocsLink>
 
-          <DocsLink href="/docs/api/overview" external={false} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">
+          <DocsLink href="/docs/api/overview" external={false} onNavigate={onNavigate} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">
             <h5 className="font-semibold text-foreground mb-1">API Documentation</h5>
             <p className="text-sm text-muted-foreground">Learn about the REST API</p>
           </DocsLink>
 
-          <DocsLink href="/theme-manager" external={false} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">
+          <DocsLink href="/components/theme-system" external={false} onNavigate={onNavigate} className="block border border-border rounded-lg p-4 hover:border-brand-green transition-colors">
             <h5 className="font-semibold text-foreground mb-1">Theme Manager</h5>
             <p className="text-sm text-muted-foreground">Customize the interface appearance</p>
           </DocsLink>

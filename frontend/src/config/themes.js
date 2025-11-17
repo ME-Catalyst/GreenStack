@@ -404,7 +404,12 @@ export function generateCSSVariables(theme) {
  */
 export function applyTheme(theme) {
   const root = document.documentElement;
+  const variables = generateCSSVariables(theme);
 
+  // Apply CSS variables to root element
+  Object.entries(variables).forEach(([key, value]) => {
+    root.style.setProperty(key, value);
+  });
 
   // CSS structure: :root has dark mode, .light class has light mode
   // So for dark mode, remove .light class; for light mode, add .light class

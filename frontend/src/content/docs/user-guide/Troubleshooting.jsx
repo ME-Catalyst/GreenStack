@@ -18,7 +18,7 @@ export const metadata = {
   lastUpdated: '2025-01-17',
 };
 
-export default function Troubleshooting() {
+export default function Troubleshooting({ onNavigate }) {
   return (
     <DocsPage>
       <DocsHero
@@ -292,7 +292,7 @@ python -c "from src.api import init_db; init_db()"`}
                   <DocsCallout type="tip" title="Production Recommendation">
                     <DocsParagraph>
                       For production deployments with concurrent users, consider using PostgreSQL instead of SQLite.
-                      See <DocsLink href="/docs/user-guide/configuration" external={false}>Configuration Guide</DocsLink> for
+                      See <DocsLink href="/docs/user-guide/configuration" external={false} onNavigate={onNavigate}>Configuration Guide</DocsLink> for
                       database setup.
                     </DocsParagraph>
                   </DocsCallout>

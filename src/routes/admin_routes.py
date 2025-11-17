@@ -232,7 +232,7 @@ async def get_database_health():
         recommendations.append("Run VACUUM to clean up orphaned records")
 
     # 3. Check for database bloat
-    db_size = os.path.getsize(DB_PATH)
+    db_size = os.path.getsize(get_db_path())
     cursor.execute("PRAGMA page_count")
     page_count = cursor.fetchone()[0]
     cursor.execute("PRAGMA freelist_count")
@@ -369,14 +369,14 @@ async def vacuum_database():
     """Optimize database by running VACUUM"""
     try:
         # Get size before
-        size_before = os.path.getsize(DB_PATH)
+        size_before = os.path.getsize(get_db_path())
 
         conn = sqlite3.connect(get_db_path())
         conn.execute("VACUUM")
         conn.close()
 
         # Get size after
-        size_after = os.path.getsize(DB_PATH)
+        size_after = os.path.getsize(get_db_path())
         saved = size_before - size_after
 
         return {
@@ -402,7 +402,7 @@ async def backup_database():
         backup_path.parent.mkdir(exist_ok=True)
 
         # Copy database
-        shutil.copy2(DB_PATH, backup_path)
+        shutil.copy2(get_db_path(), backup_path)
 
         backup_size = os.path.getsize(backup_path)
 
@@ -425,7 +425,7 @@ async def download_backup():
         temp_backup = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
 
         # Copy database to temp file
-        shutil.copy2(DB_PATH, temp_backup.name)
+        shutil.copy2(get_db_path(), temp_backup.name)
         temp_backup.close()
 
         return FileResponse(
@@ -636,8 +636,8 @@ async def get_system_info():
         "application": {
             "name": "GreenStack",
             "version": "2.1.0",
-            "database_path": DB_PATH,
-            "database_exists": os.path.exists(DB_PATH)
+            "database_path": get_db_path(),
+            "database_exists": os.path.exists(get_db_path())
         },
         "timestamp": datetime.now().isoformat()
     }
@@ -944,17 +944,3 @@ async def delete_temp_data():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete temp data: {str(e)}")
-
-
-        return {
-            "success": True,
-            "message": "All data deleted from database",
-            "iodd_devices_deleted": iodd_count,
-            "eds_files_deleted": eds_count,
-            "tickets_deleted": ticket_count
-        }
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to delete all data: {str(e)}")
-    finally:
-        conn.close()

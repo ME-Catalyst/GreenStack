@@ -117,5 +117,6 @@ nul
 test_*.html
 test_*.zip
 
-# Archive folder
+# Archive folder (but track docs/archive for historical documentation)
 archive/
+!docs/archive/

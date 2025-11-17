@@ -18,7 +18,7 @@ export const metadata = {
   lastUpdated: '2025-01-17',
 };
 
-export default function ApiOverview() {
+export default function ApiOverview({ onNavigate }) {
   return (
     <DocsPage>
       <DocsHero

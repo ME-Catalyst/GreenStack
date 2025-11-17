@@ -16,7 +16,7 @@ export const metadata = {
   lastUpdated: '2025-01-17',
 };
 
-export default function DeveloperOverview() {
+export default function DeveloperOverview({ onNavigate }) {
   return (
     <DocsPage>
       <DocsHero

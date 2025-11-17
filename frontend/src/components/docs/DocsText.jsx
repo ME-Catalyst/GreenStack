@@ -80,15 +80,37 @@ export const DocsTable = ({ headers, rows, className = '' }) => {
 };
 
 /**
- * DocsLink - External link component with icon
+ * DocsLink - Link component for documentation
+ *
+ * Handles both internal docs navigation and external links
  *
  * @param {Object} props
- * @param {string} props.href - Link URL
+ * @param {string} props.href - Link URL or docs page ID
  * @param {React.ReactNode} props.children - Link text
  * @param {boolean} props.external - Whether link is external (opens in new tab)
+ * @param {Function} props.onNavigate - Navigation handler (passed from parent doc component)
  * @param {string} props.className - Additional CSS classes
  */
-export const DocsLink = ({ href, children, external = true, className = '' }) => {
+export const DocsLink = ({ href, children, external = true, onNavigate, className = '' }) => {
+  // Handle internal documentation links
+  if (!external && onNavigate) {
+    // Convert href to page ID by removing /docs/ prefix and leading slash
+    const pageId = href.replace(/^\/docs\//, '').replace(/^\//, '');
+
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          onNavigate(pageId);
+        }}
+        className={`text-brand-green hover:text-brand-green-hover underline decoration-brand-green/30 hover:decoration-brand-green transition-colors cursor-pointer bg-transparent border-0 p-0 font-inherit ${className}`}
+      >
+        {children}
+      </button>
+    );
+  }
+
+  // Handle external links
   return (
     <a
       href={href}

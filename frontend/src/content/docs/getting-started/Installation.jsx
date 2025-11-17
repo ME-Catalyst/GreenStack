@@ -20,7 +20,7 @@ export const metadata = {
   lastUpdated: '2025-01-16',
 };
 
-export default function Installation() {
+export default function Installation({ onNavigate }) {
   return (
     <DocsPage>
       <DocsHero
@@ -246,10 +246,10 @@ python -m src.api`}
 
         <DocsCallout type="success" title="Verify Installation">
           <ol className="list-decimal list-inside space-y-2 text-sm">
-            <li>Open your browser to <DocsLink href="http://localhost:8000/docs" external={false}>http://localhost:8000/docs</DocsLink></li>
+            <li>Open your browser to <DocsLink href="http://localhost:8000/docs" external={false} onNavigate={onNavigate}>http://localhost:8000/docs</DocsLink></li>
             <li>You should see the FastAPI interactive documentation</li>
-            <li>Navigate to <DocsLink href="http://localhost:5173" external={false}>http://localhost:5173</DocsLink> for the web interface (if running from source)</li>
-            <li>Check the API health endpoint: <DocsLink href="http://localhost:8000/api/health" external={false}>http://localhost:8000/api/health</DocsLink></li>
+            <li>Navigate to <DocsLink href="http://localhost:5173" external={false} onNavigate={onNavigate}>http://localhost:5173</DocsLink> for the web interface (if running from source)</li>
+            <li>Check the API health endpoint: <DocsLink href="http://localhost:8000/api/health" external={false} onNavigate={onNavigate}>http://localhost:8000/api/health</DocsLink></li>
           </ol>
         </DocsCallout>
       </DocsSection>
@@ -268,7 +268,7 @@ python -m src.api`}
         </DocsCallout>
 
         <DocsParagraph>
-          For more help, see the <DocsLink href="/docs/troubleshooting/common-issues" external={false}>Troubleshooting Guide</DocsLink> or <DocsLink href="https://github.com/ME-Catalyst/greenstack/issues">open an issue on GitHub</DocsLink>.
+          For more help, see the <DocsLink href="/docs/troubleshooting/common-issues" external={false} onNavigate={onNavigate}>Troubleshooting Guide</DocsLink> or <DocsLink href="https://github.com/ME-Catalyst/greenstack/issues">open an issue on GitHub</DocsLink>.
         </DocsParagraph>
       </DocsSection>
 

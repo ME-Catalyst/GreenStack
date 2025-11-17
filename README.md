@@ -63,8 +63,6 @@ greenstack-api
 
 Access the application at http://localhost:8000
 
-→ **[PyPI Installation Guide](docs/user/getting-started/installation.md#pypi-package-recommended)**
-
 ### 🐳 Docker
 
 ```bash
@@ -74,13 +72,9 @@ docker run -d -p 8000:8000 -v greenstack-data:/data ghcr.io/me-catalyst/greensta
 
 Access the application at http://localhost:8000
 
-→ **[Docker Installation Guide](docs/user/getting-started/installation.md#docker-production-ready)**
-
 ### 🪟 Windows Source Install
 
 **Double-click `setup.bat`** and you're done!
-
-→ **[Complete Windows Installation Guide](docs/user/getting-started/windows-installation.md)**
 
 ### 🐧 Linux / 🍎 macOS Source Install
 
@@ -91,33 +85,40 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-→ **[Complete Installation Guide](docs/user/getting-started/installation.md#from-source)**
-
 **Access the application:**
 - Web Interface: http://localhost:5173
 - API Documentation: http://localhost:8000/docs
 
 ## Documentation
 
-📚 **[Complete Documentation Index](docs/INDEX.md)** - Start here for all documentation
+📚 **All documentation is now built into the platform!**
 
-### Getting Started
-- **[Quick Start Guide](docs/user/getting-started/quick-start.md)** - Get running in 5 minutes
-- **[Installation Guide](docs/user/getting-started/installation.md)** - Detailed setup instructions
-- **[Windows Installation](docs/user/getting-started/windows-installation.md)** - Windows-specific guide
-- **[Docker Setup](docs/user/getting-started/docker.md)** - Containerized deployment
+Access comprehensive documentation directly in the web interface:
 
-### User Guides
-- **[User Manual](docs/user/USER_MANUAL.md)** - Complete feature guide
-- **[Configuration Reference](docs/user/CONFIGURATION.md)** - All configuration options
-- **[Web Interface Guide](docs/user/user-guide/web-interface.md)** - Dashboard and UI features
-- **[Troubleshooting](docs/troubleshooting/TROUBLESHOOTING.md)** - Common issues and solutions
+### 📖 In-Platform Documentation
+- **Web Interface**: http://localhost:5173 → Click **"Docs"** in the navigation menu
+- **Interactive guides** with live examples and searchable content
+- **Getting Started** - Installation, Quick Start, Configuration
+- **User Guides** - Web Interface, Troubleshooting
+- **API Reference** - Endpoints, Authentication, Error Handling
+- **Developer Guides** - Frontend, Backend, Architecture
+- **Deployment** - Production, Docker, Monitoring
 
-### Developer Documentation
-- **[Developer Reference](docs/developer/DEVELOPER_REFERENCE.md)** - Architecture, API, database
-- **[API Specification](docs/developer/API_SPECIFICATION.md)** - Complete REST API reference
-- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute
-- **[System Architecture](docs/architecture/ARCHITECTURE.md)** - System design and data flows
+### 🔧 API Documentation
+- **OpenAPI/Swagger**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- Interactive API testing and documentation
+
+### 📝 GitHub Documentation
+- **[Contributing Guide](docs/CONTRIBUTING.md)** - Development workflow and standards
+- **[Changelog](docs/CHANGELOG.md)** - Version history and release notes
+- **[License](LICENSE.md)** - MIT License details
+
+### 📦 Component READMEs
+- **[Frontend Development](frontend/README.md)** - React app development
+- **[Database Migrations](alembic/README.md)** - Schema migrations with Alembic
+- **[Testing](tests/README.md)** - Running and writing tests
+- **[Test Data](test-data/README.md)** - Sample files and test concepts
 
 ## Technology Stack
 
@@ -126,11 +127,9 @@ chmod +x setup.sh
 **Database:** SQLite / PostgreSQL
 **Development:** pytest, Black, Ruff, MyPy, ESLint, GitHub Actions
 
-→ **[Full Technology Stack Details](docs/architecture/ARCHITECTURE.md#technology-stack)**
-
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for:
+We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for:
 
 - Development setup and workflow
 - Code style guidelines and standards
@@ -139,7 +138,8 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## Support
 
-- 📖 **Documentation**: [Complete Docs](docs/INDEX.md)
+- 📖 **Documentation**: Launch the app and click "Docs" in the navigation
+- 🔧 **API Docs**: http://localhost:8000/docs
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/ME-Catalyst/greenstack/issues)
 
 ## License

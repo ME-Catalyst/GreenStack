@@ -20,7 +20,7 @@ export const metadata = {
   lastUpdated: '2025-01-17',
 };
 
-export default function ComponentGalleryOverview() {
+export default function ComponentGalleryOverview({ onNavigate }) {
   return (
     <DocsPage>
       <DocsHero
@@ -329,7 +329,7 @@ export default function ComponentGalleryOverview() {
 
         <DocsCallout type="info" title="Getting Started">
           <DocsParagraph>
-            New to Greenstack components? Start with the <DocsLink href="/docs/getting-started/quick-start" external={false}>Quick Start Guide</DocsLink> to
+            New to Greenstack components? Start with the <DocsLink href="/docs/getting-started/quick-start" external={false} onNavigate={onNavigate}>Quick Start Guide</DocsLink> to
             learn the basics.
           </DocsParagraph>
         </DocsCallout>

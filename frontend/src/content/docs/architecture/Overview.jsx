@@ -19,7 +19,7 @@ export const metadata = {
   lastUpdated: '2025-01-17',
 };
 
-export default function Architecture() {
+export default function Architecture({ onNavigate }) {
   return (
     <DocsPage>
       <DocsHero
@@ -488,7 +488,7 @@ WHERE deleted_at IS NULL;`}
         <DocsCallout type="warning" title="Production Security">
           <DocsParagraph>
             For production deployments, always configure CORS to specific domains, disable debug mode, and restrict
-            API documentation access. See the <DocsLink href="/docs/user-guide/configuration" external={false}>
+            API documentation access. See the <DocsLink href="/docs/user-guide/configuration" external={false} onNavigate={onNavigate}>
             Configuration Guide</DocsLink> for security best practices.
           </DocsParagraph>
         </DocsCallout>
