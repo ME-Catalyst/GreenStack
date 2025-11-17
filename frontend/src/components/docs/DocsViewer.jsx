@@ -101,7 +101,7 @@ const DocsViewer = ({ onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed lg:relative top-16 lg:top-0 left-0 w-72 h-[calc(100vh-4rem)] lg:h-screen bg-surface border-r border-border z-30 overflow-hidden"
+            className="fixed lg:relative top-16 lg:top-0 left-0 w-72 h-[calc(100vh-4rem)] lg:h-screen bg-surface border-r border-border z-30"
           >
             <DocsNavigation
               activePage={activePage}
@@ -154,7 +154,7 @@ const DocsViewer = ({ onClose }) => {
 
       {/* Right Sidebar - Table of Contents */}
       {showToc && (
-        <aside className="hidden xl:block w-64 h-screen bg-surface border-l border-border overflow-hidden">
+        <aside className="hidden xl:block w-64 h-screen bg-surface border-l border-border">
           <DocsTableOfContents
             page={currentPage}
             activePage={activePage}
