@@ -16,8 +16,11 @@ const Configuration = lazy(() => import('./user-guide/Configuration'));
 const WebInterface = lazy(() => import('./user-guide/WebInterface'));
 const Troubleshooting = lazy(() => import('./user-guide/Troubleshooting'));
 const ApiOverview = lazy(() => import('./api/Overview'));
+const ApiEndpoints = lazy(() => import('./api/Endpoints'));
 const ComponentsOverview = lazy(() => import('./components/Overview'));
 const DeveloperOverview = lazy(() => import('./developer/Overview'));
+const BackendDevelopment = lazy(() => import('./developer/Backend'));
+const FrontendDevelopment = lazy(() => import('./developer/Frontend'));
 const ArchitectureOverview = lazy(() => import('./architecture/Overview'));
 const ProductionGuide = lazy(() => import('./deployment/ProductionGuide'));
 
@@ -28,8 +31,11 @@ export { metadata as configurationMeta } from './user-guide/Configuration';
 export { metadata as webInterfaceMeta } from './user-guide/WebInterface';
 export { metadata as troubleshootingMeta } from './user-guide/Troubleshooting';
 export { metadata as apiOverviewMeta } from './api/Overview';
+export { metadata as apiEndpointsMeta } from './api/Endpoints';
 export { metadata as componentsOverviewMeta } from './components/Overview';
 export { metadata as developerOverviewMeta } from './developer/Overview';
+export { metadata as backendDevelopmentMeta } from './developer/Backend';
+export { metadata as frontendDevelopmentMeta } from './developer/Frontend';
 export { metadata as architectureOverviewMeta } from './architecture/Overview';
 export { metadata as productionGuideMeta } from './deployment/ProductionGuide';
 
@@ -40,8 +46,11 @@ import { metadata as configurationMeta } from './user-guide/Configuration';
 import { metadata as webInterfaceMeta } from './user-guide/WebInterface';
 import { metadata as troubleshootingMeta } from './user-guide/Troubleshooting';
 import { metadata as apiOverviewMeta } from './api/Overview';
+import { metadata as apiEndpointsMeta } from './api/Endpoints';
 import { metadata as componentsOverviewMeta } from './components/Overview';
 import { metadata as developerOverviewMeta } from './developer/Overview';
+import { metadata as backendDevelopmentMeta } from './developer/Backend';
+import { metadata as frontendDevelopmentMeta } from './developer/Frontend';
 import { metadata as architectureOverviewMeta } from './architecture/Overview';
 import { metadata as productionGuideMeta } from './deployment/ProductionGuide';
 
@@ -151,6 +160,19 @@ export const docsRegistry = {
       title: 'Troubleshooting'
     },
     next: {
+      id: 'api/endpoints',
+      title: 'API Endpoints Reference'
+    }
+  },
+
+  'api/endpoints': {
+    component: ApiEndpoints,
+    metadata: apiEndpointsMeta,
+    previous: {
+      id: 'api/overview',
+      title: 'API Overview'
+    },
+    next: {
       id: 'components/overview',
       title: 'Component Gallery'
     }
@@ -164,17 +186,6 @@ export const docsRegistry = {
       description: 'API authentication and security',
       category: 'api-reference',
       keywords: ['auth', 'security', 'token', 'api-key'],
-    }
-  },
-
-  'api/endpoints': {
-    component: null,
-    metadata: {
-      id: 'api/endpoints',
-      title: 'API Endpoints',
-      description: 'Complete API endpoint reference',
-      category: 'api-reference',
-      keywords: ['endpoints', 'routes', 'api', 'reference'],
     }
   },
 
@@ -243,8 +254,8 @@ export const docsRegistry = {
       title: 'Component Gallery'
     },
     next: {
-      id: 'architecture/overview',
-      title: 'System Architecture'
+      id: 'developer/backend',
+      title: 'Backend Development'
     }
   },
 
@@ -260,24 +271,28 @@ export const docsRegistry = {
   },
 
   'developer/backend': {
-    component: null,
-    metadata: {
-      id: 'developer/backend',
-      title: 'Backend Development',
-      description: 'Develop and extend the backend API',
-      category: 'developer',
-      keywords: ['backend', 'api', 'python', 'fastapi', 'development'],
+    component: BackendDevelopment,
+    metadata: backendDevelopmentMeta,
+    previous: {
+      id: 'developer/overview',
+      title: 'Developer Guide'
+    },
+    next: {
+      id: 'developer/frontend',
+      title: 'Frontend Development'
     }
   },
 
   'developer/frontend': {
-    component: null,
-    metadata: {
-      id: 'developer/frontend',
-      title: 'Frontend Development',
-      description: 'Develop and extend the frontend',
-      category: 'developer',
-      keywords: ['frontend', 'react', 'ui', 'development'],
+    component: FrontendDevelopment,
+    metadata: frontendDevelopmentMeta,
+    previous: {
+      id: 'developer/backend',
+      title: 'Backend Development'
+    },
+    next: {
+      id: 'architecture/overview',
+      title: 'System Architecture'
     }
   },
 
@@ -307,8 +322,8 @@ export const docsRegistry = {
     component: ArchitectureOverview,
     metadata: architectureOverviewMeta,
     previous: {
-      id: 'developer/overview',
-      title: 'Developer Guide'
+      id: 'developer/frontend',
+      title: 'Frontend Development'
     },
     next: {
       id: 'deployment/production',
