@@ -93,6 +93,25 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
     }
   };
 
+  const handleCleanFKViolations = async () => {
+    if (!confirm('Clean orphaned records? This will permanently delete records that reference non-existent parent data.')) return;
+
+    try {
+      const response = await axios.post(`${API_BASE}/api/admin/database/clean-fk-violations`);
+      toast({
+        title: 'Foreign Key Violations Cleaned',
+        description: `${response.data.message}. Deleted ${response.data.records_deleted} orphaned records.`
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.detail || 'Failed to clean FK violations',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const handleBackup = async () => {
     try {
       const response = await axios.post(`${API_BASE}/api/admin/database/backup`);
@@ -919,6 +938,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
                           size="sm"
                           onClick={issue.action === 'backup' ? handleBackup :
                                    issue.action === 'vacuum' ? handleVacuum :
+                                   issue.action === 'clean_fk' ? handleCleanFKViolations :
                                    null}
                           className={
                             issue.severity === 'critical' ? 'bg-error hover:bg-error/80' :
@@ -1073,13 +1093,13 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <Button
               onClick={handleDeleteIODD}
               variant="destructive"
-              className="h-auto py-4 flex-col items-start bg-error/30 hover:bg-error/50 border-error"
+              className="h-auto py-4 flex-col items-start bg-error hover:bg-error/90 border-2 border-error shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
               <div className="flex items-center gap-2 mb-1">
-                <Trash2 className="w-4 h-4" />
-                <span className="font-semibold">Delete All IODD</span>
+                <Trash2 className="w-5 h-5" />
+                <span className="font-bold text-base">Delete All IODD</span>
               </div>
-              <p className="text-xs opacity-80 text-left">
+              <p className="text-xs opacity-90 text-left font-medium">
                 Permanently remove all IODD devices and parameters
               </p>
             </Button>
@@ -1087,13 +1107,13 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <Button
               onClick={handleDeleteEDS}
               variant="destructive"
-              className="h-auto py-4 flex-col items-start bg-error/30 hover:bg-error/50 border-error"
+              className="h-auto py-4 flex-col items-start bg-error hover:bg-error/90 border-2 border-error shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
               <div className="flex items-center gap-2 mb-1">
-                <Trash2 className="w-4 h-4" />
-                <span className="font-semibold">Delete All EDS</span>
+                <Trash2 className="w-5 h-5" />
+                <span className="font-bold text-base">Delete All EDS</span>
               </div>
-              <p className="text-xs opacity-80 text-left">
+              <p className="text-xs opacity-90 text-left font-medium">
                 Permanently remove all EDS files and parameters
               </p>
             </Button>
@@ -1101,13 +1121,13 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <Button
               onClick={handleDeleteTickets}
               variant="destructive"
-              className="h-auto py-4 flex-col items-start bg-error/30 hover:bg-error/50 border-error"
+              className="h-auto py-4 flex-col items-start bg-error hover:bg-error/90 border-2 border-error shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
               <div className="flex items-center gap-2 mb-1">
-                <Trash2 className="w-4 h-4" />
-                <span className="font-semibold">Delete All Tickets</span>
+                <Trash2 className="w-5 h-5" />
+                <span className="font-bold text-base">Delete All Tickets</span>
               </div>
-              <p className="text-xs opacity-80 text-left">
+              <p className="text-xs opacity-90 text-left font-medium">
                 Permanently remove all tickets and attachments
               </p>
             </Button>
@@ -1115,13 +1135,13 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <Button
               onClick={handleDeleteTemp}
               variant="destructive"
-              className="h-auto py-4 flex-col items-start bg-warning/30 hover:bg-warning/50 border-warning"
+              className="h-auto py-4 flex-col items-start bg-warning hover:bg-warning/90 border-2 border-warning shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
               <div className="flex items-center gap-2 mb-1">
-                <Trash2 className="w-4 h-4" />
-                <span className="font-semibold">Delete Temp Data</span>
+                <Trash2 className="w-5 h-5" />
+                <span className="font-bold text-base">Delete Temp Data</span>
               </div>
-              <p className="text-xs opacity-80 text-left">
+              <p className="text-xs opacity-90 text-left font-medium">
                 Clean temporary files and cached data (safe operation)
               </p>
             </Button>
@@ -1129,13 +1149,13 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <Button
               onClick={handleDeleteAll}
               variant="destructive"
-              className="h-auto py-4 flex-col items-start bg-error hover:bg-error/80 border-error"
+              className="h-auto py-4 flex-col items-start bg-error hover:bg-error/80 border-4 border-error shadow-xl hover:shadow-2xl transition-all duration-200 hover:scale-110 ring-2 ring-error ring-offset-2"
             >
               <div className="flex items-center gap-2 mb-1">
-                <Trash2 className="w-4 h-4" />
-                <span className="font-semibold">Delete ALL Data</span>
+                <Trash2 className="w-6 h-6" />
+                <span className="font-extrabold text-lg">Delete ALL Data</span>
               </div>
-              <p className="text-xs opacity-80 text-left">
+              <p className="text-xs opacity-90 text-left font-bold">
                 EXTREME: Remove everything from the database
               </p>
             </Button>

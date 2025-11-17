@@ -221,15 +221,30 @@ async def get_database_health():
     fk_violations = cursor.fetchall()
 
     if len(fk_violations) > 0:
+        # Group violations by table to provide specific details
+        violations_by_table = {}
+        for violation in fk_violations[:10]:  # Limit to first 10 for display
+            table = violation[0]
+            rowid = violation[1]
+            if table not in violations_by_table:
+                violations_by_table[table] = []
+            violations_by_table[table].append(rowid)
+
+        # Create detailed description
+        violation_details = []
+        for table, rowids in violations_by_table.items():
+            count = len(rowids)
+            violation_details.append(f"{table} ({count} records)")
+
         issues.append({
             "type": "foreign_keys",
             "severity": "high",
-            "title": f"{len(fk_violations)} Foreign Key Violations",
-            "description": "Orphaned records found that reference non-existent parent records",
-            "action": "vacuum",
-            "action_label": "Run Database Optimization"
+            "title": f"{len(fk_violations)} Foreign Key Violations Detected",
+            "description": f"Orphaned records in: {', '.join(violation_details)}. These records reference parent data that no longer exists. Click 'Clean Orphaned Records' to remove them safely.",
+            "action": "clean_fk",
+            "action_label": "Clean Orphaned Records"
         })
-        recommendations.append("Run VACUUM to clean up orphaned records")
+        recommendations.append("Foreign key violations indicate data inconsistency. Use the 'Clean Orphaned Records' button to safely remove orphaned data.")
 
     # 3. Check for database bloat
     db_size = os.path.getsize(get_db_path())
@@ -388,6 +403,69 @@ async def vacuum_database():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to vacuum database: {str(e)}")
+
+
+@router.post("/database/clean-fk-violations")
+async def clean_fk_violations():
+    """
+    Clean foreign key violations by removing orphaned records
+
+    Returns statistics about what was cleaned
+    """
+    try:
+        conn = sqlite3.connect(get_db_path())
+        cursor = conn.cursor()
+
+        # First, get all FK violations
+        cursor.execute("PRAGMA foreign_key_check")
+        violations = cursor.fetchall()
+
+        if len(violations) == 0:
+            conn.close()
+            return {
+                "success": True,
+                "violations_found": 0,
+                "records_deleted": 0,
+                "message": "No foreign key violations detected"
+            }
+
+        # Group violations by table
+        violations_by_table = {}
+        for table, rowid, parent_table, fkid in violations:
+            if table not in violations_by_table:
+                violations_by_table[table] = []
+            violations_by_table[table].append(rowid)
+
+        # Delete orphaned records
+        total_deleted = 0
+        deletion_summary = []
+
+        for table, rowids in violations_by_table.items():
+            # Delete the orphaned records
+            placeholders = ','.join('?' * len(rowids))
+            cursor.execute(f"DELETE FROM {table} WHERE rowid IN ({placeholders})", rowids)
+            deleted = cursor.rowcount
+            total_deleted += deleted
+            deletion_summary.append(f"{table}: {deleted} records")
+
+        conn.commit()
+
+        # Run VACUUM to clean up
+        cursor.execute("VACUUM")
+
+        conn.close()
+
+        return {
+            "success": True,
+            "violations_found": len(violations),
+            "records_deleted": total_deleted,
+            "tables_affected": len(violations_by_table),
+            "summary": deletion_summary,
+            "message": f"Successfully cleaned {total_deleted} orphaned records from {len(violations_by_table)} tables"
+        }
+    except Exception as e:
+        logger.error(f"Failed to clean FK violations: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to clean FK violations: {str(e)}")
 
 
 @router.post("/database/backup")

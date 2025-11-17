@@ -624,7 +624,7 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
 // Device List Page
 // ============================================================================
 
-const DeviceListPage = ({ devices, onDeviceSelect, onUpload, API_BASE, toast, onDevicesChange }) => {
+const DeviceListPage = ({ devices, onDeviceSelect, onUpload, onUploadFolder, API_BASE, toast, onDevicesChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list', 'grid', 'table'
   const [showFilters, setShowFilters] = useState(false);
@@ -759,7 +759,11 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, API_BASE, toast, on
           )}
           <Button onClick={onUpload} className="bg-gradient-to-r from-brand-green to-brand-green hover:from-brand-green hover:to-brand-green">
             <Upload className="w-4 h-4 mr-2" />
-            Import IODD
+            Import IODD Files
+          </Button>
+          <Button onClick={onUploadFolder} className="bg-gradient-to-r from-secondary to-accent hover:from-secondary hover:to-accent">
+            <FolderOpen className="w-4 h-4 mr-2" />
+            Import IODD Folder
           </Button>
         </div>
       </div>
@@ -4756,6 +4760,7 @@ const IODDManager = () => {
   const { toast } = useToast();
   const { toggleTheme } = useTheme();
   const fileInputRef = React.useRef();
+  const folderInputRef = React.useRef();
   const edsFileInputRef = React.useRef();
   const edsFolderInputRef = React.useRef();
 
@@ -5433,6 +5438,10 @@ const IODDManager = () => {
     fileInputRef.current?.click();
   };
 
+  const handleFolderUploadClick = () => {
+    folderInputRef.current?.click();
+  };
+
   const handleEdsUploadClick = () => {
     edsFileInputRef.current?.click();
   };
@@ -5490,6 +5499,7 @@ const IODDManager = () => {
                   devices={devices}
                   onDeviceSelect={handleDeviceSelect}
                   onUpload={handleUploadClick}
+                  onUploadFolder={handleFolderUploadClick}
                   API_BASE={API_BASE}
                   toast={toast}
                   onDevicesChange={fetchDevices}
@@ -5735,6 +5745,37 @@ const IODDManager = () => {
               handleMultiFileUpload(Array.from(e.target.files));
             }
             // Reset input so same files can be selected again
+            e.target.value = '';
+          }
+        }}
+      />
+
+      {/* Hidden Folder Input for IODD - Supports folder selection */}
+      <input
+        ref={folderInputRef}
+        type="file"
+        webkitdirectory=""
+        directory=""
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            // Filter to only .xml, .iodd, and .zip files from the folder
+            const validFiles = Array.from(e.target.files).filter(file =>
+              file.name.toLowerCase().endsWith('.xml') ||
+              file.name.toLowerCase().endsWith('.iodd') ||
+              file.name.toLowerCase().endsWith('.zip')
+            );
+            if (validFiles.length > 0) {
+              handleMultiFileUpload(validFiles);
+            } else {
+              toast({
+                title: 'No IODD files found',
+                description: 'The selected folder does not contain any .xml, .iodd, or .zip files',
+                variant: 'destructive',
+              });
+            }
+            // Reset input so same folder can be selected again
             e.target.value = '';
           }
         }}
