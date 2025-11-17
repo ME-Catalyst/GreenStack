@@ -225,6 +225,25 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
     }
   };
 
+  const handleDeleteTemp = async () => {
+    if (!confirm('Delete all temporary files and cached data?\n\nThis will clean up temp files but won\'t affect your database.')) return;
+
+    try {
+      const response = await axios.post(`${API_BASE}/api/admin/database/delete-temp`);
+      toast({
+        title: 'Success',
+        description: `Cleaned ${response.data.files_deleted} files, ${response.data.directories_deleted} directories. Freed ${response.data.space_freed_mb} MB`
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete temp data',
+        variant: 'destructive'
+      });
+    }
+  };
+
   if (loading && !overview) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -306,6 +325,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
           handleDeleteIODD={handleDeleteIODD}
           handleDeleteEDS={handleDeleteEDS}
           handleDeleteTickets={handleDeleteTickets}
+          handleDeleteTemp={handleDeleteTemp}
           handleDeleteAll={handleDeleteAll}
           toast={toast}
         />
@@ -806,7 +826,7 @@ const HubTab = ({ overview, onNavigate }) => {
 /**
  * Database Tab
  */
-const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDownloadBackup, handleDeleteIODD, handleDeleteEDS, handleDeleteTickets, handleDeleteAll, toast }) => {
+const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDownloadBackup, handleDeleteIODD, handleDeleteEDS, handleDeleteTickets, handleDeleteTemp, handleDeleteAll, toast }) => {
   return (
     <div className="space-y-6">
       {/* Health Status */}
@@ -996,6 +1016,20 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
               </div>
               <p className="text-xs opacity-80 text-left">
                 Permanently remove all tickets and attachments
+              </p>
+            </Button>
+
+            <Button
+              onClick={handleDeleteTemp}
+              variant="destructive"
+              className="h-auto py-4 flex-col items-start bg-orange-900/50 hover:bg-orange-900/70 border-orange-800"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Trash2 className="w-4 h-4" />
+                <span className="font-semibold">Delete Temp Data</span>
+              </div>
+              <p className="text-xs opacity-80 text-left">
+                Clean temporary files and cached data (safe operation)
               </p>
             </Button>
 
