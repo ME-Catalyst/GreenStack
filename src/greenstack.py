@@ -1601,6 +1601,17 @@ class StorageManager:
             )
         """)
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS process_data_single_values (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                record_item_id INTEGER,
+                value TEXT,
+                name TEXT,
+                description TEXT,
+                FOREIGN KEY (record_item_id) REFERENCES process_data_record_items (id)
+            )
+        """)
+
         conn.commit()
         conn.close()
     
