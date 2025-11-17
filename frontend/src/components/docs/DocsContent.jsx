@@ -1,6 +1,7 @@
-import React from 'react';
-import { AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import React, { Suspense } from 'react';
+import { AlertCircle, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Button, Alert, AlertTitle, AlertDescription } from '../ui';
+import DocsErrorBoundary from './DocsErrorBoundary';
 
 /**
  * DocsContent - Main Content Renderer
@@ -33,20 +34,36 @@ const DocsContent = ({ page, activePage, onNavigate }) => {
 
   return (
     <div className="docs-content">
-      {/* Render page component */}
-      <div className="prose prose-slate dark:prose-invert max-w-none">
-        {PageComponent ? (
-          <PageComponent onNavigate={onNavigate} />
-        ) : (
-          <Alert variant="warning">
-            <AlertCircle className="w-4 h-4" />
-            <AlertTitle>Component Missing</AlertTitle>
-            <AlertDescription>
-              This page doesn't have a component defined yet.
-            </AlertDescription>
-          </Alert>
-        )}
-      </div>
+      {/* Render page component with error boundary */}
+      <DocsErrorBoundary
+        onReset={() => window.location.reload()}
+        onNavigateHome={() => onNavigate('getting-started/quick-start')}
+      >
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-4">
+                <Loader2 className="w-8 h-8 text-brand-green animate-spin" />
+                <p className="text-sm text-muted-foreground">Loading documentation...</p>
+              </div>
+            </div>
+          }
+        >
+          <div className="prose prose-slate dark:prose-invert max-w-none">
+            {PageComponent ? (
+              <PageComponent onNavigate={onNavigate} />
+            ) : (
+              <Alert variant="warning">
+                <AlertCircle className="w-4 h-4" />
+                <AlertTitle>Component Missing</AlertTitle>
+                <AlertDescription>
+                  This page doesn't have a component defined yet.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </Suspense>
+      </DocsErrorBoundary>
 
       {/* Footer Navigation */}
       <div className="mt-12 pt-8 border-t border-border">

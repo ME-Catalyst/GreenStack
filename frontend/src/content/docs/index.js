@@ -3,31 +3,47 @@
  *
  * Central registry for all documentation pages
  * Provides metadata for navigation, search, and rendering
+ *
+ * Uses React.lazy for code splitting and performance optimization
  */
 
-// Getting Started
-import QuickStart, { metadata as quickStartMeta } from './getting-started/QuickStart';
-import Installation, { metadata as installationMeta } from './getting-started/Installation';
+import { lazy } from 'react';
 
-// User Guide
-import Configuration, { metadata as configurationMeta } from './user-guide/Configuration';
-import WebInterface, { metadata as webInterfaceMeta } from './user-guide/WebInterface';
-import Troubleshooting, { metadata as troubleshootingMeta } from './user-guide/Troubleshooting';
+// Lazy load all documentation components
+const QuickStart = lazy(() => import('./getting-started/QuickStart'));
+const Installation = lazy(() => import('./getting-started/Installation'));
+const Configuration = lazy(() => import('./user-guide/Configuration'));
+const WebInterface = lazy(() => import('./user-guide/WebInterface'));
+const Troubleshooting = lazy(() => import('./user-guide/Troubleshooting'));
+const ApiOverview = lazy(() => import('./api/Overview'));
+const ComponentsOverview = lazy(() => import('./components/Overview'));
+const DeveloperOverview = lazy(() => import('./developer/Overview'));
+const ArchitectureOverview = lazy(() => import('./architecture/Overview'));
+const ProductionGuide = lazy(() => import('./deployment/ProductionGuide'));
 
-// API
-import ApiOverview, { metadata as apiOverviewMeta } from './api/Overview';
+// Import metadata synchronously (metadata is lightweight)
+export { metadata as quickStartMeta } from './getting-started/QuickStart';
+export { metadata as installationMeta } from './getting-started/Installation';
+export { metadata as configurationMeta } from './user-guide/Configuration';
+export { metadata as webInterfaceMeta } from './user-guide/WebInterface';
+export { metadata as troubleshootingMeta } from './user-guide/Troubleshooting';
+export { metadata as apiOverviewMeta } from './api/Overview';
+export { metadata as componentsOverviewMeta } from './components/Overview';
+export { metadata as developerOverviewMeta } from './developer/Overview';
+export { metadata as architectureOverviewMeta } from './architecture/Overview';
+export { metadata as productionGuideMeta } from './deployment/ProductionGuide';
 
-// Components
-import ComponentsOverview, { metadata as componentsOverviewMeta } from './components/Overview';
-
-// Developer
-import DeveloperOverview, { metadata as developerOverviewMeta } from './developer/Overview';
-
-// Architecture
-import ArchitectureOverview, { metadata as architectureOverviewMeta } from './architecture/Overview';
-
-// Deployment
-import ProductionGuide, { metadata as productionGuideMeta } from './deployment/ProductionGuide';
+// Import metadata for registry
+import { metadata as quickStartMeta } from './getting-started/QuickStart';
+import { metadata as installationMeta } from './getting-started/Installation';
+import { metadata as configurationMeta } from './user-guide/Configuration';
+import { metadata as webInterfaceMeta } from './user-guide/WebInterface';
+import { metadata as troubleshootingMeta } from './user-guide/Troubleshooting';
+import { metadata as apiOverviewMeta } from './api/Overview';
+import { metadata as componentsOverviewMeta } from './components/Overview';
+import { metadata as developerOverviewMeta } from './developer/Overview';
+import { metadata as architectureOverviewMeta } from './architecture/Overview';
+import { metadata as productionGuideMeta } from './deployment/ProductionGuide';
 
 // Documentation Pages Registry
 // Format: { 'page-id': { component, metadata, navigation } }
