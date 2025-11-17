@@ -335,14 +335,14 @@ export function getDataTypeInfo(dataTypeCode) {
  */
 export function getDataTypeBadgeColor(category) {
   const colorMap = {
-    'Boolean': 'bg-purple-900/50 text-purple-300 border-purple-700',
-    'Integer': 'bg-blue-900/50 text-blue-300 border-blue-700',
-    'Float': 'bg-green-900/50 text-green-300 border-green-700',
-    'BitString': 'bg-orange-900/50 text-orange-300 border-orange-700',
-    'String': 'bg-yellow-900/50 text-yellow-300 border-yellow-700',
+    'Boolean': 'bg-secondary/20 text-secondary border-secondary',
+    'Integer': 'bg-info/20 text-info border-info',
+    'Float': 'bg-success/20 text-success border-success',
+    'BitString': 'bg-warning/20 text-warning border-warning',
+    'String': 'bg-warning/20 text-warning border-warning',
     'Structured': 'bg-pink-900/50 text-pink-300 border-pink-700',
     'Time': 'bg-indigo-900/50 text-indigo-300 border-indigo-700',
-    'Unknown': 'bg-gray-900/50 text-gray-400 border-gray-700'
+    'Unknown': 'bg-muted/20 text-muted-foreground border-border'
   };
 
   return colorMap[category] || colorMap['Unknown'];

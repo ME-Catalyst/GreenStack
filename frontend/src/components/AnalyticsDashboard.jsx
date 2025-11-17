@@ -106,25 +106,25 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
     plugins: {
       legend: {
         labels: {
-          color: '#cbd5e1',
+          color: 'hsl(var(--muted-foreground))',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        titleColor: '#f1f5f9',
-        bodyColor: '#cbd5e1',
-        borderColor: '#334155',
+        backgroundColor: 'hsl(var(--surface) / 0.9)',
+        titleColor: 'hsl(var(--foreground))',
+        bodyColor: 'hsl(var(--muted-foreground))',
+        borderColor: 'hsl(var(--border))',
         borderWidth: 1,
       },
     },
     scales: {
       x: {
-        ticks: { color: '#94a3b8' },
-        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: 'hsl(var(--muted-foreground))' },
+        grid: { color: 'hsl(var(--border) / 0.1)' },
       },
       y: {
-        ticks: { color: '#94a3b8' },
-        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: 'hsl(var(--muted-foreground))' },
+        grid: { color: 'hsl(var(--border) / 0.1)' },
       },
     },
   };
@@ -136,15 +136,15 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       legend: {
         position: 'right',
         labels: {
-          color: '#cbd5e1',
+          color: 'hsl(var(--muted-foreground))',
           padding: 15,
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        titleColor: '#f1f5f9',
-        bodyColor: '#cbd5e1',
-        borderColor: '#334155',
+        backgroundColor: 'hsl(var(--surface) / 0.9)',
+        titleColor: 'hsl(var(--foreground))',
+        bodyColor: 'hsl(var(--muted-foreground))',
+        borderColor: 'hsl(var(--border))',
         borderWidth: 1,
       },
     },
@@ -157,8 +157,8 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {
         label: 'Devices',
         data: Object.values(analyticsData.manufacturerCounts).slice(0, 10),
-        backgroundColor: 'rgba(61, 182, 15, 0.7)',
-        borderColor: 'rgba(61, 182, 15, 1)',
+        backgroundColor: 'hsl(var(--brand-green) / 0.7)',
+        borderColor: 'hsl(var(--brand-green))',
         borderWidth: 2,
       },
     ],
@@ -171,8 +171,8 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {
         label: 'EDS Files',
         data: Object.values(analyticsData.vendorCounts).slice(0, 10),
-        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-        borderColor: 'rgba(59, 130, 246, 1)',
+        backgroundColor: 'hsl(var(--primary) / 0.7)',
+        borderColor: 'hsl(var(--primary))',
         borderWidth: 2,
       },
     ],
@@ -185,16 +185,16 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {
         data: Object.values(analyticsData.ioTypeCounts),
         backgroundColor: [
-          'rgba(61, 182, 15, 0.7)',
-          'rgba(59, 130, 246, 0.7)',
-          'rgba(168, 85, 247, 0.7)',
-          'rgba(251, 146, 60, 0.7)',
+          'hsl(var(--brand-green) / 0.7)',
+          'hsl(var(--primary) / 0.7)',
+          'hsl(var(--secondary) / 0.7)',
+          'hsl(var(--accent) / 0.7)',
         ],
         borderColor: [
-          'rgba(61, 182, 15, 1)',
-          'rgba(59, 130, 246, 1)',
-          'rgba(168, 85, 247, 1)',
-          'rgba(251, 146, 60, 1)',
+          'hsl(var(--brand-green))',
+          'hsl(var(--primary))',
+          'hsl(var(--secondary))',
+          'hsl(var(--accent))',
         ],
         borderWidth: 2,
       },
@@ -208,8 +208,8 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {
         label: 'Number of Devices',
         data: Object.values(analyticsData.paramDistribution),
-        backgroundColor: 'rgba(168, 85, 247, 0.7)',
-        borderColor: 'rgba(168, 85, 247, 1)',
+        backgroundColor: 'hsl(var(--secondary) / 0.7)',
+        borderColor: 'hsl(var(--secondary))',
         borderWidth: 2,
       },
     ],
@@ -226,16 +226,16 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {
         data: topDatatypes.map(([, count]) => count),
         backgroundColor: [
-          'rgba(61, 182, 15, 0.7)',
-          'rgba(59, 130, 246, 0.7)',
-          'rgba(168, 85, 247, 0.7)',
-          'rgba(251, 146, 60, 0.7)',
-          'rgba(236, 72, 153, 0.7)',
-          'rgba(20, 184, 166, 0.7)',
-          'rgba(245, 158, 11, 0.7)',
-          'rgba(239, 68, 68, 0.7)',
-          'rgba(139, 92, 246, 0.7)',
-          'rgba(34, 197, 94, 0.7)',
+          'hsl(var(--brand-green) / 0.7)',
+          'hsl(var(--primary) / 0.7)',
+          'hsl(var(--secondary) / 0.7)',
+          'hsl(var(--accent) / 0.7)',
+          'hsl(var(--chart-5) / 0.7)',
+          'hsl(var(--chart-6) / 0.7)',
+          'hsl(var(--chart-7) / 0.7)',
+          'hsl(var(--error) / 0.7)',
+          'hsl(var(--chart-9) / 0.7)',
+          'hsl(var(--success) / 0.7)',
         ],
         borderWidth: 2,
       },
@@ -306,7 +306,7 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
                 <div className="text-muted-foreground">{metric.icon}</div>
               </div>
               <div className="text-3xl font-bold text-foreground mb-1">{metric.value}</div>
-              {metric.trend && <p className="text-sm text-green-400">{metric.trend} from last period</p>}
+              {metric.trend && <p className="text-sm text-success">{metric.trend} from last period</p>}
             </CardContent>
           </Card>
         ))}

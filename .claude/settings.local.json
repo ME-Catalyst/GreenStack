@@ -61,7 +61,13 @@
       "Bash(=2.31.0)",
       "Bash(npm install:*)",
       "Bash(del /s /q F:githubgreenstack__pycache__service_routes*.pyc 2)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(node scripts/audit-colors.js:*)",
+      "Bash(node:*)",
+      "Bash(for file in GrafanaManager.jsx NodeRedManager.jsx ComparisonView.jsx MqttManager.jsx PortsSection.jsx)",
+      "Bash(do echo \"File: $file\")",
+      "Bash(done)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \"F:\\github\\iodd-manager\\fix-all-colors.ps1\")"
     ],
     "deny": [],
     "ask": []

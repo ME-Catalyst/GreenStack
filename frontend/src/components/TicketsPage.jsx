@@ -221,21 +221,21 @@ const TicketsPage = ({ API_BASE, toast }) => {
 
   const getPriorityColor = (priority) => {
     const colors = {
-      low: 'bg-blue-900/30 text-blue-300 border-blue-700/50',
-      medium: 'bg-yellow-900/30 text-yellow-300 border-yellow-700/50',
-      high: 'bg-orange-900/30 text-orange-300 border-orange-700/50',
-      critical: 'bg-red-900/30 text-red-300 border-red-700/50'
+      low: 'bg-primary/30 text-primary border-primary/50',
+      medium: 'bg-warning/30 text-warning border-warning/50',
+      high: 'bg-accent/30 text-accent border-accent/50',
+      critical: 'bg-error/30 text-error border-error/50'
     };
     return colors[priority] || colors.medium;
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      open: 'bg-blue-900/30 text-blue-300 border-blue-700/50',
-      in_progress: 'bg-purple-900/30 text-purple-300 border-purple-700/50',
-      resolved: 'bg-green-900/30 text-green-300 border-green-700/50',
-      closed: 'bg-card/30 text-foreground border-border/50',
-      wont_fix: 'bg-red-900/30 text-red-300 border-red-700/50'
+      open: 'bg-primary/30 text-primary border-primary/50',
+      in_progress: 'bg-secondary/30 text-secondary border-secondary/50',
+      resolved: 'bg-success/30 text-success border-success/50',
+      closed: 'bg-surface/30 text-foreground border-border/50',
+      wont_fix: 'bg-error/30 text-error border-error/50'
     };
     return colors[status] || colors.open;
   };
@@ -285,7 +285,7 @@ const TicketsPage = ({ API_BASE, toast }) => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Bug className="w-8 h-8 text-orange-500" />
+            <Bug className="w-8 h-8 text-accent" />
             Ticket Management
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -295,14 +295,14 @@ const TicketsPage = ({ API_BASE, toast }) => {
         <div className="flex gap-2">
           <Button
             onClick={handleExportCSV}
-            className="bg-green-600 hover:bg-green-700 text-foreground"
+            className="bg-success hover:bg-success/90 text-foreground"
           >
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
           <Button
             onClick={handleExportWithAttachments}
-            className="bg-purple-600 hover:bg-purple-700 text-foreground"
+            className="bg-secondary hover:bg-secondary/90 text-foreground"
           >
             <FileArchive className="w-4 h-4 mr-2" />
             Export with Attachments (ZIP)
@@ -328,11 +328,11 @@ const TicketsPage = ({ API_BASE, toast }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Open</p>
-                <p className="text-2xl font-bold text-blue-400">
+                <p className="text-2xl font-bold text-primary">
                   {tickets.filter(t => t.status === 'open').length}
                 </p>
               </div>
-              <AlertCircle className="w-8 h-8 text-blue-500" />
+              <AlertCircle className="w-8 h-8 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -341,11 +341,11 @@ const TicketsPage = ({ API_BASE, toast }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">In Progress</p>
-                <p className="text-2xl font-bold text-purple-400">
+                <p className="text-2xl font-bold text-secondary">
                   {tickets.filter(t => t.status === 'in_progress').length}
                 </p>
               </div>
-              <Clock className="w-8 h-8 text-purple-500" />
+              <Clock className="w-8 h-8 text-secondary" />
             </div>
           </CardContent>
         </Card>
@@ -354,11 +354,11 @@ const TicketsPage = ({ API_BASE, toast }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Resolved</p>
-                <p className="text-2xl font-bold text-green-400">
+                <p className="text-2xl font-bold text-success">
                   {tickets.filter(t => t.status === 'resolved').length}
                 </p>
               </div>
-              <CheckCircle2 className="w-8 h-8 text-green-500" />
+              <CheckCircle2 className="w-8 h-8 text-success" />
             </div>
           </CardContent>
         </Card>
@@ -471,7 +471,7 @@ const TicketsPage = ({ API_BASE, toast }) => {
             </div>
           ) : filteredTickets.length === 0 ? (
             <div className="text-center py-12">
-              <Bug className="w-16 h-16 text-slate-700 mx-auto mb-4" />
+              <Bug className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">No tickets found</p>
               <p className="text-sm text-muted-foreground mt-2">
                 {filters.search || (filters.status !== 'all') || (filters.priority !== 'all') || (filters.device_type !== 'all') || (filters.category !== 'all')
@@ -501,12 +501,12 @@ const TicketsPage = ({ API_BASE, toast }) => {
                             {ticket.status.replace('_', ' ')}
                           </Badge>
                           {ticket.device_type && (
-                            <Badge className="bg-purple-900/30 text-purple-300 border-purple-700/50">
+                            <Badge className="bg-secondary/30 text-secondary border-secondary/50">
                               {ticket.device_type}
                             </Badge>
                           )}
                         </div>
-                        <h3 className="text-foreground font-semibold mb-1 group-hover:text-orange-400 transition-colors">
+                        <h3 className="text-foreground font-semibold mb-1 group-hover:text-accent transition-colors">
                           {ticket.title}
                         </h3>
                         {ticket.description && (
@@ -533,7 +533,7 @@ const TicketsPage = ({ API_BASE, toast }) => {
                           </span>
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-muted-foreground flex-shrink-0" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground flex-shrink-0" />
                     </div>
                   </div>
                 );
@@ -577,7 +577,7 @@ const TicketDetailView = ({
         <Button
           variant="ghost"
           onClick={() => onDelete(ticket.id)}
-          className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+          className="text-error hover:text-error hover:bg-error/10"
         >
           <Trash2 className="w-4 h-4 mr-2" />
           Delete Ticket
@@ -668,13 +668,13 @@ const TicketDetailView = ({
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Add a comment..."
                   rows={3}
-                  className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-none"
                 />
                 <div className="flex justify-end">
                   <Button
                     type="submit"
                     disabled={submittingComment || !commentText.trim()}
-                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-foreground"
+                    className="bg-accent hover:bg-accent/90 text-foreground"
                   >
                     <Send className="w-4 h-4 mr-2" />
                     {submittingComment ? 'Adding...' : 'Add Comment'}

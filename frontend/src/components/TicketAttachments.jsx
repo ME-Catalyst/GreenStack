@@ -26,10 +26,10 @@ const TicketAttachments = ({ ticket, API_BASE, toast, onAttachmentsChange }) => 
     const type = contentType || '';
 
     if (type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext)) {
-      return <Image className="w-5 h-5 text-blue-400" />;
+      return <Image className="w-5 h-5 text-primary" />;
     }
     if (type.startsWith('text/') || ['txt', 'md', 'log', 'csv'].includes(ext)) {
-      return <FileText className="w-5 h-5 text-green-400" />;
+      return <FileText className="w-5 h-5 text-success" />;
     }
     return <Paperclip className="w-5 h-5 text-muted-foreground" />;
   };
@@ -142,7 +142,7 @@ const TicketAttachments = ({ ticket, API_BASE, toast, onAttachmentsChange }) => 
           <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="bg-orange-600 hover:bg-orange-700"
+            className="bg-accent hover:bg-accent/90"
           >
             <Upload className="w-4 h-4 mr-2" />
             {uploading ? 'Uploading...' : 'Upload Files'}
@@ -182,14 +182,14 @@ const TicketAttachments = ({ ticket, API_BASE, toast, onAttachmentsChange }) => 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleDownload(attachment)}
-                    className="p-2 text-blue-400 hover:text-blue-300 hover:bg-muted rounded transition-colors"
+                    className="p-2 text-primary hover:text-primary/80 hover:bg-muted rounded transition-colors"
                     title="Download"
                   >
                     <Download className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(attachment)}
-                    className="p-2 text-red-400 hover:text-red-300 hover:bg-muted rounded transition-colors"
+                    className="p-2 text-error hover:text-error hover:bg-muted rounded transition-colors"
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />

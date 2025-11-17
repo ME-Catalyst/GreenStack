@@ -36,7 +36,7 @@ const ModulesSection = ({ edsId }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
         <span className="ml-2 text-muted-foreground">Loading modules...</span>
       </div>
     );
@@ -44,7 +44,7 @@ const ModulesSection = ({ edsId }) => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-8 text-red-400">
+      <div className="flex items-center justify-center p-8 text-error">
         <AlertCircle className="w-5 h-5 mr-2" />
         {error}
       </div>
@@ -84,13 +84,13 @@ const ModulesSection = ({ edsId }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
-        <div className="text-purple-400">
+        <div className="text-secondary">
           <Cpu className="w-6 h-6" />
         </div>
         <h3 className="text-lg font-semibold text-foreground">
           Hardware Modules
         </h3>
-        <Badge className="bg-purple-900/50 text-purple-300 border-purple-700">
+        <Badge className="bg-secondary/20 text-secondary border-secondary/50">
           {modulesData.total_count}
         </Badge>
       </div>
@@ -100,13 +100,13 @@ const ModulesSection = ({ edsId }) => {
         {modulesData.modules.map((module) => (
           <Card
             key={module.id}
-            className="bg-card border-border hover:border-purple-700/50 transition-colors"
+            className="bg-card border-border hover:border-secondary/50 transition-colors"
           >
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <CardTitle className="text-foreground text-base flex items-center gap-2">
-                    <span className="font-mono text-purple-300">
+                    <span className="font-mono text-secondary">
                       Module {module.module_number}
                     </span>
                     <span className="text-muted-foreground">→</span>
@@ -132,7 +132,7 @@ const ModulesSection = ({ edsId }) => {
                 {module.catalog_number && (
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Catalog Number</div>
-                    <div className="font-mono text-cyan-300">
+                    <div className="font-mono text-brand-green">
                       {module.catalog_number}
                     </div>
                   </div>
@@ -148,7 +148,7 @@ const ModulesSection = ({ edsId }) => {
                 {(module.major_revision !== null || module.minor_revision !== null) && (
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Revision</div>
-                    <div className="font-mono text-green-300">
+                    <div className="font-mono text-success">
                       {formatRevision(module.major_revision, module.minor_revision)}
                     </div>
                   </div>
@@ -167,7 +167,7 @@ const ModulesSection = ({ edsId }) => {
               {(module.input_size !== null || module.output_size !== null) && (
                 <div className="bg-secondary/50 rounded p-3">
                   <div className="text-xs text-muted-foreground mb-1">I/O Sizes</div>
-                  <div className="font-mono text-sm text-blue-300">
+                  <div className="font-mono text-sm text-primary">
                     {formatIOSize(module.input_size, module.output_size)}
                   </div>
                 </div>
@@ -178,7 +178,7 @@ const ModulesSection = ({ edsId }) => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Config Size</div>
-                    <div className="font-mono text-yellow-300">
+                    <div className="font-mono text-warning">
                       {module.config_size} bytes
                     </div>
                   </div>
@@ -199,7 +199,7 @@ const ModulesSection = ({ edsId }) => {
                   {module.vendor_code !== null && (
                     <div>
                       <div className="text-xs text-muted-foreground mb-1">Vendor Code</div>
-                      <div className="font-mono text-orange-300">
+                      <div className="font-mono text-accent">
                         0x{module.vendor_code.toString(16).toUpperCase().padStart(4, '0')}
                       </div>
                     </div>
@@ -207,7 +207,7 @@ const ModulesSection = ({ edsId }) => {
                   {module.product_code !== null && (
                     <div>
                       <div className="text-xs text-muted-foreground mb-1">Product Code</div>
-                      <div className="font-mono text-orange-300">
+                      <div className="font-mono text-accent">
                         0x{module.product_code.toString(16).toUpperCase().padStart(4, '0')}
                       </div>
                     </div>
@@ -219,7 +219,7 @@ const ModulesSection = ({ edsId }) => {
               {module.config_data && (
                 <div className="bg-secondary/50 rounded p-2">
                   <div className="text-xs text-muted-foreground mb-1">Configuration Data</div>
-                  <div className="font-mono text-xs text-cyan-300 break-all">
+                  <div className="font-mono text-xs text-brand-green break-all">
                     {module.config_data}
                   </div>
                 </div>
@@ -230,9 +230,9 @@ const ModulesSection = ({ edsId }) => {
       </div>
 
       {/* Info Footer */}
-      <div className="bg-purple-900/20 border border-purple-700/30 rounded-lg p-4">
+      <div className="bg-secondary/10 border border-secondary/30 rounded-lg p-4">
         <div className="text-sm text-foreground">
-          <strong className="text-purple-300">Modules</strong> represent physical I/O modules
+          <strong className="text-secondary">Modules</strong> represent physical I/O modules
           in modular devices like bus couplers and distributed I/O systems. Each module
           can have its own configuration, input/output sizes, and hardware characteristics.
         </div>

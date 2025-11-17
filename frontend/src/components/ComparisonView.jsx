@@ -170,7 +170,7 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
                     </span>
                     <button
                       onClick={() => removeDevice(device)}
-                      className="ml-2 text-muted-foreground hover:text-red-400"
+                      className="ml-2 text-muted-foreground hover:text-error"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -179,7 +179,7 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800">
+          <tbody className="divide-y divide-border">
             {paramNames.map((paramName, index) => {
               const values = selectedDevices.map(device => {
                 const detail = deviceDetails[device.id];
@@ -192,11 +192,11 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
               );
 
               return (
-                <tr key={index} className={`hover:bg-secondary/50 ${!allSame ? 'bg-orange-500/5' : ''}`}>
+                <tr key={index} className={`hover:bg-secondary/50 ${!allSame ? 'bg-warning/5' : ''}`}>
                   <td className="px-4 py-3 text-sm text-foreground font-medium sticky left-0 bg-card z-10">
                     {paramName}
                     {!allSame && (
-                      <AlertCircle className="inline-block w-3 h-3 ml-2 text-orange-400" />
+                      <AlertCircle className="inline-block w-3 h-3 ml-2 text-warning" />
                     )}
                   </td>
                   {values.map((param, i) => (
@@ -230,7 +230,7 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
                           )}
                         </div>
                       ) : (
-                        <span className="text-slate-600 italic">Not available</span>
+                        <span className="text-muted-foreground italic">Not available</span>
                       )}
                     </td>
                   ))}
@@ -259,13 +259,13 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800">
+          <tbody className="divide-y divide-border">
             <tr className="hover:bg-secondary/50">
               <td className="px-4 py-3 text-sm text-foreground font-medium sticky left-0 bg-card">Device Type</td>
               {selectedDevices.map((device, i) => (
                 <td key={i} className="px-4 py-3 text-sm">
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    device.type === 'EDS' ? 'bg-blue-500/20 text-blue-300' : 'bg-green-500/20 text-green-300'
+                    device.type === 'EDS' ? 'bg-primary/20 text-primary' : 'bg-success/20 text-success'
                   }`}>
                     {device.type}
                   </span>
@@ -375,7 +375,7 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                <GitCompare className="w-8 h-8 text-orange-500" />
+                <GitCompare className="w-8 h-8 text-warning" />
                 Device Comparison
               </h1>
               <p className="text-muted-foreground">
@@ -386,7 +386,7 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
             {selectedDevices.length < 4 && (
               <Button
                 onClick={() => setShowDeviceSelector(!showDeviceSelector)}
-                className="bg-orange-600 hover:bg-orange-700"
+                className="bg-warning hover:bg-warning/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Device
@@ -411,8 +411,8 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
             </CardHeader>
             <CardContent>
               {selectedDevices.length > 0 && (
-                <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                  <p className="text-sm text-blue-300">
+                <div className="mb-4 p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                  <p className="text-sm text-primary">
                     Showing only <strong>{selectedDevices[0].type}</strong> devices to match your selection
                   </p>
                 </div>
@@ -423,7 +423,7 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search devices..."
-                className="w-full mb-4 px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-slate-500 focus:outline-none focus:border-orange-500"
+                className="w-full mb-4 px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-warning"
               />
 
               <div className="max-h-96 overflow-y-auto space-y-2">
@@ -431,7 +431,7 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
                   <div
                     key={`${device.type}-${device.id}`}
                     onClick={() => addDevice(device)}
-                    className="p-3 bg-secondary/50 border border-border rounded-lg hover:bg-secondary hover:border-orange-500/50 cursor-pointer transition-all group"
+                    className="p-3 bg-secondary/50 border border-border rounded-lg hover:bg-secondary hover:border-warning/50 cursor-pointer transition-all group"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
@@ -439,13 +439,13 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
                         <p className="text-sm text-muted-foreground">
                           {device.manufacturer || device.vendor_name}
                           <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                            device.type === 'EDS' ? 'bg-blue-500/20 text-blue-300' : 'bg-green-500/20 text-green-300'
+                            device.type === 'EDS' ? 'bg-primary/20 text-primary' : 'bg-success/20 text-success'
                           }`}>
                             {device.type}
                           </span>
                         </p>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-orange-400" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-warning" />
                     </div>
                   </div>
                 ))}
@@ -464,14 +464,14 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
         {selectedDevices.length === 0 && (
           <Card className="bg-card border-border">
             <CardContent className="p-12 text-center">
-              <GitCompare className="w-16 h-16 mx-auto mb-4 text-slate-600" />
+              <GitCompare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-xl font-semibold mb-2">No devices selected</h3>
               <p className="text-muted-foreground mb-4">
                 Add at least 2 devices to start comparing
               </p>
               <Button
                 onClick={() => setShowDeviceSelector(true)}
-                className="bg-orange-600 hover:bg-orange-700"
+                className="bg-warning hover:bg-warning/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add First Device
@@ -491,7 +491,7 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
                   onClick={() => setCompareMode('specs')}
                   className={`px-4 py-2 text-sm rounded ${
                     compareMode === 'specs'
-                      ? 'bg-orange-600 text-foreground'
+                      ? 'bg-warning text-foreground'
                       : 'bg-secondary text-muted-foreground hover:bg-muted'
                   }`}
                 >
@@ -501,7 +501,7 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
                   onClick={() => setCompareMode('parameters')}
                   className={`px-4 py-2 text-sm rounded ${
                     compareMode === 'parameters'
-                      ? 'bg-orange-600 text-foreground'
+                      ? 'bg-warning text-foreground'
                       : 'bg-secondary text-muted-foreground hover:bg-muted'
                   }`}
                 >
@@ -515,7 +515,7 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
               <CardContent className="p-0">
                 {loading ? (
                   <div className="p-12 text-center">
-                    <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <div className="animate-spin w-8 h-8 border-4 border-warning border-t-transparent rounded-full mx-auto mb-4"></div>
                     <p className="text-muted-foreground">Loading device details...</p>
                   </div>
                 ) : (
@@ -531,11 +531,11 @@ const ComparisonView = ({ API_BASE, onBack, initialDevices = [] }) => {
             {compareMode === 'parameters' && !loading && (
               <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-orange-500/10 border border-orange-500/30 rounded"></div>
+                  <div className="w-4 h-4 bg-warning/10 border border-warning/30 rounded"></div>
                   <span>Values differ across devices</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-orange-400" />
+                  <AlertCircle className="w-4 h-4 text-warning" />
                   <span>Indicates difference</span>
                 </div>
               </div>

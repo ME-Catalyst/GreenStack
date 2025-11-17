@@ -266,15 +266,15 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
     switch (category) {
       case 'eds_devices':
       case 'iodd_devices':
-        return <Package className="w-5 h-5 text-blue-400" />;
+        return <Package className="w-5 h-5 text-primary" />;
       case 'parameters':
-        return <Settings className="w-5 h-5 text-green-400" />;
+        return <Settings className="w-5 h-5 text-success" />;
       case 'assemblies':
-        return <List className="w-5 h-5 text-purple-400" />;
+        return <List className="w-5 h-5 text-secondary" />;
       case 'connections':
-        return <LinkIcon className="w-5 h-5 text-orange-400" />;
+        return <LinkIcon className="w-5 h-5 text-accent" />;
       case 'enums':
-        return <Hash className="w-5 h-5 text-pink-400" />;
+        return <Hash className="w-5 h-5 text-brand-green" />;
       default:
         return <FileText className="w-5 h-5 text-muted-foreground" />;
     }
@@ -322,7 +322,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
     const parts = text.split(regex);
 
     return parts.map((part, i) =>
-      regex.test(part) ? <mark key={i} className="bg-orange-500/30 text-orange-300">{part}</mark> : part
+      regex.test(part) ? <mark key={i} className="bg-accent/30 text-accent">{part}</mark> : part
     );
   };
 
@@ -345,7 +345,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
               </h4>
               {item.type && (
                 <span className={`px-2 py-0.5 text-xs rounded-full ${
-                  item.type === 'EDS' ? 'bg-blue-500/20 text-blue-300' : 'bg-green-500/20 text-green-300'
+                  item.type === 'EDS' ? 'bg-primary/20 text-primary' : 'bg-success/20 text-success'
                 }`}>
                   {item.type}
                 </span>
@@ -414,7 +414,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
             )}
           </div>
 
-          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-orange-400 transition-colors flex-shrink-0 ml-3" />
+          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors flex-shrink-0 ml-3" />
         </div>
       </div>
     );
@@ -426,7 +426,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-            <Search className="w-8 h-8 text-orange-500" />
+            <Search className="w-8 h-8 text-accent" />
             Global Search
           </h1>
           <p className="text-muted-foreground">
@@ -448,7 +448,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Search devices, parameters, assemblies..."
-                    className="w-full pl-10 pr-10 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder-slate-500 focus:outline-none focus:border-orange-500"
+                    className="w-full pl-10 pr-10 py-3 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent"
                   />
                   {searchQuery && (
                     <button
@@ -479,7 +479,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                 <Button
                   onClick={() => handleSearch()}
                   disabled={searching || searchQuery.length < 2}
-                  className="bg-orange-600 hover:bg-orange-700 px-6"
+                  className="bg-accent hover:bg-accent/90 px-6"
                 >
                   {searching ? 'Searching...' : 'Search'}
                 </Button>
@@ -494,7 +494,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                     onClick={() => setDeviceTypeFilter(null)}
                     className={`px-3 py-1 text-sm rounded ${
                       deviceTypeFilter === null
-                        ? 'bg-orange-600 text-foreground'
+                        ? 'bg-accent text-foreground'
                         : 'bg-secondary text-muted-foreground hover:bg-muted'
                     }`}
                   >
@@ -504,7 +504,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                     onClick={() => setDeviceTypeFilter('EDS')}
                     className={`px-3 py-1 text-sm rounded ${
                       deviceTypeFilter === 'EDS'
-                        ? 'bg-blue-600 text-foreground'
+                        ? 'bg-primary text-foreground'
                         : 'bg-secondary text-muted-foreground hover:bg-muted'
                     }`}
                   >
@@ -514,7 +514,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                     onClick={() => setDeviceTypeFilter('IODD')}
                     className={`px-3 py-1 text-sm rounded ${
                       deviceTypeFilter === 'IODD'
-                        ? 'bg-green-600 text-foreground'
+                        ? 'bg-success text-foreground'
                         : 'bg-secondary text-muted-foreground hover:bg-muted'
                     }`}
                   >
@@ -537,7 +537,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                     <select
                       value={vendorFilter || ''}
                       onChange={(e) => setVendorFilter(e.target.value || null)}
-                      className="px-3 py-1 text-sm bg-secondary border border-border rounded text-foreground focus:outline-none focus:border-orange-500"
+                      className="px-3 py-1 text-sm bg-secondary border border-border rounded text-foreground focus:outline-none focus:border-accent"
                     >
                       <option value="">All Vendors</option>
                       {availableVendors.map(vendor => (
@@ -552,7 +552,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                       type="checkbox"
                       checked={hasParametersFilter}
                       onChange={(e) => setHasParametersFilter(e.target.checked)}
-                      className="w-4 h-4 text-orange-600 bg-muted border-border rounded focus:ring-orange-500"
+                      className="w-4 h-4 text-accent bg-muted border-border rounded focus:ring-accent"
                     />
                     <span className="text-sm text-foreground">Has Parameters</span>
                   </label>
@@ -563,7 +563,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                       type="checkbox"
                       checked={hasAssembliesFilter}
                       onChange={(e) => setHasAssembliesFilter(e.target.checked)}
-                      className="w-4 h-4 text-orange-600 bg-muted border-border rounded focus:ring-orange-500"
+                      className="w-4 h-4 text-accent bg-muted border-border rounded focus:ring-accent"
                     />
                     <span className="text-sm text-foreground">Has Assemblies</span>
                   </label>
@@ -590,7 +590,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                         Type: {deviceTypeFilter}
                         <button
                           onClick={() => setDeviceTypeFilter(null)}
-                          className="ml-1 hover:text-red-400"
+                          className="ml-1 hover:text-error"
                         >
                           <X className="w-3 h-3 inline" />
                         </button>
@@ -601,7 +601,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                         Vendor: {vendorFilter}
                         <button
                           onClick={() => setVendorFilter(null)}
-                          className="ml-1 hover:text-red-400"
+                          className="ml-1 hover:text-error"
                         >
                           <X className="w-3 h-3 inline" />
                         </button>
@@ -612,7 +612,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                         Has Parameters
                         <button
                           onClick={() => setHasParametersFilter(false)}
-                          className="ml-1 hover:text-red-400"
+                          className="ml-1 hover:text-error"
                         >
                           <X className="w-3 h-3 inline" />
                         </button>
@@ -623,7 +623,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                         Has Assemblies
                         <button
                           onClick={() => setHasAssembliesFilter(false)}
-                          className="ml-1 hover:text-red-400"
+                          className="ml-1 hover:text-error"
                         >
                           <X className="w-3 h-3 inline" />
                         </button>
@@ -649,7 +649,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
                 )}
               </h2>
               {results.has_more && (
-                <span className="text-sm text-orange-400">
+                <span className="text-sm text-accent">
                   Showing first 50 results per category
                 </span>
               )}
@@ -659,7 +659,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
             {results.total_results === 0 && (
               <Card className="bg-card border-border">
                 <CardContent className="p-12 text-center">
-                  <Search className="w-16 h-16 mx-auto mb-4 text-slate-600" />
+                  <Search className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-xl font-semibold mb-2">No results found</h3>
                   <p className="text-muted-foreground">
                     Try different keywords or check your spelling
@@ -699,7 +699,7 @@ const SearchPage = ({ API_BASE, onNavigate }) => {
         {!results && searching && (
           <Card className="bg-card border-border">
             <CardContent className="p-12 text-center">
-              <div className="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <div className="animate-spin w-12 h-12 border-4 border-accent border-t-transparent rounded-full mx-auto mb-4"></div>
               <p className="text-muted-foreground">Loading devices...</p>
             </CardContent>
           </Card>

@@ -280,14 +280,14 @@ export function getCategoryStatistics(parameters) {
  */
 export function getCategoryBadgeColor(colorName) {
   const colorMap = {
-    'blue': 'bg-blue-900/50 text-blue-300 border-blue-700',
-    'green': 'bg-green-900/50 text-green-300 border-green-700',
-    'purple': 'bg-purple-900/50 text-purple-300 border-purple-700',
-    'orange': 'bg-orange-900/50 text-orange-300 border-orange-700',
+    'blue': 'bg-info/20 text-info border-info',
+    'green': 'bg-success/20 text-success border-success',
+    'purple': 'bg-secondary/20 text-secondary border-secondary',
+    'orange': 'bg-warning/20 text-warning border-warning',
     'cyan': 'bg-cyan-900/50 text-cyan-300 border-cyan-700',
-    'yellow': 'bg-yellow-900/50 text-yellow-300 border-yellow-700',
-    'red': 'bg-red-900/50 text-red-300 border-red-700',
-    'gray': 'bg-gray-900/50 text-gray-400 border-gray-700'
+    'yellow': 'bg-warning/20 text-warning border-warning',
+    'red': 'bg-error/20 text-error border-error',
+    'gray': 'bg-muted/20 text-muted-foreground border-border'
   };
 
   return colorMap[colorName] || colorMap['gray'];
@@ -300,14 +300,14 @@ export function getCategoryBadgeColor(colorName) {
  */
 export function getCategoryIconColor(colorName) {
   const colorMap = {
-    'blue': 'text-blue-400',
-    'green': 'text-green-400',
-    'purple': 'text-purple-400',
-    'orange': 'text-orange-400',
+    'blue': 'text-info',
+    'green': 'text-success',
+    'purple': 'text-secondary',
+    'orange': 'text-warning',
     'cyan': 'text-cyan-400',
-    'yellow': 'text-yellow-400',
-    'red': 'text-red-400',
-    'gray': 'text-gray-400'
+    'yellow': 'text-warning',
+    'red': 'text-error',
+    'gray': 'text-muted-foreground'
   };
 
   return colorMap[colorName] || colorMap['gray'];

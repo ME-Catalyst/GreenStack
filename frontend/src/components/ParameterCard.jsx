@@ -31,15 +31,15 @@ const RangeIndicator = ({ min, max, defaultValue, units = '' }) => {
       <div className="mt-3 grid grid-cols-3 gap-2">
         <div className="bg-secondary/50 rounded p-2 text-center">
           <div className="text-xs text-muted-foreground mb-1">Min</div>
-          <div className="text-sm text-blue-300 font-mono">{formatValueByType(min, { category: 'Integer' }, units)}</div>
+          <div className="text-sm text-primary font-mono">{formatValueByType(min, { category: 'Integer' }, units)}</div>
         </div>
-        <div className="bg-blue-900/30 border border-blue-700/50 rounded p-2 text-center">
-          <div className="text-xs text-blue-400 mb-1">Default</div>
+        <div className="bg-primary/20 border border-brand-green/50 rounded p-2 text-center">
+          <div className="text-xs text-brand-green mb-1">Default</div>
           <div className="text-sm text-foreground font-mono font-semibold">{formatValueByType(defaultValue, { category: 'Integer' }, units)}</div>
         </div>
         <div className="bg-secondary/50 rounded p-2 text-center">
           <div className="text-xs text-muted-foreground mb-1">Max</div>
-          <div className="text-sm text-blue-300 font-mono">{formatValueByType(max, { category: 'Integer' }, units)}</div>
+          <div className="text-sm text-primary font-mono">{formatValueByType(max, { category: 'Integer' }, units)}</div>
         </div>
       </div>
     );
@@ -63,31 +63,31 @@ const RangeIndicator = ({ min, max, defaultValue, units = '' }) => {
   // Determine zone and color
   let zone = 'mid';
   let zoneLabel = 'Normal';
-  let zoneColor = 'blue';
+  let zoneColor = 'brand-green';
 
   if (clampedPosition < 33) {
     zone = 'low';
     zoneLabel = 'Low';
-    zoneColor = 'cyan';
+    zoneColor = 'primary';
   } else if (clampedPosition > 67) {
     zone = 'high';
     zoneLabel = 'High';
-    zoneColor = 'purple';
+    zoneColor = 'secondary';
   }
 
   return (
     <div className="mt-3">
       <div className="flex justify-between text-xs text-muted-foreground mb-2">
         <div className="text-left">
-          <div className="text-slate-600">Min</div>
+          <div className="text-foreground-secondary">Min</div>
           <div className="text-muted-foreground font-mono">{formatValueByType(min, { category: 'Integer' }, units)}</div>
         </div>
         <div className="text-center">
-          <div className={`text-${zoneColor}-400 font-medium`}>{zoneLabel} Range</div>
+          <div className={`text-${zoneColor} font-medium`}>{zoneLabel} Range</div>
           <div className="text-muted-foreground text-xs">{isLargeRange ? 'Log Scale' : 'Linear'}</div>
         </div>
         <div className="text-right">
-          <div className="text-slate-600">Max</div>
+          <div className="text-foreground-secondary">Max</div>
           <div className="text-muted-foreground font-mono">{formatValueByType(max, { category: 'Integer' }, units)}</div>
         </div>
       </div>
@@ -96,9 +96,9 @@ const RangeIndicator = ({ min, max, defaultValue, units = '' }) => {
       <div className="relative h-8 bg-secondary rounded-lg overflow-hidden">
         {/* Background zones */}
         <div className="absolute inset-0 flex">
-          <div className="flex-1 bg-cyan-900/20"></div>
-          <div className="flex-1 bg-blue-900/20"></div>
-          <div className="flex-1 bg-purple-900/20"></div>
+          <div className="flex-1 bg-primary/20"></div>
+          <div className="flex-1 bg-brand-green/20"></div>
+          <div className="flex-1 bg-secondary/20"></div>
         </div>
 
         {/* Zone markers */}
@@ -114,17 +114,17 @@ const RangeIndicator = ({ min, max, defaultValue, units = '' }) => {
           className={`absolute top-0 h-full flex items-center transition-all`}
           style={{ left: `${clampedPosition}%` }}
         >
-          <div className={`w-1 h-full bg-gradient-to-b from-${zoneColor}-400 to-${zoneColor}-500 shadow-lg`}></div>
-          <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-${zoneColor}-400 rounded-full border-2 border-slate-900 shadow-lg`}></div>
+          <div className={`w-1 h-full bg-${zoneColor} shadow-lg`}></div>
+          <div className={`absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-${zoneColor} rounded-full border-2 border-background shadow-lg`}></div>
         </div>
       </div>
 
       <div className="text-center mt-2">
         <span className="text-xs text-muted-foreground">Default: </span>
-        <span className={`text-sm text-${zoneColor}-300 font-mono font-semibold`}>
+        <span className={`text-sm text-${zoneColor} font-mono font-semibold`}>
           {formatValueByType(defaultValue, { category: 'Integer' }, units)}
         </span>
-        <span className="text-xs text-slate-600 ml-2">
+        <span className="text-xs text-foreground-secondary ml-2">
           ({Math.round(clampedPosition)}%)
         </span>
       </div>
@@ -153,13 +153,13 @@ const EnumValuesDisplay = ({ enumInfo, currentValue }) => {
             <div
               key={enumValue.value}
               className={`flex items-start gap-2 p-2 rounded ${
-                isSelected ? 'bg-blue-900/30 border border-blue-700/50' : 'bg-secondary/50'
+                isSelected ? 'bg-primary/20 border border-brand-green/50' : 'bg-secondary/50'
               }`}
             >
               <div className="mt-0.5">
                 {isCurrent ? (
-                  <div className="w-4 h-4 rounded-full border-2 border-blue-400 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-blue-400" />
+                  <div className="w-4 h-4 rounded-full border-2 border-brand-green flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-brand-green" />
                   </div>
                 ) : (
                   <div className="w-4 h-4 rounded-full border-2 border-border" />
@@ -167,11 +167,11 @@ const EnumValuesDisplay = ({ enumInfo, currentValue }) => {
               </div>
               <div className="flex-1">
                 <div className="text-sm text-foreground">
-                  <span className="font-mono text-blue-300">{enumValue.value}</span>
-                  <span className="mx-2 text-slate-600">→</span>
+                  <span className="font-mono text-primary">{enumValue.value}</span>
+                  <span className="mx-2 text-foreground-secondary">→</span>
                   <span>{enumValue.label}</span>
                   {enumValue.isDefault && (
-                    <Badge className="ml-2 text-xs bg-green-900/50 text-green-300 border-green-700">
+                    <Badge className="ml-2 text-xs bg-success/50 text-success border-success">
                       default
                     </Badge>
                   )}
@@ -238,21 +238,21 @@ const ParameterCard = ({ param, category, usedByConnections = [], isExpanded: in
     switch (diff.type) {
       case 'added':
         return {
-          cardClass: 'border-l-4 border-l-green-500 bg-green-900/10',
-          icon: <Plus className="w-4 h-4 text-green-400" />,
-          badge: <Badge className="bg-green-600 text-foreground text-xs">New</Badge>
+          cardClass: 'border-l-4 border-l-success bg-success/10',
+          icon: <Plus className="w-4 h-4 text-success" />,
+          badge: <Badge className="bg-success text-foreground text-xs">New</Badge>
         };
       case 'removed':
         return {
-          cardClass: 'border-l-4 border-l-red-500 bg-red-900/10 opacity-60',
-          icon: <Minus className="w-4 h-4 text-red-400" />,
-          badge: <Badge className="bg-red-600 text-foreground text-xs">Removed</Badge>
+          cardClass: 'border-l-4 border-l-error bg-error/10 opacity-60',
+          icon: <Minus className="w-4 h-4 text-error" />,
+          badge: <Badge className="bg-error text-foreground text-xs">Removed</Badge>
         };
       case 'modified':
         return {
-          cardClass: 'border-l-4 border-l-yellow-500 bg-yellow-900/10',
-          icon: <Edit3 className="w-4 h-4 text-yellow-400" />,
-          badge: <Badge className="bg-yellow-600 text-foreground text-xs">{diff.changes.length} Change{diff.changes.length > 1 ? 's' : ''}</Badge>
+          cardClass: 'border-l-4 border-l-warning bg-warning/10',
+          icon: <Edit3 className="w-4 h-4 text-warning" />,
+          badge: <Badge className="bg-warning text-foreground text-xs">{diff.changes.length} Change{diff.changes.length > 1 ? 's' : ''}</Badge>
         };
       default:
         return {};
@@ -288,10 +288,10 @@ const ParameterCard = ({ param, category, usedByConnections = [], isExpanded: in
           </div>
           <div className="flex items-center gap-2">
             {usedByConnections.length > 0 && (
-              <Link2 className="w-4 h-4 text-purple-400" title={`Used by ${usedByConnections.length} connection(s)`} />
+              <Link2 className="w-4 h-4 text-secondary" title={`Used by ${usedByConnections.length} connection(s)`} />
             )}
             {rangeInfo && !rangeInfo.isDefaultValid && (
-              <AlertCircle className="w-4 h-4 text-yellow-400" title="Default value outside valid range" />
+              <AlertCircle className="w-4 h-4 text-warning" title="Default value outside valid range" />
             )}
             {isExpanded ? (
               <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
@@ -306,22 +306,22 @@ const ParameterCard = ({ param, category, usedByConnections = [], isExpanded: in
         <CardContent className="space-y-4 border-t border-border pt-4">
           {/* Revision Changes - Show when in comparison mode */}
           {comparisonMode && diff && diff.type === 'modified' && diff.changes && (
-            <Alert className="bg-yellow-900/20 border-yellow-600">
-              <Edit3 className="w-4 h-4 text-yellow-400" />
+            <Alert className="bg-warning/20 border-warning">
+              <Edit3 className="w-4 h-4 text-warning" />
               <AlertDescription>
-                <div className="font-semibold mb-2 text-yellow-400">Changes from Previous Revision:</div>
+                <div className="font-semibold mb-2 text-warning">Changes from Previous Revision:</div>
                 <div className="space-y-2">
                   {diff.changes.map((change, idx) => (
                     <div key={idx} className="text-sm">
                       <span className="font-semibold text-foreground capitalize">{change.field.replace(/_/g, ' ')}:</span>
                       <div className="ml-4 mt-1 space-y-1">
                         <div className="flex items-start gap-2">
-                          <Minus className="w-3 h-3 text-red-400 mt-1 flex-shrink-0" />
-                          <span className="text-red-300 line-through">{change.previous || 'N/A'}</span>
+                          <Minus className="w-3 h-3 text-error mt-1 flex-shrink-0" />
+                          <span className="text-error line-through">{change.previous || 'N/A'}</span>
                         </div>
                         <div className="flex items-start gap-2">
-                          <Plus className="w-3 h-3 text-green-400 mt-1 flex-shrink-0" />
-                          <span className="text-green-300 font-medium">{change.current || 'N/A'}</span>
+                          <Plus className="w-3 h-3 text-success mt-1 flex-shrink-0" />
+                          <span className="text-success font-medium">{change.current || 'N/A'}</span>
                         </div>
                       </div>
                     </div>
@@ -336,26 +336,26 @@ const ParameterCard = ({ param, category, usedByConnections = [], isExpanded: in
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-secondary/50 rounded-lg p-3">
                 <div className="text-xs text-muted-foreground mb-1">Minimum</div>
-                <div className="text-base text-cyan-300 font-mono">{formattedMin}</div>
+                <div className="text-base text-primary font-mono">{formattedMin}</div>
               </div>
-              <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3">
-                <div className="text-xs text-blue-400 mb-1">Default</div>
+              <div className="bg-primary/20 border border-brand-green/50 rounded-lg p-3">
+                <div className="text-xs text-brand-green mb-1">Default</div>
                 <div className="text-base text-foreground font-mono font-semibold">{formattedDefault}</div>
               </div>
               <div className="bg-secondary/50 rounded-lg p-3">
                 <div className="text-xs text-muted-foreground mb-1">Maximum</div>
-                <div className="text-base text-purple-300 font-mono">{formattedMax}</div>
+                <div className="text-base text-secondary font-mono">{formattedMax}</div>
               </div>
             </div>
           )}
 
           {/* Units - Show prominently if available */}
           {units && (
-            <div className="bg-amber-900/20 border border-amber-700/30 rounded-lg p-3 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-warning flex-shrink-0" />
               <div>
-                <span className="text-xs text-amber-400/80">Units: </span>
-                <span className="text-sm text-amber-200 font-medium">{units}</span>
+                <span className="text-xs text-warning/80">Units: </span>
+                <span className="text-sm text-warning font-medium">{units}</span>
               </div>
             </div>
           )}
@@ -377,9 +377,9 @@ const ParameterCard = ({ param, category, usedByConnections = [], isExpanded: in
 
           {/* Description */}
           {description && (
-            <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-3">
+            <div className="bg-primary/20 border border-brand-green/30 rounded-lg p-3">
               <div className="flex items-start gap-2">
-                <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                <Info className="w-4 h-4 text-brand-green mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-foreground">{description}</div>
               </div>
             </div>
@@ -387,9 +387,9 @@ const ParameterCard = ({ param, category, usedByConnections = [], isExpanded: in
 
           {/* Usage Information */}
           {usedByConnections.length > 0 && (
-            <div className="bg-purple-900/20 border border-purple-700/30 rounded-lg p-3">
+            <div className="bg-secondary/20 border border-secondary/30 rounded-lg p-3">
               <div className="flex items-start gap-2">
-                <Link2 className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
+                <Link2 className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Used by Connections:</div>
                   <div className="text-sm text-foreground">
@@ -410,7 +410,7 @@ const ParameterCard = ({ param, category, usedByConnections = [], isExpanded: in
               <div className="text-muted-foreground">
                 <span className="text-muted-foreground">Data Type:</span> {dataTypeInfo.displayName}
                 {param.data_type !== null && param.data_type !== undefined && (
-                  <span className="text-slate-600 ml-2">(0x{param.data_type.toString(16).toUpperCase().padStart(2, '0')})</span>
+                  <span className="text-foreground-secondary ml-2">(0x{param.data_type.toString(16).toUpperCase().padStart(2, '0')})</span>
                 )}
               </div>
               {param.data_size && (

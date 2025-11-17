@@ -1,9 +1,27 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import {
+  BRAND_GREEN,
+  THEME_PRESETS,
+  getThemePreset,
+  getAllThemePresets,
+  applyTheme,
+  validateTheme,
+} from '../config/themes';
 
 const ThemeContext = createContext({
+  // Current theme mode (for backward compatibility)
   theme: 'dark',
   toggleTheme: () => {},
   setTheme: (theme) => {},
+
+  // New theme system
+  currentTheme: null,
+  themePreset: 'greenstack',
+  setThemePreset: (presetId) => {},
+  customTheme: null,
+  setCustomTheme: (theme) => {},
+  brandGreen: BRAND_GREEN,
+  availablePresets: [],
 });
 
 export const useTheme = () => {
@@ -15,11 +33,11 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-  // Check localStorage and system preference
-  const getInitialTheme = () => {
-    const savedTheme = localStorage.getItem('greenstack-theme');
-    if (savedTheme) {
-      return savedTheme;
+  // Get initial theme mode and preset from localStorage
+  const getInitialMode = () => {
+    const savedMode = localStorage.getItem('greenstack-theme-mode');
+    if (savedMode) {
+      return savedMode;
     }
 
     // Check system preference
@@ -30,30 +48,60 @@ export const ThemeProvider = ({ children }) => {
     return 'dark';
   };
 
-  const [theme, setThemeState] = useState(getInitialTheme);
+  const getInitialPreset = () => {
+    const savedPreset = localStorage.getItem('greenstack-theme-preset');
+    return savedPreset || 'greenstack';
+  };
 
+  const getInitialCustomTheme = () => {
+    const savedCustomTheme = localStorage.getItem('greenstack-custom-theme');
+    if (savedCustomTheme) {
+      try {
+        const parsed = JSON.parse(savedCustomTheme);
+        const validation = validateTheme(parsed);
+        if (validation.valid) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error('Failed to parse custom theme:', e);
+      }
+    }
+    return null;
+  };
+
+  // State management
+  const [theme, setThemeState] = useState(getInitialMode); // For backward compatibility
+  const [themePreset, setThemePresetState] = useState(getInitialPreset);
+  const [customTheme, setCustomThemeState] = useState(getInitialCustomTheme);
+  const [currentTheme, setCurrentTheme] = useState(null);
+
+  // Apply theme on mount and when theme changes
   useEffect(() => {
-    const root = window.document.documentElement;
+    const themeToApply = customTheme || getThemePreset(themePreset);
+    setCurrentTheme(themeToApply);
+    applyTheme(themeToApply);
 
-    // Remove both classes first
-    root.classList.remove('light', 'dark');
-
-    // Add the current theme class
-    root.classList.add(theme);
+    // Also set the mode for backward compatibility
+    setThemeState(themeToApply.mode || 'dark');
 
     // Save to localStorage
-    localStorage.setItem('greenstack-theme', theme);
-  }, [theme]);
+    localStorage.setItem('greenstack-theme-mode', themeToApply.mode || 'dark');
+    localStorage.setItem('greenstack-theme-preset', themePreset);
+  }, [themePreset, customTheme]);
 
   // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const handleChange = (e) => {
-      const savedTheme = localStorage.getItem('greenstack-theme');
+      const savedPreset = localStorage.getItem('greenstack-theme-preset');
+      const savedCustom = localStorage.getItem('greenstack-custom-theme');
+
       // Only update if user hasn't manually set a theme
-      if (!savedTheme) {
-        setThemeState(e.matches ? 'dark' : 'light');
+      if (!savedPreset && !savedCustom) {
+        const newMode = e.matches ? 'dark' : 'light';
+        const newPreset = newMode === 'dark' ? 'greenstack' : 'light';
+        setThemePresetState(newPreset);
       }
     };
 
@@ -61,20 +109,63 @@ export const ThemeProvider = ({ children }) => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
+  // Theme management functions
   const setTheme = (newTheme) => {
+    // For backward compatibility with simple mode switching
     if (newTheme === 'light' || newTheme === 'dark') {
-      setThemeState(newTheme);
+      const newPreset = newTheme === 'light' ? 'light' : 'greenstack';
+      setThemePresetState(newPreset);
+      setCustomThemeState(null); // Clear custom theme
     }
   };
 
   const toggleTheme = () => {
-    setThemeState(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
+    // Toggle between dark and light presets
+    const newPreset = themePreset === 'light' ? 'greenstack' : 'light';
+    setThemePresetState(newPreset);
+    setCustomThemeState(null); // Clear custom theme
+  };
+
+  const setThemePreset = (presetId) => {
+    if (THEME_PRESETS[presetId]) {
+      setThemePresetState(presetId);
+      setCustomThemeState(null); // Clear custom theme when setting preset
+    } else {
+      console.warn(`Theme preset "${presetId}" not found`);
+    }
+  };
+
+  const setCustomTheme = (theme) => {
+    const validation = validateTheme(theme);
+    if (validation.valid) {
+      setCustomThemeState(theme);
+      localStorage.setItem('greenstack-custom-theme', JSON.stringify(theme));
+    } else {
+      console.error('Invalid theme:', validation.errors);
+      throw new Error(`Invalid theme: ${validation.errors.join(', ')}`);
+    }
+  };
+
+  const clearCustomTheme = () => {
+    setCustomThemeState(null);
+    localStorage.removeItem('greenstack-custom-theme');
   };
 
   const value = {
+    // Legacy API (for backward compatibility)
     theme,
     toggleTheme,
     setTheme,
+
+    // New theme system API
+    currentTheme,
+    themePreset,
+    setThemePreset,
+    customTheme,
+    setCustomTheme,
+    clearCustomTheme,
+    brandGreen: BRAND_GREEN,
+    availablePresets: getAllThemePresets(),
   };
 
   return (

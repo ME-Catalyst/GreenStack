@@ -67,12 +67,12 @@ const NodeRedManager = ({ API_BASE, toast }) => {
   };
 
   const nodeCategories = [
-    { name: 'Input', count: 45, color: 'text-blue-400' },
-    { name: 'Output', count: 38, color: 'text-green-400' },
-    { name: 'Function', count: 62, color: 'text-purple-400' },
-    { name: 'Social', count: 12, color: 'text-pink-400' },
-    { name: 'Storage', count: 18, color: 'text-orange-400' },
-    { name: 'Analysis', count: 24, color: 'text-cyan-400' },
+    { name: 'Input', count: 45, color: 'text-brand-green' },
+    { name: 'Output', count: 38, color: 'text-success' },
+    { name: 'Function', count: 62, color: 'text-accent' },
+    { name: 'Social', count: 12, color: 'text-secondary' },
+    { name: 'Storage', count: 18, color: 'text-warning' },
+    { name: 'Analysis', count: 24, color: 'text-brand-green' },
   ];
 
   const quickActions = [
@@ -115,20 +115,20 @@ const NodeRedManager = ({ API_BASE, toast }) => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Workflow className="w-7 h-7 text-[#3DB60F]" />
+            <Workflow className="w-7 h-7 text-brand-green" />
             Node-RED Manager
           </h2>
           <p className="text-muted-foreground mt-1">Visual workflow automation and orchestration</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className={status?.connected ? 'bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50' : 'bg-red-500/20 text-red-400 border-red-500/50'}>
+          <Badge className={status?.connected ? 'bg-brand-green/20 text-brand-green border-brand-green/50' : 'bg-error/20 text-error border-error/50'}>
             {status?.connected ? 'Running' : 'Stopped'}
           </Badge>
           <Button variant="outline" size="sm" onClick={fetchStatus}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Button size="sm" className="bg-gradient-to-r from-[#3DB60F] to-green-500" asChild>
+          <Button size="sm" className="bg-gradient-to-r from-brand-green to-brand-green" asChild>
             <a href="http://localhost:1880" target="_blank" rel="noopener noreferrer">
               <ExternalLink className="w-4 h-4 mr-2" />
               Open Editor
@@ -146,7 +146,7 @@ const NodeRedManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Total Flows</p>
                 <p className="text-2xl font-bold text-foreground mt-1">{flows.length}</p>
               </div>
-              <Workflow className="w-8 h-8 text-[#3DB60F]" />
+              <Workflow className="w-8 h-8 text-brand-green" />
             </div>
           </CardContent>
         </Card>
@@ -158,7 +158,7 @@ const NodeRedManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Active Flows</p>
                 <p className="text-2xl font-bold text-foreground mt-1">{activeFlows}</p>
               </div>
-              <Play className="w-8 h-8 text-green-400" />
+              <Play className="w-8 h-8 text-success" />
             </div>
           </CardContent>
         </Card>
@@ -170,7 +170,7 @@ const NodeRedManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Total Nodes</p>
                 <p className="text-2xl font-bold text-foreground mt-1">{flows.reduce((acc, f) => acc + f.nodes, 0)}</p>
               </div>
-              <Box className="w-8 h-8 text-blue-400" />
+              <Box className="w-8 h-8 text-brand-green" />
             </div>
           </CardContent>
         </Card>
@@ -182,7 +182,7 @@ const NodeRedManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Status</p>
                 <p className="text-2xl font-bold text-foreground mt-1">{status?.uptime || 'N/A'}</p>
               </div>
-              <Activity className="w-8 h-8 text-purple-400" />
+              <Activity className="w-8 h-8 text-accent" />
             </div>
           </CardContent>
         </Card>
@@ -258,7 +258,7 @@ const NodeRedManager = ({ API_BASE, toast }) => {
                 {flows.map((flow) => (
                   <div key={flow.id} className="flex items-center justify-between p-4 bg-secondary/50 rounded border border-border">
                     <div className="flex items-center gap-4">
-                      <div className={`w-2 h-2 rounded-full ${flow.status === 'running' ? 'bg-[#3DB60F]' : 'bg-slate-600'} animate-pulse`} />
+                      <div className={`w-2 h-2 rounded-full ${flow.status === 'running' ? 'bg-brand-green' : 'bg-muted'} animate-pulse`} />
                       <div>
                         <div className="font-semibold text-foreground">{flow.label}</div>
                         <div className="text-sm text-muted-foreground">{flow.description}</div>
@@ -268,7 +268,7 @@ const NodeRedManager = ({ API_BASE, toast }) => {
                       <Badge variant="outline" className="text-xs">
                         {flow.nodes} nodes
                       </Badge>
-                      <Badge className={flow.status === 'running' ? 'bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50' : 'bg-muted text-muted-foreground'}>
+                      <Badge className={flow.status === 'running' ? 'bg-brand-green/20 text-brand-green border-brand-green/50' : 'bg-muted text-muted-foreground'}>
                         {flow.status}
                       </Badge>
                       <Button variant="ghost" size="sm">
@@ -290,9 +290,9 @@ const NodeRedManager = ({ API_BASE, toast }) => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
-                      <Workflow className="w-5 h-5 text-[#3DB60F]" />
+                      <Workflow className="w-5 h-5 text-brand-green" />
                       <h3 className="text-lg font-semibold text-foreground">{flow.label}</h3>
-                      <Badge className={flow.status === 'running' ? 'bg-[#3DB60F]/20 text-[#3DB60F]' : 'bg-muted text-muted-foreground'}>
+                      <Badge className={flow.status === 'running' ? 'bg-brand-green/20 text-brand-green' : 'bg-muted text-muted-foreground'}>
                         {flow.status}
                       </Badge>
                     </div>
@@ -343,13 +343,13 @@ const NodeRedManager = ({ API_BASE, toast }) => {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <Package className="w-4 h-4 text-[#3DB60F]" />
+                          <Package className="w-4 h-4 text-brand-green" />
                           <span className="font-semibold text-foreground">{pkg.name}</span>
                           <Badge variant="outline" className="text-xs">{pkg.version}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">{pkg.description}</p>
                       </div>
-                      <Badge className="bg-[#3DB60F]/20 text-[#3DB60F]">{pkg.nodes} nodes</Badge>
+                      <Badge className="bg-brand-green/20 text-brand-green">{pkg.nodes} nodes</Badge>
                     </div>
                   </div>
                 ))}
@@ -370,7 +370,7 @@ const NodeRedManager = ({ API_BASE, toast }) => {
                 {recentActivity.map((activity, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 bg-secondary/50 rounded border border-border">
                     <div className="text-sm text-muted-foreground">{activity.time}</div>
-                    <ArrowRight className="w-4 h-4 text-slate-600" />
+                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
                     <div className="flex-1">
                       <div className="text-foreground text-sm">{activity.action}</div>
                       <div className="text-muted-foreground text-xs">{activity.flow}</div>

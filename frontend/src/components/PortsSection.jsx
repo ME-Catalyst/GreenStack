@@ -48,7 +48,7 @@ const PortsSection = ({ edsId }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-brand-green" />
         <span className="ml-2 text-muted-foreground">Loading ports...</span>
       </div>
     );
@@ -56,7 +56,7 @@ const PortsSection = ({ edsId }) => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-8 text-red-400">
+      <div className="flex items-center justify-center p-8 text-error">
         <AlertCircle className="w-5 h-5 mr-2" />
         {error}
       </div>
@@ -91,11 +91,11 @@ const PortsSection = ({ edsId }) => {
 
   const getPortTypeColor = (portType) => {
     const type = (portType || '').toLowerCase();
-    if (type.includes('tcp') || type.includes('ethernet')) return 'blue';
-    if (type.includes('udp')) return 'purple';
-    if (type.includes('serial')) return 'green';
-    if (type.includes('can')) return 'orange';
-    return 'slate';
+    if (type.includes('tcp') || type.includes('ethernet')) return 'brand-green';
+    if (type.includes('udp')) return 'accent';
+    if (type.includes('serial')) return 'success';
+    if (type.includes('can')) return 'warning';
+    return 'muted';
   };
 
   const getPortTypeIcon = (portType) => {
@@ -115,7 +115,7 @@ const PortsSection = ({ edsId }) => {
       {portsData.explicit_port_count > 0 && (
         <div>
           <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Network className="w-5 h-5 text-cyan-400" />
+            <Network className="w-5 h-5 text-brand-green" />
             Explicit Port Definitions ({portsData.explicit_port_count})
           </h2>
 
@@ -141,7 +141,7 @@ const PortsSection = ({ edsId }) => {
                   {ports.map((port) => (
                     <Card
                       key={port.id}
-                      className={`bg-card border-border hover:border-${color}-700/50 transition-colors`}
+                      className={`bg-card border-border hover:border-${color}/50 transition-colors`}
                     >
                       <CardHeader>
                         <div className="flex items-start justify-between">
@@ -183,7 +183,7 @@ const PortsSection = ({ edsId }) => {
                         {port.port_path && (
                           <div className="bg-secondary/50 rounded p-2">
                             <div className="text-xs text-muted-foreground mb-1">Port Path</div>
-                            <div className="font-mono text-xs text-cyan-300">
+                            <div className="font-mono text-xs text-brand-green">
                               {port.port_path}
                             </div>
                           </div>
@@ -203,23 +203,23 @@ const PortsSection = ({ edsId }) => {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <Box className="w-5 h-5 text-purple-400" />
+              <Box className="w-5 h-5 text-accent" />
               Inferred Port Assemblies ({portsData.inferred_port_count})
             </h2>
             {portsData.explicit_port_count === 0 && (
-              <Badge className="bg-purple-900/50 text-purple-300 border-purple-700">
+              <Badge className="bg-accent/50 text-accent border-accent/70">
                 Detected from Assemblies
               </Badge>
             )}
           </div>
 
           {portsData.explicit_port_count === 0 && (
-            <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4 mb-4">
+            <div className="bg-primary/10 border border-primary/50 rounded-lg p-4 mb-4">
               <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-foreground">
-                  This EDS file does not contain explicit <span className="font-mono text-blue-300">[Port]</span> definitions,
-                  but port-related data was detected in <strong className="text-blue-300">assemblies</strong>.
+                  This EDS file does not contain explicit <span className="font-mono text-primary">[Port]</span> definitions,
+                  but port-related data was detected in <strong className="text-primary">assemblies</strong>.
                   This is common for devices with IO-Link masters, channel-based I/O, or modular systems.
                 </div>
               </div>
@@ -230,13 +230,13 @@ const PortsSection = ({ edsId }) => {
             {portsData.inferred_ports.map((port, idx) => (
               <Card
                 key={idx}
-                className="bg-card border-border hover:border-purple-700/50 transition-colors"
+                className="bg-card border-border hover:border-accent/50 transition-colors"
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-foreground text-base flex items-center gap-2">
-                        <Box className="w-4 h-4 text-purple-400" />
+                        <Box className="w-4 h-4 text-accent" />
                         <span>{port.name}</span>
                       </CardTitle>
                       <CardDescription className="mt-1 text-xs">
@@ -245,7 +245,7 @@ const PortsSection = ({ edsId }) => {
                     </div>
                     <Badge
                       variant="outline"
-                      className="text-xs bg-purple-900/30 text-purple-300 border-purple-700"
+                      className="text-xs bg-accent/30 text-accent border-accent/70"
                     >
                       From Assembly
                     </Badge>
@@ -255,14 +255,14 @@ const PortsSection = ({ edsId }) => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <div className="text-xs text-muted-foreground mb-1">Assembly Number</div>
-                      <div className="font-mono text-purple-300">
+                      <div className="font-mono text-accent">
                         {port.assembly_number}
                       </div>
                     </div>
                     {port.size > 0 && (
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">Data Size</div>
-                        <div className="font-mono text-foreground">
+                        <div className="font-mono text-accent">
                           {port.size} bytes
                         </div>
                       </div>
@@ -280,10 +280,10 @@ const PortsSection = ({ edsId }) => {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-              <Settings className="w-5 h-5 text-green-400" />
+              <Settings className="w-5 h-5 text-success" />
               Port Configuration Parameters
             </h2>
-            <Badge className="bg-green-900/50 text-green-300 border-green-700">
+            <Badge className="bg-success/50 text-success border-success/70">
               {portsData.port_parameter_count} total
             </Badge>
           </div>
@@ -292,7 +292,7 @@ const PortsSection = ({ edsId }) => {
             {portsData.port_parameters.map((param, idx) => (
               <div
                 key={idx}
-                className="bg-secondary/30 rounded-lg p-3 border border-border hover:border-green-700/50 transition-colors"
+                className="bg-secondary/30 rounded-lg p-3 border border-border hover:border-success/50 transition-colors"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -328,19 +328,19 @@ const PortsSection = ({ edsId }) => {
       )}
 
       {/* Info Footer */}
-      <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-4">
+      <div className="bg-primary/20 border border-primary/30 rounded-lg p-4">
         <div className="text-sm text-foreground">
-          <strong className="text-blue-300">Port Information:</strong>{' '}
+          <strong className="text-primary">Port Information:</strong>{' '}
           {portsData.explicit_port_count > 0 ? (
             <>
-              This device has explicit <span className="font-mono text-cyan-300">[Port]</span> definitions
+              This device has explicit <span className="font-mono text-brand-green">[Port]</span> definitions
               for communication interfaces like TCP, Ethernet, and network protocols.
             </>
           ) : (
             <>
               While this EDS file lacks explicit port definitions, port-related data is available in{' '}
-              <strong className="text-purple-300">Assemblies</strong> and{' '}
-              <strong className="text-green-300">Parameters</strong> tabs.
+              <strong className="text-accent">Assemblies</strong> and{' '}
+              <strong className="text-success">Parameters</strong> tabs.
             </>
           )}
         </div>

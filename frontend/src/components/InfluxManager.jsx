@@ -134,20 +134,20 @@ const InfluxManager = ({ API_BASE, toast }) => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Database className="w-7 h-7 text-[#3DB60F]" />
+            <Database className="w-7 h-7 text-brand-green" />
             InfluxDB Manager
           </h2>
           <p className="text-muted-foreground mt-1">Time-series database for IoT telemetry</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className={status?.connected ? 'bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50' : 'bg-red-500/20 text-red-400 border-red-500/50'}>
+          <Badge className={status?.connected ? 'bg-brand-green/20 text-brand-green border-brand-green/50' : 'bg-error/20 text-error border-error/50'}>
             {status?.connected ? 'Connected' : 'Disconnected'}
           </Badge>
           <Button variant="outline" size="sm" onClick={fetchStatus}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Button size="sm" className="bg-gradient-to-r from-[#3DB60F] to-green-500">
+          <Button size="sm" className="bg-brand-green hover:bg-brand-green/90">
             <Terminal className="w-4 h-4 mr-2" />
             Open Chronograf
           </Button>
@@ -165,7 +165,7 @@ const InfluxManager = ({ API_BASE, toast }) => {
                   {status?.connected ? 'Online' : 'Offline'}
                 </p>
               </div>
-              <Server className={`w-8 h-8 ${status?.connected ? 'text-[#3DB60F]' : 'text-red-500'}`} />
+              <Server className={`w-8 h-8 ${status?.connected ? 'text-brand-green' : 'text-error'}`} />
             </div>
           </CardContent>
         </Card>
@@ -177,7 +177,7 @@ const InfluxManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Databases</p>
                 <p className="text-2xl font-bold text-foreground mt-1">{databases.length}</p>
               </div>
-              <Database className="w-8 h-8 text-blue-400" />
+              <Database className="w-8 h-8 text-primary" />
             </div>
           </CardContent>
         </Card>
@@ -189,7 +189,7 @@ const InfluxManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Version</p>
                 <p className="text-2xl font-bold text-foreground mt-1">{status?.version || 'N/A'}</p>
               </div>
-              <Activity className="w-8 h-8 text-purple-400" />
+              <Activity className="w-8 h-8 text-secondary" />
             </div>
           </CardContent>
         </Card>
@@ -201,7 +201,7 @@ const InfluxManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Writes/sec</p>
                 <p className="text-2xl font-bold text-foreground mt-1">0</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-orange-400" />
+              <TrendingUp className="w-8 h-8 text-accent" />
             </div>
           </CardContent>
         </Card>
@@ -279,7 +279,7 @@ const InfluxManager = ({ API_BASE, toast }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-foreground flex items-center gap-2">
-                    <Terminal className="w-5 h-5 text-[#3DB60F]" />
+                    <Terminal className="w-5 h-5 text-brand-green" />
                     InfluxQL CLI
                   </CardTitle>
                   <CardDescription>Execute InfluxQL queries directly</CardDescription>
@@ -307,15 +307,15 @@ const InfluxManager = ({ API_BASE, toast }) => {
                       className="mb-2"
                     >
                       {entry.type === 'command' && (
-                        <div className="text-[#3DB60F]">
-                          <span className="text-slate-600">{'>'} </span>{entry.content}
+                        <div className="text-brand-green">
+                          <span className="text-muted-foreground">{'>'} </span>{entry.content}
                         </div>
                       )}
                       {entry.type === 'result' && (
                         <pre className="text-foreground ml-4 whitespace-pre-wrap">{entry.content}</pre>
                       )}
                       {entry.type === 'error' && (
-                        <div className="text-red-400 ml-4">{entry.content}</div>
+                        <div className="text-error ml-4">{entry.content}</div>
                       )}
                     </motion.div>
                   ))}
@@ -325,7 +325,7 @@ const InfluxManager = ({ API_BASE, toast }) => {
               {/* CLI Input */}
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3DB60F]">{'>'}</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-green">{'>'}</span>
                   <Input
                     ref={cliRef}
                     value={cliCommand}
@@ -335,7 +335,7 @@ const InfluxManager = ({ API_BASE, toast }) => {
                     className="pl-8 bg-background border-border text-foreground font-mono"
                   />
                 </div>
-                <Button onClick={() => executeCli()} className="bg-gradient-to-r from-[#3DB60F] to-green-500">
+                <Button onClick={() => executeCli()} className="bg-brand-green hover:bg-brand-green/90">
                   <Play className="w-4 h-4 mr-2" />
                   Execute
                 </Button>
@@ -433,7 +433,7 @@ const InfluxManager = ({ API_BASE, toast }) => {
 
               <div className="bg-background p-4 rounded border border-border">
                 <Label className="text-muted-foreground text-xs">Generated Query</Label>
-                <pre className="text-[#3DB60F] font-mono text-sm mt-2">
+                <pre className="text-brand-green font-mono text-sm mt-2">
                   {selectedMeasurement
                     ? `SELECT * FROM ${selectedMeasurement} WHERE time > now() - ${timeRange} LIMIT ${limit}`
                     : 'SELECT * FROM <measurement> WHERE time > now() - <range> LIMIT <n>'}
@@ -441,7 +441,7 @@ const InfluxManager = ({ API_BASE, toast }) => {
               </div>
 
               <Button
-                className="w-full bg-gradient-to-r from-[#3DB60F] to-green-500"
+                className="w-full bg-brand-green hover:bg-brand-green/90"
                 disabled={!selectedMeasurement}
               >
                 <Play className="w-4 h-4 mr-2" />
@@ -460,7 +460,7 @@ const InfluxManager = ({ API_BASE, toast }) => {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                        <Database className="w-5 h-5 text-[#3DB60F]" />
+                        <Database className="w-5 h-5 text-brand-green" />
                         {db.name}
                       </h3>
                       <div className="grid grid-cols-3 gap-4 mt-4">

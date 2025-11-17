@@ -293,12 +293,12 @@ const MqttManager = ({ API_BASE, toast }) => {
                 <p className="text-2xl font-bold text-foreground mt-1">
                   {brokerStatus?.status === 'running' ? (
                     <span className="flex items-center gap-2">
-                      <Wifi className="w-6 h-6 text-green-500" />
+                      <Wifi className="w-6 h-6 text-success" />
                       Online
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
-                      <WifiOff className="w-6 h-6 text-red-500" />
+                      <WifiOff className="w-6 h-6 text-error" />
                       Offline
                     </span>
                   )}
@@ -320,7 +320,7 @@ const MqttManager = ({ API_BASE, toast }) => {
                   {brokerStatus?.clients || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-green to-brand-green flex items-center justify-center">
                 <Users className="w-6 h-6 text-foreground" />
               </div>
             </div>
@@ -336,7 +336,7 @@ const MqttManager = ({ API_BASE, toast }) => {
                   {brokerStatus?.topics || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-secondary flex items-center justify-center">
                 <MessageSquare className="w-6 h-6 text-foreground" />
               </div>
             </div>
@@ -387,12 +387,12 @@ const MqttManager = ({ API_BASE, toast }) => {
               <p className="text-foreground flex items-center gap-2 mt-1">
                 {brokerStatus?.auth_enabled ? (
                   <>
-                    <Lock className="w-4 h-4 text-green-500" />
+                    <Lock className="w-4 h-4 text-success" />
                     <span>Enabled</span>
                   </>
                 ) : (
                   <>
-                    <Unlock className="w-4 h-4 text-yellow-500" />
+                    <Unlock className="w-4 h-4 text-warning" />
                     <span>Disabled</span>
                   </>
                 )}
@@ -407,7 +407,7 @@ const MqttManager = ({ API_BASE, toast }) => {
               <p className="text-foreground flex items-center gap-2 mt-1">
                 {brokerStatus?.persistence ? (
                   <>
-                    <Database className="w-4 h-4 text-green-500" />
+                    <Database className="w-4 h-4 text-success" />
                     <span>Enabled</span>
                   </>
                 ) : (
@@ -424,12 +424,12 @@ const MqttManager = ({ API_BASE, toast }) => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-blue-900/20 to-cyan-900/20 border-blue-800/50 hover:border-blue-600/50 transition-all cursor-pointer"
+        <Card className="bg-gradient-to-br from-brand-green/20 to-green-900/20 border-brand-green/50 hover:border-brand-green/70 transition-all cursor-pointer"
           onClick={() => setActiveTab('publish')}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <Send className="w-5 h-5 text-blue-400" />
+              <div className="w-10 h-10 rounded-lg bg-brand-green/20 flex items-center justify-center">
+                <Send className="w-5 h-5 text-brand-green" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">Publish Message</p>
@@ -439,12 +439,12 @@ const MqttManager = ({ API_BASE, toast }) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-800/50 hover:border-purple-600/50 transition-all cursor-pointer"
+        <Card className="bg-gradient-to-br from-accent/20 to-secondary/20 border-accent/50 hover:border-accent/70 transition-all cursor-pointer"
           onClick={() => setActiveTab('subscribe')}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                <Radio className="w-5 h-5 text-purple-400" />
+              <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                <Radio className="w-5 h-5 text-accent" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">Subscribe to Topics</p>
@@ -454,12 +454,12 @@ const MqttManager = ({ API_BASE, toast }) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-800/50 hover:border-green-600/50 transition-all cursor-pointer"
+        <Card className="bg-gradient-to-br from-success/20 to-success/20 border-success/50 hover:border-success/50 transition-all cursor-pointer"
           onClick={() => setActiveTab('clients')}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                <Users className="w-5 h-5 text-green-400" />
+              <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
+                <Users className="w-5 h-5 text-success" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">View Clients</p>
@@ -490,7 +490,7 @@ const MqttManager = ({ API_BASE, toast }) => {
               type="text"
               value={publishTopic}
               onChange={(e) => setPublishTopic(e.target.value)}
-              className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-brand-green"
               placeholder="devices/test-001/telemetry"
             />
             <p className="text-xs text-muted-foreground mt-1">Use + for single-level wildcard, # for multi-level wildcard</p>
@@ -502,7 +502,7 @@ const MqttManager = ({ API_BASE, toast }) => {
               value={publishMessage}
               onChange={(e) => setPublishMessage(e.target.value)}
               rows={10}
-              className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground font-mono text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               placeholder='{"parameter": "Temperature", "value": 25.4}'
             />
           </div>
@@ -513,7 +513,7 @@ const MqttManager = ({ API_BASE, toast }) => {
               <select
                 value={publishQos}
                 onChange={(e) => setPublishQos(parseInt(e.target.value))}
-                className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-brand-green"
               >
                 <option value={0}>QoS 0 - At most once</option>
                 <option value={1}>QoS 1 - At least once</option>
@@ -539,7 +539,7 @@ const MqttManager = ({ API_BASE, toast }) => {
             <Button
               onClick={publishMqttMessage}
               disabled={loading || !publishTopic || !publishMessage}
-              className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500"
+              className="flex-1 bg-gradient-to-r from-brand-green to-brand-green hover:from-green-500 hover:to-brand-green"
             >
               <Send className="w-4 h-4 mr-2" />
               {loading ? 'Publishing...' : 'Publish Message'}
@@ -637,7 +637,7 @@ const MqttManager = ({ API_BASE, toast }) => {
                 type="text"
                 value={subscribeTopic}
                 onChange={(e) => setSubscribeTopic(e.target.value)}
-                className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-brand-green"
                 placeholder="devices/#"
                 disabled={isSubscribed}
               />
@@ -648,7 +648,7 @@ const MqttManager = ({ API_BASE, toast }) => {
               <select
                 value={subscribeQos}
                 onChange={(e) => setSubscribeQos(parseInt(e.target.value))}
-                className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-brand-green"
                 disabled={isSubscribed}
               >
                 <option value={0}>QoS 0</option>
@@ -687,7 +687,7 @@ const MqttManager = ({ API_BASE, toast }) => {
                 <Badge
                   key={pattern}
                   variant="outline"
-                  className="cursor-pointer border-border text-foreground hover:border-cyan-500"
+                  className="cursor-pointer border-border text-foreground hover:border-brand-green"
                   onClick={() => !isSubscribed && setSubscribeTopic(pattern)}
                 >
                   {pattern}
@@ -748,14 +748,14 @@ const MqttManager = ({ API_BASE, toast }) => {
                 value={messageFilter}
                 onChange={(e) => setMessageFilter(e.target.value)}
                 placeholder="Filter by topic..."
-                className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full px-3 py-2 bg-secondary border border-border rounded-md text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-brand-green"
               />
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowSystemTopics(!showSystemTopics)}
-              className={showSystemTopics ? 'border-cyan-500 text-cyan-400' : 'border-border text-muted-foreground'}
+              className={showSystemTopics ? 'border-brand-green text-brand-green' : 'border-border text-muted-foreground'}
             >
               <Filter className="w-4 h-4 mr-2" />
               $SYS
@@ -782,8 +782,8 @@ const MqttManager = ({ API_BASE, toast }) => {
                       animate={{ opacity: 1, x: 0 }}
                       className={`p-3 rounded border ${
                         msg.direction === 'incoming'
-                          ? 'bg-blue-900/20 border-blue-800/50'
-                          : 'bg-green-900/20 border-green-800/50'
+                          ? 'bg-primary/20 border-primary/50'
+                          : 'bg-success/20 border-success/50'
                       }`}
                     >
                       <div className="flex items-start justify-between mb-2">
@@ -794,12 +794,12 @@ const MqttManager = ({ API_BASE, toast }) => {
                           >
                             {msg.direction === 'incoming' ? 'IN' : 'OUT'}
                           </Badge>
-                          <span className="text-cyan-400 text-xs">{msg.topic}</span>
+                          <span className="text-brand-green text-xs">{msg.topic}</span>
                           <Badge variant="outline" className="text-xs border-border">
                             QoS {msg.qos}
                           </Badge>
                           {msg.retain && (
-                            <Badge variant="outline" className="text-xs border-yellow-700 text-yellow-400">
+                            <Badge variant="outline" className="text-xs border-warning text-warning">
                               Retained
                             </Badge>
                           )}
@@ -878,7 +878,7 @@ const MqttManager = ({ API_BASE, toast }) => {
                         {client.ip_address} • Connected since {new Date(client.connected_at).toLocaleString()}
                       </p>
                     </div>
-                    <Badge variant="default" className="bg-green-500/20 text-green-400 border-green-500/50">
+                    <Badge variant="default" className="bg-success/20 text-success border-success/50">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
                       Connected
                     </Badge>
@@ -939,11 +939,11 @@ const MqttManager = ({ API_BASE, toast }) => {
                   key={index}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="p-3 bg-secondary/50 rounded-lg border border-border hover:border-cyan-500/50 transition-all"
+                  className="p-3 bg-secondary/50 rounded-lg border border-border hover:border-brand-green/50 transition-all"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Zap className="w-4 h-4 text-cyan-400" />
+                      <Zap className="w-4 h-4 text-brand-green" />
                       <span className="text-foreground font-mono text-sm">{topic.name}</span>
                     </div>
                     <div className="flex items-center gap-4">
@@ -962,7 +962,7 @@ const MqttManager = ({ API_BASE, toast }) => {
                           setSubscribeTopic(topic.name);
                           setActiveTab('subscribe');
                         }}
-                        className="text-cyan-400"
+                        className="text-brand-green"
                       >
                         Subscribe
                       </Button>
@@ -990,8 +990,8 @@ const MqttManager = ({ API_BASE, toast }) => {
             variant={brokerStatus?.status === 'running' ? 'default' : 'destructive'}
             className={
               brokerStatus?.status === 'running'
-                ? 'bg-green-500/20 text-green-400 border-green-500/50'
-                : 'bg-red-500/20 text-red-400 border-red-500/50'
+                ? 'bg-success/20 text-success border-success/50'
+                : 'bg-error/20 text-error border-error/50'
             }
           >
             {brokerStatus?.status === 'running' ? (
@@ -1026,7 +1026,7 @@ const MqttManager = ({ API_BASE, toast }) => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-3 font-medium transition-all flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? 'text-cyan-400 border-b-2 border-cyan-400'
+                    ? 'text-brand-green border-b-2 border-brand-green'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >

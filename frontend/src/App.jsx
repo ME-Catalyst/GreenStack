@@ -79,8 +79,8 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
         <div className="px-4 py-5 border-b border-border flex items-center justify-between">
           {!collapsed && (
             <div className="flex items-center space-x-2">
-              <Cpu className="w-6 h-6 text-[#3DB60F]" />
-              <h1 className="text-lg font-bold bg-gradient-to-r from-[#3DB60F] to-green-400 bg-clip-text text-transparent">
+              <Cpu className="w-6 h-6 text-brand-green" />
+              <h1 className="text-lg font-bold bg-gradient-to-r from-brand-green to-brand-green bg-clip-text text-transparent">
                 GreenStack
               </h1>
             </div>
@@ -239,7 +239,7 @@ const NavItem = ({ icon, label, badge, active, onClick, collapsed }) => (
     onClick={onClick}
     className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md transition-all ${
       active
-        ? 'bg-gradient-to-r from-[#3DB60F] to-green-500 text-foreground shadow-lg shadow-[#3DB60F]/20'
+        ? 'bg-gradient-to-r from-brand-green to-brand-green text-foreground shadow-lg shadow-brand-green/20'
         : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
     }`}
   >
@@ -310,7 +310,7 @@ const OverviewDashboard = ({ stats, devices, onNavigate }) => (
               onClick={() => onNavigate('devices', device)}
             >
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded bg-gradient-to-br from-brand-green to-brand-green flex items-center justify-center">
                   <Package className="w-5 h-5 text-foreground" />
                 </div>
                 <div>
@@ -329,10 +329,10 @@ const OverviewDashboard = ({ stats, devices, onNavigate }) => (
 
 const StatCard = ({ title, value, icon, color, change, subtitle }) => {
   const colors = {
-    cyan: 'from-[#3DB60F]/20 to-green-600/20 border-[#3DB60F]/50',
-    green: 'from-green-500/20 to-green-600/20 border-green-500/50',
-    purple: 'from-purple-500/20 to-purple-600/20 border-purple-500/50',
-    orange: 'from-orange-500/20 to-orange-600/20 border-orange-500/50',
+    cyan: 'from-brand-green/20 to-brand-green/20 border-brand-green/50',
+    green: 'from-brand-green/20 to-brand-green/20 border-brand-green/50',
+    purple: 'from-secondary/20 to-secondary/20 border-secondary/50',
+    orange: 'from-warning/20 to-warning/20 border-warning/50',
   };
 
   return (
@@ -343,7 +343,7 @@ const StatCard = ({ title, value, icon, color, change, subtitle }) => {
           {icon}
         </div>
         <div className="text-3xl font-bold text-foreground mb-1">{value}</div>
-        {change && <p className="text-sm text-green-400">{change} from last week</p>}
+        {change && <p className="text-sm text-success">{change} from last week</p>}
         {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
       </CardContent>
     </Card>
@@ -450,7 +450,7 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
                 type="checkbox"
                 checked={selectedEdsFiles.length === filteredEdsFiles.length && filteredEdsFiles.length > 0}
                 onChange={toggleSelectAll}
-                className="rounded border-border bg-secondary text-[#3DB60F] focus:ring-[#3DB60F]"
+                className="rounded border-border bg-secondary text-brand-green focus:ring-brand-green"
               />
               <span className="text-sm">Select all</span>
             </label>
@@ -461,17 +461,17 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
             <Button
               variant="destructive"
               onClick={() => setDeleteDialogOpen(true)}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-error hover:bg-error/90"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete Selected
             </Button>
           )}
-          <Button onClick={onUpload} className="bg-gradient-to-r from-[#3DB60F] to-blue-500 hover:from-[#3DB60F] hover:to-blue-600">
+          <Button onClick={onUpload} className="bg-gradient-to-r from-brand-green to-brand-green hover:from-brand-green hover:to-brand-green">
             <Upload className="w-4 h-4 mr-2" />
             Upload Files
           </Button>
-          <Button onClick={onUploadFolder} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+          <Button onClick={onUploadFolder} className="bg-gradient-to-r from-secondary to-accent hover:from-secondary hover:to-accent">
             <FolderOpen className="w-4 h-4 mr-2" />
             Upload Folder
           </Button>
@@ -510,7 +510,7 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
                     type="checkbox"
                     checked={selectedEdsFiles.includes(eds.id)}
                     onChange={() => toggleEdsSelection(eds.id)}
-                    className="rounded border-border bg-secondary text-[#3DB60F]"
+                    className="rounded border-border bg-secondary text-brand-green"
                     onClick={(e) => e.stopPropagation()}
                   />
                   <div className="w-12 h-12 rounded-lg bg-secondary border border-border flex items-center justify-center overflow-hidden">
@@ -524,7 +524,7 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
                         e.target.nextSibling.style.display = 'block';
                       }}
                     />
-                    <FileText className="w-6 h-6 text-purple-400" style={{display: 'none'}} />
+                    <FileText className="w-6 h-6 text-secondary" style={{display: 'none'}} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -535,7 +535,7 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
                         v{eds.major_revision}.{eds.minor_revision}
                       </Badge>
                       {eds.revision_count > 1 && (
-                        <Badge className="text-xs bg-purple-900/50 text-purple-300 border-purple-700">
+                        <Badge className="text-xs bg-secondary/50 text-foreground-secondary border-secondary">
                           {eds.revision_count} revisions
                         </Badge>
                       )}
@@ -550,7 +550,7 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
                   variant="ghost"
                   size="sm"
                   onClick={() => onEdsSelect(eds)}
-                  className="text-[#3DB60F] hover:text-green-300"
+                  className="text-brand-green hover:text-brand-green"
                 >
                   View Details
                   <ChevronRight className="w-4 h-4 ml-2" />
@@ -564,13 +564,13 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
       {filteredEdsFiles.length === 0 && (
         <Card className="bg-card border-border">
           <CardContent className="p-12 text-center">
-            <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+            <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-foreground mb-2">No EDS files found</h3>
             <p className="text-muted-foreground mb-4">
               {searchQuery ? 'Try adjusting your search criteria' : 'Upload your first EDS file to get started'}
             </p>
             {!searchQuery && (
-              <Button onClick={onUpload} className="bg-gradient-to-r from-[#3DB60F] to-blue-500">
+              <Button onClick={onUpload} className="bg-gradient-to-r from-brand-green to-brand-green">
                 <Upload className="w-4 h-4 mr-2" />
                 Upload EDS File
               </Button>
@@ -600,7 +600,7 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
             <Button
               onClick={handleBatchDelete}
               disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-foreground"
+              className="bg-error hover:bg-error/90 text-foreground"
             >
               {deleting ? 'Deleting...' : 'Delete Files'}
             </Button>
@@ -732,7 +732,7 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, API_BASE, toast, on
                 type="checkbox"
                 checked={selectedDevices.length === filteredDevices.length && filteredDevices.length > 0}
                 onChange={toggleSelectAll}
-                className="w-4 h-4 rounded border-border bg-muted checked:bg-[#3DB60F]"
+                className="w-4 h-4 rounded border-border bg-muted checked:bg-brand-green"
               />
               <span className="text-sm">Select All</span>
             </label>
@@ -742,13 +742,13 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, API_BASE, toast, on
           {selectedDevices.length > 0 && (
             <Button
               onClick={() => setDeleteDialogOpen(true)}
-              className="bg-red-600 hover:bg-red-700 text-foreground"
+              className="bg-error hover:bg-error/90 text-foreground"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete {selectedDevices.length} Device{selectedDevices.length !== 1 ? 's' : ''}
             </Button>
           )}
-          <Button onClick={onUpload} className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+          <Button onClick={onUpload} className="bg-gradient-to-r from-brand-green to-brand-green hover:from-brand-green hover:to-brand-green">
             <Upload className="w-4 h-4 mr-2" />
             Import IODD
           </Button>
@@ -927,7 +927,7 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, API_BASE, toast, on
                         size="sm"
                         onClick={() => setCurrentPage(pageNum)}
                         className={currentPage === pageNum
-                          ? 'bg-[#3DB60F] hover:bg-[#3DB60F]/90 text-foreground'
+                          ? 'bg-brand-green hover:bg-brand-green/90 text-foreground'
                           : 'border-border text-foreground hover:bg-secondary'}
                       >
                         {pageNum}
@@ -966,7 +966,7 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, API_BASE, toast, on
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="px-2 py-1 rounded bg-secondary border border-border text-foreground text-sm focus:border-[#3DB60F]/50 focus:ring-[#3DB60F]/20"
+                  className="px-2 py-1 rounded bg-secondary border border-border text-foreground text-sm focus:border-brand-green/50 focus:ring-brand-green/20"
                 >
                   <option value={12}>12</option>
                   <option value={24}>24</option>
@@ -982,13 +982,13 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, API_BASE, toast, on
       {filteredDevices.length === 0 && (
         <Card className="bg-card border-border">
           <CardContent className="py-12 text-center">
-            <Package className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+            <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">No devices found</p>
             {searchQuery && (
               <Button
                 variant="link"
                 onClick={() => setSearchQuery('')}
-                className="mt-2 text-[#3DB60F]"
+                className="mt-2 text-brand-green"
               >
                 Clear search
               </Button>
@@ -999,16 +999,16 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, API_BASE, toast, on
 
       {/* Batch Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="bg-card border-red-700/50 text-foreground">
+        <DialogContent className="bg-card border-error/50 text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-red-400 flex items-center">
+            <DialogTitle className="text-error flex items-center">
               <Trash2 className="w-5 h-5 mr-2" />
               Delete Multiple Devices
             </DialogTitle>
             <DialogDescription className="text-foreground">
               Are you sure you want to delete <span className="font-semibold text-foreground">{selectedDevices.length} device(s)</span>?
               <br />
-              <span className="text-red-400">This action cannot be undone.</span> All device data, parameters, and assets will be permanently removed.
+              <span className="text-error">This action cannot be undone.</span> All device data, parameters, and assets will be permanently removed.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-3 mt-4">
@@ -1023,7 +1023,7 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, API_BASE, toast, on
             <Button
               onClick={handleBatchDelete}
               disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-foreground"
+              className="bg-error hover:bg-error/90 text-foreground"
             >
               {deleting ? 'Deleting...' : `Delete ${selectedDevices.length} Device${selectedDevices.length !== 1 ? 's' : ''}`}
             </Button>
@@ -1040,7 +1040,7 @@ const DeviceListItem = ({ device, onClick, selected, onToggleSelect, API_BASE })
   return (
     <Card
       onClick={onClick}
-      className={`bg-card border-border hover:border-[#3DB60F]/50 transition-all cursor-pointer hover:shadow-lg hover:shadow-[#3DB60F]/10 ${selected ? 'ring-2 ring-[#3DB60F]' : ''}`}
+      className={`bg-card border-border hover:border-brand-green/50 transition-all cursor-pointer hover:shadow-lg hover:shadow-brand-green/10 ${selected ? 'ring-2 ring-brand-green' : ''}`}
     >
       <CardContent className="p-4">
         <div className="flex items-start space-x-4">
@@ -1050,7 +1050,7 @@ const DeviceListItem = ({ device, onClick, selected, onToggleSelect, API_BASE })
               checked={selected}
               onChange={onToggleSelect}
               onClick={(e) => e.stopPropagation()}
-              className="w-5 h-5 rounded border-border bg-muted checked:bg-[#3DB60F]"
+              className="w-5 h-5 rounded border-border bg-muted checked:bg-brand-green"
             />
           </div>
           <div className="w-16 h-16 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 p-2 overflow-hidden">
@@ -1068,7 +1068,7 @@ const DeviceListItem = ({ device, onClick, selected, onToggleSelect, API_BASE })
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between mb-1">
             <h3 className="text-lg font-semibold text-foreground truncate">{device.product_name}</h3>
-            <Badge className="bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50 ml-2">
+            <Badge className="bg-brand-green/20 text-brand-green border-brand-green/50 ml-2">
               v{formatVersion(device.iodd_version)}
             </Badge>
           </div>
@@ -1099,7 +1099,7 @@ const DeviceGridCard = ({ device, onClick, selected, onToggleSelect, API_BASE })
   return (
     <Card
       onClick={onClick}
-      className={`bg-card border-border hover:border-[#3DB60F]/50 transition-all cursor-pointer hover:shadow-lg hover:shadow-[#3DB60F]/10 ${selected ? 'ring-2 ring-[#3DB60F]' : ''}`}
+      className={`bg-card border-border hover:border-brand-green/50 transition-all cursor-pointer hover:shadow-lg hover:shadow-brand-green/10 ${selected ? 'ring-2 ring-brand-green' : ''}`}
     >
       <CardContent className="p-4">
         <div className="flex justify-end mb-2">
@@ -1108,7 +1108,7 @@ const DeviceGridCard = ({ device, onClick, selected, onToggleSelect, API_BASE })
             checked={selected}
             onChange={onToggleSelect}
             onClick={(e) => e.stopPropagation()}
-            className="w-5 h-5 rounded border-border bg-muted checked:bg-[#3DB60F]"
+            className="w-5 h-5 rounded border-border bg-muted checked:bg-brand-green"
           />
         </div>
         <div className="w-full h-32 rounded-lg bg-secondary flex items-center justify-center mb-4 p-4 overflow-hidden">
@@ -1125,7 +1125,7 @@ const DeviceGridCard = ({ device, onClick, selected, onToggleSelect, API_BASE })
         </div>
       <div className="flex items-start justify-between mb-2">
         <h3 className="text-base font-semibold text-foreground truncate flex-1">{device.product_name}</h3>
-        <Badge className="bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50 text-xs ml-2">
+        <Badge className="bg-brand-green/20 text-brand-green border-brand-green/50 text-xs ml-2">
           v{formatVersion(device.iodd_version)}
         </Badge>
       </div>
@@ -1271,7 +1271,7 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
               <Button
                 onClick={handleResetRecentDevices}
                 disabled={resettingRecent || !recentDevices || recentDevices.length === 0}
-                className="bg-muted hover:bg-slate-600 text-foreground ml-4"
+                className="bg-muted hover:bg-muted-foreground text-foreground ml-4"
               >
                 {resettingRecent ? 'Clearing...' : 'Clear Recent'}
               </Button>
@@ -1281,9 +1281,9 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
       </Card>
 
       {/* Danger Zone */}
-      <Card className="bg-card border-red-700/30">
+      <Card className="bg-card border-error/30">
         <CardHeader>
-          <CardTitle className="text-red-400 flex items-center">
+          <CardTitle className="text-error flex items-center">
             <Trash2 className="w-5 h-5 mr-2" />
             Danger Zone
           </CardTitle>
@@ -1292,19 +1292,19 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="p-4 border border-red-700/50 rounded-lg bg-red-950/20">
+          <div className="p-4 border border-error/50 rounded-lg bg-error/10">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h3 className="text-foreground font-semibold mb-1">Reset IODD Database</h3>
                 <p className="text-sm text-foreground mb-3">
                   Delete all IODD devices, parameters, and assets from the database.
                   <br />
-                  <span className="text-red-400 font-medium">This action cannot be undone!</span>
+                  <span className="text-error font-medium">This action cannot be undone!</span>
                 </p>
               </div>
               <Button
                 onClick={() => setIoddResetDialogOpen(true)}
-                className="bg-red-600 hover:bg-red-700 text-foreground ml-4"
+                className="bg-error hover:bg-error/90 text-foreground ml-4"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Reset IODD DB
@@ -1312,19 +1312,19 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
             </div>
           </div>
 
-          <div className="p-4 border border-orange-700/50 rounded-lg bg-orange-950/20">
+          <div className="p-4 border border-warning/50 rounded-lg bg-warning/10">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h3 className="text-foreground font-semibold mb-1">Reset EDS Database</h3>
                 <p className="text-sm text-foreground mb-3">
                   Delete all EDS files, packages, and related data from the database.
                   <br />
-                  <span className="text-orange-400 font-medium">This action cannot be undone!</span>
+                  <span className="text-warning font-medium">This action cannot be undone!</span>
                 </p>
               </div>
               <Button
                 onClick={() => setEdsResetDialogOpen(true)}
-                className="bg-orange-600 hover:bg-orange-700 text-foreground ml-4"
+                className="bg-warning hover:bg-warning/90 text-foreground ml-4"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Reset EDS DB
@@ -1332,19 +1332,19 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
             </div>
           </div>
 
-          <div className="p-4 border border-red-700/50 rounded-lg bg-red-950/20">
+          <div className="p-4 border border-error/50 rounded-lg bg-error/10">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h3 className="text-foreground font-semibold mb-1">Reset All Databases</h3>
                 <p className="text-sm text-foreground mb-3">
                   Delete ALL data including IODD devices, EDS files, parameters, and assets.
                   <br />
-                  <span className="text-red-400 font-medium">This action cannot be undone!</span>
+                  <span className="text-error font-medium">This action cannot be undone!</span>
                 </p>
               </div>
               <Button
                 onClick={() => setDeleteDialogOpen(true)}
-                className="bg-red-600 hover:bg-red-700 text-foreground ml-4"
+                className="bg-error hover:bg-error/90 text-foreground ml-4"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Reset All
@@ -1356,9 +1356,9 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
 
       {/* Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="bg-card border-red-700/50 text-foreground">
+        <DialogContent className="bg-card border-error/50 text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-red-400 flex items-center">
+            <DialogTitle className="text-error flex items-center">
               <Trash2 className="w-5 h-5 mr-2" />
               Reset Database
             </DialogTitle>
@@ -1366,10 +1366,10 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
               <span className="font-semibold text-foreground">Are you absolutely sure?</span>
               <br />
               <br />
-              This will permanently delete <span className="font-semibold text-red-400">ALL devices, parameters, and assets</span> from your database.
+              This will permanently delete <span className="font-semibold text-error">ALL devices, parameters, and assets</span> from your database.
               <br />
               <br />
-              <span className="text-red-400 font-medium">This action cannot be undone!</span>
+              <span className="text-error font-medium">This action cannot be undone!</span>
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-3 mt-4">
@@ -1384,7 +1384,7 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
             <Button
               onClick={handleResetDatabase}
               disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-foreground"
+              className="bg-error hover:bg-error/90 text-foreground"
             >
               {deleting ? 'Resetting...' : 'Yes, Reset Database'}
             </Button>
@@ -1394,16 +1394,16 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
 
       {/* IODD Database Reset Confirmation Dialog */}
       <Dialog open={ioddResetDialogOpen} onOpenChange={setIoddResetDialogOpen}>
-        <DialogContent className="bg-secondary border-red-700/50">
+        <DialogContent className="bg-secondary border-error/50">
           <DialogHeader>
             <DialogTitle className="text-foreground text-xl flex items-center gap-2">
-              <AlertTriangle className="w-6 h-6 text-red-400" />
+              <AlertTriangle className="w-6 h-6 text-error" />
               Reset IODD Database?
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-foreground">
-              This will permanently delete <span className="text-red-400 font-semibold">ALL IODD devices</span> and related data from the system, including:
+              This will permanently delete <span className="text-error font-semibold">ALL IODD devices</span> and related data from the system, including:
             </p>
             <ul className="list-disc list-inside text-foreground space-y-1 ml-4">
               <li>All IODD device definitions</li>
@@ -1412,7 +1412,7 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
               <li>Device assets and icons</li>
               <li>UI menu configurations</li>
             </ul>
-            <p className="text-red-400 font-semibold">
+            <p className="text-error font-semibold">
               This action cannot be undone!
             </p>
           </div>
@@ -1428,7 +1428,7 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
             <Button
               onClick={handleResetIoddDatabase}
               disabled={resettingIodd}
-              className="bg-red-600 hover:bg-red-700 text-foreground"
+              className="bg-error hover:bg-error/90 text-foreground"
             >
               {resettingIodd ? 'Resetting...' : 'Yes, Reset IODD Database'}
             </Button>
@@ -1438,16 +1438,16 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
 
       {/* EDS Database Reset Confirmation Dialog */}
       <Dialog open={edsResetDialogOpen} onOpenChange={setEdsResetDialogOpen}>
-        <DialogContent className="bg-secondary border-orange-700/50">
+        <DialogContent className="bg-secondary border-warning/50">
           <DialogHeader>
             <DialogTitle className="text-foreground text-xl flex items-center gap-2">
-              <AlertTriangle className="w-6 h-6 text-orange-400" />
+              <AlertTriangle className="w-6 h-6 text-warning" />
               Reset EDS Database?
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-foreground">
-              This will permanently delete <span className="text-orange-400 font-semibold">ALL EDS files</span> and related data from the system, including:
+              This will permanently delete <span className="text-warning font-semibold">ALL EDS files</span> and related data from the system, including:
             </p>
             <ul className="list-disc list-inside text-foreground space-y-1 ml-4">
               <li>All EDS file definitions</li>
@@ -1456,7 +1456,7 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
               <li>Ports and capacity data</li>
               <li>Parsing diagnostics</li>
             </ul>
-            <p className="text-orange-400 font-semibold">
+            <p className="text-warning font-semibold">
               This action cannot be undone!
             </p>
           </div>
@@ -1472,7 +1472,7 @@ const SettingsPage = ({ API_BASE, toast, onDevicesChange, recentDevices, setRece
             <Button
               onClick={handleResetEdsDatabase}
               disabled={resettingEds}
-              className="bg-orange-600 hover:bg-orange-700 text-foreground"
+              className="bg-warning hover:bg-warning/90 text-foreground"
             >
               {resettingEds ? 'Resetting...' : 'Yes, Reset EDS Database'}
             </Button>
@@ -1869,18 +1869,18 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     // Handle Button Items
     if (item.button_value) {
       return (
-        <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/30">
+        <div className="p-3 rounded-lg bg-warning/10 border border-warning/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Command className="w-4 h-4 text-orange-400" />
+              <Command className="w-4 h-4 text-warning" />
               <span className="text-sm font-medium text-foreground">Action Button</span>
               {item.variable_id && (
-                <Badge className="bg-[#3DB60F]/20 text-green-300 border-[#3DB60F]/50 font-mono text-xs">
+                <Badge className="bg-brand-green/20 text-foreground-secondary border-brand-green/50 font-mono text-xs">
                   {item.variable_id}
                 </Badge>
               )}
             </div>
-            <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/50">
+            <Badge className="bg-warning/20 text-warning border-warning/50">
               Value: {item.button_value}
             </Badge>
           </div>
@@ -1904,19 +1904,19 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     // Handle Menu References (Submenus)
     if (item.menu_ref) {
       return (
-        <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/30">
+        <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ChevronRight className="w-4 h-4 text-purple-400" />
+              <ChevronRight className="w-4 h-4 text-secondary" />
               <span className="text-sm font-medium text-foreground">Submenu Link</span>
             </div>
-            <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/50 font-mono">
+            <Badge className="bg-secondary/20 text-foreground-secondary border-secondary/50 font-mono">
               {item.menu_ref}
             </Badge>
           </div>
           {item.variable_id && (
             <div className="mt-2 text-xs text-muted-foreground">
-              Variable: <Badge className="ml-1 bg-[#3DB60F]/20 text-green-300 font-mono text-xs">{item.variable_id}</Badge>
+              Variable: <Badge className="ml-1 bg-brand-green/20 text-foreground-secondary font-mono text-xs">{item.variable_id}</Badge>
             </div>
           )}
         </div>
@@ -1926,13 +1926,13 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     // Handle RecordItem References
     if (item.record_item_ref) {
       return (
-        <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+        <div className="p-3 rounded-lg bg-brand-green/10 border border-brand-green/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Database className="w-4 h-4 text-blue-400" />
+              <Database className="w-4 h-4 text-brand-green" />
               <span className="text-sm font-medium text-foreground">Record Item</span>
             </div>
-            <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/50 font-mono">
+            <Badge className="bg-brand-green/20 text-foreground-secondary border-brand-green/50 font-mono">
               {item.record_item_ref}
             </Badge>
           </div>
@@ -1996,12 +1996,12 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Type className="w-4 h-4 text-muted-foreground" />
-              <Badge className="bg-[#3DB60F]/20 text-green-300 border-[#3DB60F]/50 font-mono text-xs">
+              <Badge className="bg-brand-green/20 text-foreground-secondary border-brand-green/50 font-mono text-xs">
                 {variableId}
               </Badge>
             </div>
             {isReadOnly && (
-              <Badge className="text-xs bg-blue-500/20 text-blue-400 border-blue-500/50">Read Only</Badge>
+              <Badge className="text-xs bg-info/20 text-info border-info/50">Read Only</Badge>
             )}
           </div>
           <div className="space-y-1 text-xs">
@@ -2048,7 +2048,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     return (
       <div className="p-3 rounded-lg bg-secondary/30 border border-border">
         <div className="text-xs text-muted-foreground">Unknown item type</div>
-        <pre className="text-xs text-slate-600 mt-1">{JSON.stringify(item, null, 2)}</pre>
+        <pre className="text-xs text-muted-foreground mt-1">{JSON.stringify(item, null, 2)}</pre>
       </div>
     );
   };
@@ -2076,14 +2076,14 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               {param.name}
               {item.unit_code && <span className="ml-1 text-xs text-muted-foreground">({item.unit_code})</span>}
             </Label>
-            {isReadOnly && <Badge className="text-xs bg-blue-500/20 text-blue-400">Read Only</Badge>}
+            {isReadOnly && <Badge className="text-xs bg-info/20 text-info">Read Only</Badge>}
           </div>
           <Select
             value={value}
             onValueChange={handleChange}
             disabled={isReadOnly}
           >
-            <SelectTrigger className={`bg-secondary border-border text-foreground ${error ? 'border-red-500' : ''}`}>
+            <SelectTrigger className={`bg-secondary border-border text-foreground ${error ? 'border-error' : ''}`}>
               <SelectValue placeholder="Select value..." />
             </SelectTrigger>
             <SelectContent>
@@ -2095,7 +2095,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             </SelectContent>
           </Select>
           {error && (
-            <p className="text-xs text-red-400 flex items-center gap-1">
+            <p className="text-xs text-error flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
               {error}
             </p>
@@ -2110,14 +2110,14 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
         <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
           <Label className="text-sm text-foreground cursor-pointer flex-1" onClick={() => setSelectedParameter(item)}>
             {param.name}
-            {isReadOnly && <Badge className="ml-2 text-xs bg-blue-500/20 text-blue-400">Read Only</Badge>}
+            {isReadOnly && <Badge className="ml-2 text-xs bg-info/20 text-info">Read Only</Badge>}
           </Label>
           <input
             type="checkbox"
             checked={value === '1' || value === 'true' || value === true}
             onChange={(e) => handleChange(e.target.checked ? '1' : '0')}
             disabled={isReadOnly}
-            className="w-5 h-5 rounded border-border text-violet-500 focus:ring-violet-500"
+            className="w-5 h-5 rounded border-border text-secondary focus:ring-secondary"
           />
         </div>
       );
@@ -2144,9 +2144,9 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                 disabled={isReadOnly}
                 min={minVal}
                 max={maxVal}
-                className={`w-20 h-8 bg-secondary border-border text-foreground text-sm ${error ? 'border-red-500' : ''}`}
+                className={`w-20 h-8 bg-secondary border-border text-foreground text-sm ${error ? 'border-error' : ''}`}
               />
-              {isReadOnly && <Badge className="text-xs bg-blue-500/20 text-blue-400">RO</Badge>}
+              {isReadOnly && <Badge className="text-xs bg-info/20 text-info">RO</Badge>}
             </div>
           </div>
           <input
@@ -2156,14 +2156,14 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             value={numValue}
             onChange={(e) => handleChange(e.target.value)}
             disabled={isReadOnly}
-            className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-violet-500"
+            className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-secondary"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{param.min_value}</span>
             <span>{param.max_value}</span>
           </div>
           {error && (
-            <p className="text-xs text-red-400 flex items-center gap-1">
+            <p className="text-xs text-error flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
               {error}
             </p>
@@ -2180,7 +2180,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             {param.name}
             {item.unit_code && <span className="ml-1 text-xs text-muted-foreground">({item.unit_code})</span>}
           </Label>
-          {isReadOnly && <Badge className="text-xs bg-blue-500/20 text-blue-400">Read Only</Badge>}
+          {isReadOnly && <Badge className="text-xs bg-info/20 text-info">Read Only</Badge>}
         </div>
         <Input
           type="text"
@@ -2188,10 +2188,10 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
           placeholder={`Enter ${param.name.toLowerCase()}...`}
-          className={`bg-secondary border-border text-foreground ${error ? 'border-red-500' : ''}`}
+          className={`bg-secondary border-border text-foreground ${error ? 'border-error' : ''}`}
         />
         {error && (
-          <p className="text-xs text-red-400 flex items-center gap-1">
+          <p className="text-xs text-error flex items-center gap-1">
             <AlertCircle className="w-3 h-3" />
             {error}
           </p>
@@ -2210,17 +2210,17 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     const buttonItems = menu.items.filter(item => item.button_value);
 
     return (
-      <div className={`rounded-lg border ${isEven ? 'bg-gradient-to-br from-violet-500/5 to-purple-500/5 border-violet-500/30' : 'bg-gradient-to-br from-blue-500/5 to-green-500/5 border-blue-500/30'}`}>
+      <div className={`rounded-lg border ${isEven ? 'bg-gradient-to-br from-secondary/5 to-secondary/5 border-secondary/30' : 'bg-gradient-to-br from-brand-green/5 to-brand-green/5 border-brand-green/30'}`}>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors rounded-t-lg"
         >
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isEven ? 'bg-violet-500/20' : 'bg-blue-500/20'}`}>
-              <Menu className={`w-4 h-4 ${isEven ? 'text-violet-400' : 'text-blue-400'}`} />
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isEven ? 'bg-secondary/20' : 'bg-brand-green/20'}`}>
+              <Menu className={`w-4 h-4 ${isEven ? 'text-secondary' : 'text-brand-green'}`} />
             </div>
             <h3 className="text-lg font-semibold text-foreground">{menu.name}</h3>
-            <Badge className={`${isEven ? 'bg-violet-500/20 text-violet-400 border-violet-500/50' : 'bg-blue-500/20 text-blue-400 border-blue-500/50'}`}>
+            <Badge className={`${isEven ? 'bg-secondary/20 text-foreground-secondary border-secondary/50' : 'bg-brand-green/20 text-brand-green border-brand-green/50'}`}>
               {menu.items.length} items
             </Badge>
           </div>
@@ -2234,11 +2234,11 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             ))}
 
             {subMenuItems.map((item, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/30">
+              <div key={idx} className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
                 <div className="flex items-center gap-2">
-                  <ChevronRight className="w-4 h-4 text-purple-400" />
+                  <ChevronRight className="w-4 h-4 text-secondary" />
                   <span className="text-sm text-foreground">Submenu:</span>
-                  <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/50 font-mono">
+                  <Badge className="bg-secondary/20 text-foreground-secondary border-secondary/50 font-mono">
                     {item.menu_ref}
                   </Badge>
                 </div>
@@ -2246,11 +2246,11 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             ))}
 
             {buttonItems.map((item, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/30">
+              <div key={idx} className="p-3 rounded-lg bg-warning/10 border border-warning/30">
                 <div className="flex items-center gap-2">
-                  <Command className="w-4 h-4 text-orange-400" />
+                  <Command className="w-4 h-4 text-warning" />
                   <span className="text-sm text-foreground">Action Button:</span>
-                  <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/50">
+                  <Badge className="bg-warning/20 text-warning border-warning/50">
                     Value: {item.button_value}
                   </Badge>
                 </div>
@@ -2274,23 +2274,23 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     const getTypeIcon = (dataType) => {
       if (!dataType) return <Hash className="w-4 h-4" />;
       const type = dataType.toLowerCase();
-      if (type.includes('string')) return <Type className="w-4 h-4 text-[#3DB60F]" />;
-      if (type.includes('bool')) return <ToggleLeft className="w-4 h-4 text-green-400" />;
-      if (type.includes('int') || type.includes('float')) return <Hash className="w-4 h-4 text-blue-400" />;
+      if (type.includes('string')) return <Type className="w-4 h-4 text-brand-green" />;
+      if (type.includes('bool')) return <ToggleLeft className="w-4 h-4 text-brand-green" />;
+      if (type.includes('int') || type.includes('float')) return <Hash className="w-4 h-4 text-brand-green" />;
       return <Database className="w-4 h-4 text-muted-foreground" />;
     };
 
     const getAccessColor = (rights) => {
-      if (rights === 'ro') return 'bg-blue-500/20 text-blue-400 border-blue-500/50';
-      if (rights === 'wo') return 'bg-orange-500/20 text-orange-400 border-orange-500/50';
-      return 'bg-green-500/20 text-green-400 border-green-500/50';
+      if (rights === 'ro') return 'bg-info/20 text-info border-info/50';
+      if (rights === 'wo') return 'bg-warning/20 text-warning border-warning/50';
+      return 'bg-success/20 text-success border-success/50';
     };
 
     if (!param) {
       return (
         <div className="p-3 rounded-lg bg-secondary/50 border border-border">
           <div className="flex items-center gap-2">
-            <Badge className="bg-[#3DB60F]/20 text-green-300 border-[#3DB60F]/50 font-mono text-xs">
+            <Badge className="bg-brand-green/20 text-foreground-secondary border-brand-green/50 font-mono text-xs">
               {item.variable_id || item.record_item_ref}
             </Badge>
             <span className="text-xs text-muted-foreground">No parameter definition found</span>
@@ -2312,17 +2312,17 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-foreground">{param.name}</span>
                   {param.dynamic && (
-                    <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/50 text-xs px-1.5 py-0" title="Parameter value changes dynamically">
+                    <Badge className="bg-warning/20 text-warning border-warning/50 text-xs px-1.5 py-0" title="Parameter value changes dynamically">
                       Dynamic
                     </Badge>
                   )}
                   {param.excluded_from_data_storage && (
-                    <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/50 text-xs px-1.5 py-0" title="Excluded from data storage">
+                    <Badge className="bg-warning/20 text-warning border-warning/50 text-xs px-1.5 py-0" title="Excluded from data storage">
                       No Storage
                     </Badge>
                   )}
                   {param.modifies_other_variables && (
-                    <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/50 text-xs px-1.5 py-0" title="Modifying this parameter affects other variables">
+                    <Badge className="bg-secondary/20 text-foreground-secondary border-secondary/50 text-xs px-1.5 py-0" title="Modifying this parameter affects other variables">
                       Affects Others
                     </Badge>
                   )}
@@ -2333,7 +2333,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             <div className="flex items-center gap-2">
               {param.default_value && (
                 <span className="text-xs text-muted-foreground px-2 py-1 rounded bg-muted">
-                  Default: <span className="text-green-300 font-mono">{param.default_value}</span>
+                  Default: <span className="text-foreground-secondary font-mono">{param.default_value}</span>
                 </span>
               )}
               {item.access_right_restriction && (
@@ -2394,8 +2394,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             </div>
 
             {(param.min_value !== null || param.max_value !== null) && (
-              <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                <p className="text-xs text-blue-400 font-semibold mb-2">Value Range</p>
+              <div className="p-3 rounded-lg bg-brand-green/10 border border-brand-green/30">
+                <p className="text-xs text-brand-green font-semibold mb-2">Value Range</p>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-foreground font-mono">{param.min_value !== null ? param.min_value : '−∞'}</span>
                   <span className="text-muted-foreground">to</span>
@@ -2405,12 +2405,12 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             )}
 
             {param.enumeration_values && Object.keys(param.enumeration_values).length > 0 && (
-              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
-                <p className="text-xs text-green-400 font-semibold mb-2">Enumeration Values</p>
+              <div className="p-3 rounded-lg bg-success/10 border border-success/30">
+                <p className="text-xs text-success font-semibold mb-2">Enumeration Values</p>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(param.enumeration_values).map(([value, name]) => (
                     <div key={value} className="px-2 py-1 rounded bg-secondary border border-border text-xs">
-                      <span className="text-green-400 font-mono">{value}</span>
+                      <span className="text-brand-green font-mono">{value}</span>
                       <span className="text-muted-foreground mx-1">→</span>
                       <span className="text-foreground">{name}</span>
                     </div>
@@ -2419,8 +2419,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               </div>
             )}
 
-            <div className="p-3 rounded-lg bg-violet-500/10 border border-violet-500/30">
-              <p className="text-xs text-violet-400 font-semibold mb-2 flex items-center gap-1">
+            <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
+              <p className="text-xs text-secondary font-semibold mb-2 flex items-center gap-1">
                 <Eye className="w-3 h-3" />
                 Config Form Preview
               </p>
@@ -2564,8 +2564,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     <div className="relative">
       {/* Animated Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-30">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#3DB60F]/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-green/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
       </div>
 
       <div className="relative space-y-6">
@@ -2583,14 +2583,14 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             <Button
               variant="outline"
               onClick={() => window.open(`${API_BASE}/api/iodd/${device.id}/export?format=zip`, '_blank')}
-              className="border-border text-foreground hover:border-[#3DB60F]/50 hover:bg-secondary transition-all"
+              className="border-border text-foreground hover:border-brand-green/50 hover:bg-secondary transition-all"
             >
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
             <Button
               variant="outline"
-              className="border-border text-foreground hover:border-[#3DB60F]/50 hover:bg-secondary transition-all"
+              className="border-border text-foreground hover:border-brand-green/50 hover:bg-secondary transition-all"
             >
               <Star className="w-4 h-4 mr-2" />
               Favorite
@@ -2598,7 +2598,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(true)}
-              className="border-red-700/50 text-red-400 hover:border-red-500 hover:bg-red-950/30 transition-all"
+              className="border-error/50 text-error hover:border-error hover:bg-error/20 transition-all"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete
@@ -2607,17 +2607,17 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
         </div>
 
         {/* Enhanced Device Header with Showcase */}
-        <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-[#3DB60F]/30 transition-all duration-300 overflow-hidden relative group">
+        <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-brand-green/30 transition-all duration-300 overflow-hidden relative group">
           {/* Top gradient accent */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#3DB60F] via-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-green via-secondary to-accent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
 
           <CardContent className="p-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
               {/* Device Image Showcase */}
               <div className="lg:col-span-1">
-                <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-2 border-border p-6 overflow-hidden group-hover:border-[#3DB60F]/50 transition-all duration-300">
+                <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-surface to-surface border-2 border-border p-6 overflow-hidden group-hover:border-brand-green/50 transition-all duration-300">
                   {/* Animated background glow */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#3DB60F]/10 via-purple-500/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-brand-green/10 via-secondary/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                   {mainDeviceImage ? (
                     <div className="relative z-10 w-full h-full flex items-center justify-center">
@@ -2629,12 +2629,12 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     </div>
                   ) : (
                     <div className="relative z-10 w-full h-full flex items-center justify-center">
-                      <Package className="w-32 h-32 text-slate-600" />
+                      <Package className="w-32 h-32 text-muted-foreground" />
                     </div>
                   )}
 
                   {/* Pulse animation circle */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#3DB60F]/20 to-purple-500/20 opacity-0 group-hover:opacity-100 animate-pulse" style={{ animationDuration: '3s' }} />
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-green/20 to-secondary/20 opacity-0 group-hover:opacity-100 animate-pulse" style={{ animationDuration: '3s' }} />
                 </div>
               </div>
 
@@ -2643,12 +2643,12 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                 <div>
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                      <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-green via-brand-green to-brand-green bg-clip-text text-transparent mb-2">
                         {device.product_name}
                       </h1>
                       <p className="text-xl text-foreground font-medium">{device.manufacturer}</p>
                     </div>
-                    <Badge className="bg-gradient-to-r from-[#3DB60F]/20 to-purple-500/20 text-green-300 border-[#3DB60F]/50 text-base px-4 py-1 shadow-lg shadow-cyan-500/20 animate-pulse" style={{ animationDuration: '3s' }}>
+                    <Badge className="bg-gradient-to-r from-brand-green/20 to-brand-green/20 text-foreground-secondary border-brand-green/50 text-base px-4 py-1 shadow-lg shadow-brand-green/20 animate-pulse" style={{ animationDuration: '3s' }}>
                       IODD v{formatVersion(device.iodd_version)}
                     </Badge>
                   </div>
@@ -2656,50 +2656,50 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
 
                 {/* Info Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-gradient-to-br from-[#3DB60F]/10 to-blue-500/10 border border-border hover:border-[#3DB60F]/50 rounded-lg p-4 transition-all duration-300 hover:scale-105">
+                  <div className="bg-gradient-to-br from-brand-green/10 to-brand-green/10 border border-border hover:border-brand-green/50 rounded-lg p-4 transition-all duration-300 hover:scale-105">
                     <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-[#3DB60F]/20 flex items-center justify-center">
-                        <Cpu className="w-4 h-4 text-[#3DB60F]" />
+                      <div className="w-8 h-8 rounded-lg bg-brand-green/20 flex items-center justify-center">
+                        <Cpu className="w-4 h-4 text-brand-green" />
                       </div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Vendor ID</p>
                     </div>
                     <p className="text-xl font-bold font-mono text-foreground">{device.vendor_id}</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-border hover:border-purple-500/50 rounded-lg p-4 transition-all duration-300 hover:scale-105">
+                  <div className="bg-gradient-to-br from-secondary/10 to-accent/10 border border-border hover:border-secondary/50 rounded-lg p-4 transition-all duration-300 hover:scale-105">
                     <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                        <Package className="w-4 h-4 text-purple-400" />
+                      <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
+                        <Package className="w-4 h-4 text-secondary" />
                       </div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Device ID</p>
                     </div>
                     <p className="text-xl font-bold font-mono text-foreground">{device.device_id}</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-border hover:border-green-500/50 rounded-lg p-4 transition-all duration-300 hover:scale-105">
+                  <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-border hover:border-success/50 rounded-lg p-4 transition-all duration-300 hover:scale-105">
                     <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                        <Database className="w-4 h-4 text-green-400" />
+                      <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                        <Database className="w-4 h-4 text-success" />
                       </div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Parameters</p>
                     </div>
                     <p className="text-xl font-bold text-foreground">{parameters.length}</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-border hover:border-orange-500/50 rounded-lg p-4 transition-all duration-300 hover:scale-105">
+                  <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-border hover:border-warning/50 rounded-lg p-4 transition-all duration-300 hover:scale-105">
                     <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                        <ImageIcon className="w-4 h-4 text-orange-400" />
+                      <div className="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
+                        <ImageIcon className="w-4 h-4 text-warning" />
                       </div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Images</p>
                     </div>
                     <p className="text-xl font-bold text-foreground">{imageAssets.length}</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-border hover:border-blue-500/50 rounded-lg p-4 transition-all duration-300 hover:scale-105">
+                  <div className="bg-gradient-to-br from-brand-green/10 to-brand-green/10 border border-border hover:border-brand-green/50 rounded-lg p-4 transition-all duration-300 hover:scale-105">
                     <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                        <Calendar className="w-4 h-4 text-blue-400" />
+                      <div className="w-8 h-8 rounded-lg bg-brand-green/20 flex items-center justify-center">
+                        <Calendar className="w-4 h-4 text-brand-green" />
                       </div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Imported</p>
                     </div>
@@ -2729,14 +2729,14 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             <TabsList className="bg-card/50 border border-border p-1 h-auto">
               <TabsTrigger
                 value="overview"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#3DB60F] data-[state=active]:to-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-500/20 transition-all duration-300 gap-2 px-6 py-2.5"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-green data-[state=active]:to-brand-green data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-brand-green/20 transition-all duration-300 gap-2 px-6 py-2.5"
               >
                 <Activity className="w-4 h-4" />
                 <span className="font-medium">Overview</span>
               </TabsTrigger>
               <TabsTrigger
                 value="parameters"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-purple-500/20 transition-all duration-300 gap-2 px-6 py-2.5"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-secondary data-[state=active]:to-accent data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-secondary/20 transition-all duration-300 gap-2 px-6 py-2.5"
               >
                 <Settings className="w-4 h-4" />
                 <span className="font-medium">Parameters</span>
@@ -2776,7 +2776,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               </TabsTrigger>
               <TabsTrigger
                 value="processdata"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/20 transition-all duration-300 gap-2 px-6 py-2.5"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-green data-[state=active]:to-brand-green data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-brand-green/20 transition-all duration-300 gap-2 px-6 py-2.5"
               >
                 <ArrowRightLeft className="w-4 h-4" />
                 <span className="font-medium">Process Data</span>
@@ -2793,7 +2793,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               </TabsTrigger>
               <TabsTrigger
                 value="menus"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-violet-500/20 transition-all duration-300 gap-2 px-6 py-2.5"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-secondary data-[state=active]:to-secondary data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-secondary/20 transition-all duration-300 gap-2 px-6 py-2.5"
               >
                 <Menu className="w-4 h-4" />
                 <span className="font-medium">Menus</span>
@@ -2819,7 +2819,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               </TabsTrigger>
               <TabsTrigger
                 value="generate"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-indigo-500/20 transition-all duration-300 gap-2 px-6 py-2.5"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-green data-[state=active]:to-brand-green data-[state=active]:text-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-brand-green/20 transition-all duration-300 gap-2 px-6 py-2.5"
               >
                 <Zap className="w-4 h-4" />
                 <span className="font-medium">Generate</span>
@@ -2833,25 +2833,25 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6 mt-6">
             {/* Device Capabilities */}
-            <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-[#3DB60F]/30 transition-all">
+            <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-brand-green/30 transition-all">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-foreground text-xl flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#3DB60F]/20 to-blue-500/20 flex items-center justify-center">
-                      <Zap className="w-5 h-5 text-[#3DB60F]" />
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-green/20 to-brand-green/20 flex items-center justify-center">
+                      <Zap className="w-5 h-5 text-brand-green" />
                     </div>
                     Device Capabilities
                   </CardTitle>
-                  <Badge className="bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50">
+                  <Badge className="bg-brand-green/20 text-brand-green border-brand-green/50">
                     Features
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="flex items-center space-x-3 p-4 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-border hover:border-green-500/50 transition-all">
-                    <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                      <Database className="w-5 h-5 text-green-400" />
+                  <div className="flex items-center space-x-3 p-4 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-border hover:border-success/50 transition-all">
+                    <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center flex-shrink-0">
+                      <Database className="w-5 h-5 text-success" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Parameters</p>
@@ -2859,9 +2859,9 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3 p-4 rounded-lg bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-border hover:border-orange-500/50 transition-all">
-                    <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
-                      <ImageIcon className="w-5 h-5 text-orange-400" />
+                  <div className="flex items-center space-x-3 p-4 rounded-lg bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-border hover:border-warning/50 transition-all">
+                    <div className="w-10 h-10 rounded-lg bg-warning/20 flex items-center justify-center flex-shrink-0">
+                      <ImageIcon className="w-5 h-5 text-warning" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Asset Files</p>
@@ -2869,9 +2869,9 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3 p-4 rounded-lg bg-gradient-to-br from-blue-500/10 to-indigo-500/5 border border-border hover:border-blue-500/50 transition-all">
-                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                      <FileCode className="w-5 h-5 text-blue-400" />
+                  <div className="flex items-center space-x-3 p-4 rounded-lg bg-gradient-to-br from-brand-green/10 to-brand-green/5 border border-border hover:border-brand-green/50 transition-all">
+                    <div className="w-10 h-10 rounded-lg bg-brand-green/20 flex items-center justify-center flex-shrink-0">
+                      <FileCode className="w-5 h-5 text-brand-green" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">IODD Version</p>
@@ -2884,16 +2884,16 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
 
             {/* Document Information */}
             {documentInfo && (
-              <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-[#3DB60F]/30 transition-all">
+              <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-brand-green/30 transition-all">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-foreground text-xl flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-blue-400" />
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-green/20 to-brand-green/20 flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-brand-green" />
                       </div>
                       Document Information
                     </CardTitle>
-                    <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/50">
+                    <Badge className="bg-brand-green/20 text-brand-green border-brand-green/50">
                       Metadata
                     </Badge>
                   </div>
@@ -2906,7 +2906,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Vendor Information</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {documentInfo.vendor_name && (
-                            <div className="p-4 rounded-lg bg-gradient-to-br from-blue-500/10 to-indigo-500/5 border border-border">
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-brand-green/10 to-brand-green/5 border border-border">
                               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Vendor</p>
                               <p className="text-sm text-foreground font-medium">{documentInfo.vendor_name}</p>
                             </div>
@@ -2918,7 +2918,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                 href={documentInfo.vendor_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm text-green-400 hover:text-green-300 underline transition-colors inline-flex items-center gap-1"
+                                className="text-sm text-success hover:text-foreground-secondary underline transition-colors inline-flex items-center gap-1"
                               >
                                 {documentInfo.vendor_url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
                                 <ExternalLink className="w-3 h-3" />
@@ -2926,7 +2926,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             </div>
                           )}
                           {documentInfo.vendor_text && (
-                            <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-border">
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-surface to-surface border border-border">
                               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Description</p>
                               <p className="text-sm text-foreground">{documentInfo.vendor_text}</p>
                             </div>
@@ -2941,13 +2941,13 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Product Information</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {documentInfo.product_text && (
-                            <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-border">
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-surface to-surface border border-border">
                               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Product Description</p>
                               <p className="text-sm text-foreground">{documentInfo.product_text}</p>
                             </div>
                           )}
                           {documentInfo.device_family && (
-                            <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-border">
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-surface to-surface border border-border">
                               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Device Family</p>
                               <p className="text-sm text-foreground">{documentInfo.device_family}</p>
                             </div>
@@ -2961,19 +2961,19 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                       <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Document Metadata</h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {documentInfo.copyright && (
-                          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-border">
+                          <div className="p-4 rounded-lg bg-gradient-to-br from-surface to-surface border border-border">
                             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Copyright</p>
                             <p className="text-sm text-foreground">{documentInfo.copyright}</p>
                           </div>
                         )}
                         {documentInfo.release_date && (
-                          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-border">
+                          <div className="p-4 rounded-lg bg-gradient-to-br from-surface to-surface border border-border">
                             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Release Date</p>
                             <p className="text-sm text-foreground">{documentInfo.release_date}</p>
                           </div>
                         )}
                         {documentInfo.version && (
-                          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-border">
+                          <div className="p-4 rounded-lg bg-gradient-to-br from-surface to-surface border border-border">
                             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Document Version</p>
                             <p className="text-sm text-foreground">{documentInfo.version}</p>
                           </div>
@@ -2987,16 +2987,16 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
 
             {/* Device Features & Capabilities */}
             {deviceFeatures && (
-              <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-[#3DB60F]/30 transition-all">
+              <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-brand-green/30 transition-all">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-foreground text-xl flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-                        <Settings className="w-5 h-5 text-purple-400" />
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
+                        <Settings className="w-5 h-5 text-secondary" />
                       </div>
                       Device Features
                     </CardTitle>
-                    <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50">
+                    <Badge className="bg-secondary/20 text-secondary border-secondary/50">
                       Capabilities
                     </Badge>
                   </div>
@@ -3005,18 +3005,18 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                   <div className="space-y-4">
                     {/* Feature flags */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div className={`p-3 rounded-lg border ${deviceFeatures.data_storage ? 'bg-green-500/10 border-green-500/30' : 'bg-secondary/50 border-border'}`}>
+                      <div className={`p-3 rounded-lg border ${deviceFeatures.data_storage ? 'bg-success/10 border-success/30' : 'bg-secondary/50 border-border'}`}>
                         <div className="flex items-center gap-2">
-                          <Database className={`w-4 h-4 ${deviceFeatures.data_storage ? 'text-green-400' : 'text-muted-foreground'}`} />
-                          <span className={`text-sm ${deviceFeatures.data_storage ? 'text-green-400' : 'text-muted-foreground'}`}>
+                          <Database className={`w-4 h-4 ${deviceFeatures.data_storage ? 'text-success' : 'text-muted-foreground'}`} />
+                          <span className={`text-sm ${deviceFeatures.data_storage ? 'text-success' : 'text-muted-foreground'}`}>
                             Data Storage
                           </span>
                         </div>
                       </div>
-                      <div className={`p-3 rounded-lg border ${deviceFeatures.block_parameter ? 'bg-green-500/10 border-green-500/30' : 'bg-secondary/50 border-border'}`}>
+                      <div className={`p-3 rounded-lg border ${deviceFeatures.block_parameter ? 'bg-success/10 border-success/30' : 'bg-secondary/50 border-border'}`}>
                         <div className="flex items-center gap-2">
-                          <Lock className={`w-4 h-4 ${deviceFeatures.block_parameter ? 'text-green-400' : 'text-muted-foreground'}`} />
-                          <span className={`text-sm ${deviceFeatures.block_parameter ? 'text-green-400' : 'text-muted-foreground'}`}>
+                          <Lock className={`w-4 h-4 ${deviceFeatures.block_parameter ? 'text-success' : 'text-muted-foreground'}`} />
+                          <span className={`text-sm ${deviceFeatures.block_parameter ? 'text-success' : 'text-muted-foreground'}`}>
                             Block Parameter
                           </span>
                         </div>
@@ -3027,7 +3027,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     {deviceFeatures.profile_characteristic && (() => {
                       const characteristics = decodeProfileCharacteristics(deviceFeatures.profile_characteristic);
                       return (
-                        <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-border">
+                        <div className="p-4 rounded-lg bg-gradient-to-br from-surface to-surface border border-border">
                           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Profile Characteristics</p>
                           <p className="text-xs text-muted-foreground font-mono mb-2">Raw: {deviceFeatures.profile_characteristic}</p>
                           {characteristics.length > 0 ? (
@@ -3035,7 +3035,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                               {characteristics.map((char) => (
                                 <Badge
                                   key={char.code}
-                                  className="bg-purple-500/20 text-purple-300 border-purple-500/50 text-xs"
+                                  className="bg-secondary/20 text-foreground-secondary border-secondary/50 text-xs"
                                   title={`${char.description} (Code: ${char.code})`}
                                 >
                                   {char.name}
@@ -3053,27 +3053,27 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Supported Access Locks</p>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div className={`p-3 rounded-lg border text-center ${deviceFeatures.access_locks_data_storage ? 'bg-cyan-500/10 border-[#3DB60F]/30' : 'bg-secondary/50 border-border'}`}>
-                          <Database className={`w-4 h-4 mx-auto mb-1 ${deviceFeatures.access_locks_data_storage ? 'text-[#3DB60F]' : 'text-muted-foreground'}`} />
-                          <span className={`text-xs ${deviceFeatures.access_locks_data_storage ? 'text-[#3DB60F]' : 'text-muted-foreground'}`}>
+                        <div className={`p-3 rounded-lg border text-center ${deviceFeatures.access_locks_data_storage ? 'bg-brand-green/10 border-brand-green/30' : 'bg-secondary/50 border-border'}`}>
+                          <Database className={`w-4 h-4 mx-auto mb-1 ${deviceFeatures.access_locks_data_storage ? 'text-brand-green' : 'text-muted-foreground'}`} />
+                          <span className={`text-xs ${deviceFeatures.access_locks_data_storage ? 'text-brand-green' : 'text-muted-foreground'}`}>
                             Data Storage
                           </span>
                         </div>
-                        <div className={`p-3 rounded-lg border text-center ${deviceFeatures.access_locks_parameter ? 'bg-cyan-500/10 border-[#3DB60F]/30' : 'bg-secondary/50 border-border'}`}>
-                          <Settings className={`w-4 h-4 mx-auto mb-1 ${deviceFeatures.access_locks_parameter ? 'text-[#3DB60F]' : 'text-muted-foreground'}`} />
-                          <span className={`text-xs ${deviceFeatures.access_locks_parameter ? 'text-[#3DB60F]' : 'text-muted-foreground'}`}>
+                        <div className={`p-3 rounded-lg border text-center ${deviceFeatures.access_locks_parameter ? 'bg-brand-green/10 border-brand-green/30' : 'bg-secondary/50 border-border'}`}>
+                          <Settings className={`w-4 h-4 mx-auto mb-1 ${deviceFeatures.access_locks_parameter ? 'text-brand-green' : 'text-muted-foreground'}`} />
+                          <span className={`text-xs ${deviceFeatures.access_locks_parameter ? 'text-brand-green' : 'text-muted-foreground'}`}>
                             Parameter
                           </span>
                         </div>
-                        <div className={`p-3 rounded-lg border text-center ${deviceFeatures.access_locks_local_parameterization ? 'bg-cyan-500/10 border-[#3DB60F]/30' : 'bg-secondary/50 border-border'}`}>
-                          <Wrench className={`w-4 h-4 mx-auto mb-1 ${deviceFeatures.access_locks_local_parameterization ? 'text-[#3DB60F]' : 'text-muted-foreground'}`} />
-                          <span className={`text-xs ${deviceFeatures.access_locks_local_parameterization ? 'text-[#3DB60F]' : 'text-muted-foreground'}`}>
+                        <div className={`p-3 rounded-lg border text-center ${deviceFeatures.access_locks_local_parameterization ? 'bg-brand-green/10 border-brand-green/30' : 'bg-secondary/50 border-border'}`}>
+                          <Wrench className={`w-4 h-4 mx-auto mb-1 ${deviceFeatures.access_locks_local_parameterization ? 'text-brand-green' : 'text-muted-foreground'}`} />
+                          <span className={`text-xs ${deviceFeatures.access_locks_local_parameterization ? 'text-brand-green' : 'text-muted-foreground'}`}>
                             Local Param
                           </span>
                         </div>
-                        <div className={`p-3 rounded-lg border text-center ${deviceFeatures.access_locks_local_user_interface ? 'bg-cyan-500/10 border-[#3DB60F]/30' : 'bg-secondary/50 border-border'}`}>
-                          <Monitor className={`w-4 h-4 mx-auto mb-1 ${deviceFeatures.access_locks_local_user_interface ? 'text-[#3DB60F]' : 'text-muted-foreground'}`} />
-                          <span className={`text-xs ${deviceFeatures.access_locks_local_user_interface ? 'text-[#3DB60F]' : 'text-muted-foreground'}`}>
+                        <div className={`p-3 rounded-lg border text-center ${deviceFeatures.access_locks_local_user_interface ? 'bg-brand-green/10 border-brand-green/30' : 'bg-secondary/50 border-border'}`}>
+                          <Monitor className={`w-4 h-4 mx-auto mb-1 ${deviceFeatures.access_locks_local_user_interface ? 'text-brand-green' : 'text-muted-foreground'}`} />
+                          <span className={`text-xs ${deviceFeatures.access_locks_local_user_interface ? 'text-brand-green' : 'text-muted-foreground'}`}>
                             Local UI
                           </span>
                         </div>
@@ -3086,11 +3086,11 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
 
             {/* Device Images Gallery */}
             {imageAssets.length > 0 && (
-              <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-[#3DB60F]/30 transition-all">
+              <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-brand-green/30 transition-all">
                 <CardHeader>
                   <CardTitle className="text-foreground text-xl flex items-center gap-2">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center">
-                      <ImageIcon className="w-5 h-5 text-orange-400" />
+                      <ImageIcon className="w-5 h-5 text-warning" />
                     </div>
                     Device Images
                   </CardTitle>
@@ -3107,10 +3107,10 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             setLightboxIndex(index);
                             setLightboxOpen(true);
                           }}
-                          className="aspect-square bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg p-3 border border-border hover:border-[#3DB60F]/50 transition-all cursor-pointer relative overflow-hidden"
+                          className="aspect-square bg-gradient-to-br from-surface to-surface rounded-lg p-3 border border-border hover:border-brand-green/50 transition-all cursor-pointer relative overflow-hidden"
                         >
                           {/* Hover glow effect */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-[#3DB60F]/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-brand-green/20 to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
 
                           <img
                             src={`${API_BASE}/api/iodd/${device.id}/assets/${asset.id}`}
@@ -3121,7 +3121,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         <div className="text-center">
                           <p className="text-xs text-muted-foreground truncate">{asset.file_name}</p>
                           {asset.image_purpose && (
-                            <Badge className="text-xs mt-1 bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50">
+                            <Badge className="text-xs mt-1 bg-brand-green/20 text-brand-green border-brand-green/50">
                               {asset.image_purpose}
                             </Badge>
                           )}
@@ -3141,8 +3141,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-foreground text-xl flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-                        <Settings className="w-5 h-5 text-purple-400" />
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
+                        <Settings className="w-5 h-5 text-secondary" />
                       </div>
                       Device Parameters
                     </CardTitle>
@@ -3151,7 +3151,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50 text-base px-4 py-1">
+                    <Badge className="bg-secondary/20 text-secondary border-secondary/50 text-base px-4 py-1">
                       {filteredParameters.length} / {parameters.length}
                     </Badge>
                     <div className="flex gap-2">
@@ -3160,7 +3160,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         size="sm"
                         onClick={() => handleExportParameters('csv')}
                         disabled={filteredParameters.length === 0}
-                        className="border-purple-500/50 text-purple-300 hover:bg-purple-500/10"
+                        className="border-secondary/50 text-foreground-secondary hover:bg-secondary/10"
                         title="Export to CSV"
                       >
                         <Download className="w-4 h-4 mr-1" />
@@ -3171,7 +3171,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         size="sm"
                         onClick={() => handleExportParameters('json')}
                         disabled={filteredParameters.length === 0}
-                        className="border-purple-500/50 text-purple-300 hover:bg-purple-500/10"
+                        className="border-secondary/50 text-foreground-secondary hover:bg-secondary/10"
                         title="Export to JSON"
                       >
                         <Download className="w-4 h-4 mr-1" />
@@ -3191,7 +3191,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                       placeholder="Search parameters by name or index..."
                       value={paramSearchQuery}
                       onChange={(e) => setParamSearchQuery(e.target.value)}
-                      className="pl-11 bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-purple-500/50 focus:ring-purple-500/20 transition-all"
+                      className="pl-11 bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-secondary/50 focus:ring-secondary/20 transition-all"
                     />
                   </div>
 
@@ -3199,7 +3199,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                   <div className="mt-3">
                     <button
                       onClick={() => setParamShowFilters(!paramShowFilters)}
-                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-purple-400 transition-colors"
+                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
                     >
                       <Filter className="w-4 h-4" />
                       {paramShowFilters ? 'Hide Filters' : 'Show Filters'}
@@ -3214,7 +3214,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             <select
                               value={paramAccessFilter}
                               onChange={(e) => setParamAccessFilter(e.target.value)}
-                              className="w-full px-3 py-2 rounded bg-card border border-border text-foreground text-sm focus:border-purple-500/50 focus:ring-purple-500/20 transition-all"
+                              className="w-full px-3 py-2 rounded bg-card border border-border text-foreground text-sm focus:border-secondary/50 focus:ring-secondary/20 transition-all"
                             >
                               <option value="all">All Access Rights</option>
                               <option value="ro">🔒 Read Only (ro)</option>
@@ -3229,7 +3229,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             <select
                               value={paramDataTypeFilter}
                               onChange={(e) => setParamDataTypeFilter(e.target.value)}
-                              className="w-full px-3 py-2 rounded bg-card border border-border text-foreground text-sm focus:border-purple-500/50 focus:ring-purple-500/20 transition-all"
+                              className="w-full px-3 py-2 rounded bg-card border border-border text-foreground text-sm focus:border-secondary/50 focus:ring-secondary/20 transition-all"
                             >
                               <option value="all">All Data Types</option>
                               <option value="boolean">Boolean</option>
@@ -3250,12 +3250,12 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs text-muted-foreground">Active filters:</span>
                               {paramAccessFilter !== 'all' && (
-                                <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/50 text-xs">
+                                <Badge className="bg-brand-green/20 text-foreground-secondary border-brand-green/50 text-xs">
                                   Access: {paramAccessFilter.toUpperCase()}
                                 </Badge>
                               )}
                               {paramDataTypeFilter !== 'all' && (
-                                <Badge className="bg-green-500/20 text-green-300 border-green-500/50 text-xs">
+                                <Badge className="bg-success/20 text-foreground-secondary border-success/50 text-xs">
                                   Type: {paramDataTypeFilter}
                                 </Badge>
                               )}
@@ -3264,7 +3264,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                   setParamAccessFilter('all');
                                   setParamDataTypeFilter('all');
                                 }}
-                                className="text-xs text-muted-foreground hover:text-red-400 transition-colors ml-auto"
+                                className="text-xs text-muted-foreground hover:text-error transition-colors ml-auto"
                               >
                                 Clear all filters
                               </button>
@@ -3280,7 +3280,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                   <div className="overflow-x-auto rounded-lg border border-border">
                     <table className="w-full">
                       <thead>
-                        <tr className="bg-gradient-to-r from-purple-600 to-pink-600">
+                        <tr className="bg-gradient-to-r from-secondary to-accent">
                           <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Index</th>
                           <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Name</th>
                           <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Type</th>
@@ -3294,21 +3294,21 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         {filteredParameters.map((param, index) => (
                           <tr
                             key={index}
-                            className="border-b border-border hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-transparent transition-all"
+                            className="border-b border-border hover:bg-gradient-to-r hover:from-secondary/10 hover:to-transparent transition-all"
                           >
-                            <td className="py-3 px-4 text-sm font-mono text-[#3DB60F] font-semibold">{param.index}</td>
+                            <td className="py-3 px-4 text-sm font-mono text-brand-green font-semibold">{param.index}</td>
                             <td className="py-3 px-4 text-sm text-foreground font-medium">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span>{param.name}</span>
                                 {param.dynamic && (
-                                  <Badge className="bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50 text-xs" title="Parameter updates in real-time">
+                                  <Badge className="bg-brand-green/20 text-brand-green border-brand-green/50 text-xs" title="Parameter updates in real-time">
                                     🔄 Dynamic
                                   </Badge>
                                 )}
                                 {param.unit_code && (() => {
                                   const unitInfo = getUnitInfo(param.unit_code);
                                   return (
-                                    <span className="text-xs text-purple-400 font-semibold" title={`Unit Code ${param.unit_code}: ${unitInfo.name}`}>
+                                    <span className="text-xs text-secondary font-semibold" title={`Unit Code ${param.unit_code}: ${unitInfo.name}`}>
                                       [{unitInfo.symbol || param.unit_code}]
                                     </span>
                                   );
@@ -3322,10 +3322,10 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             <td className="py-3 px-4 text-sm">
                               <Badge className={`text-xs ${
                                 param.access_rights === 'rw' || param.access_rights === 'RW'
-                                  ? 'bg-green-500/20 text-green-400 border-green-500/50'
+                                  ? 'bg-success/20 text-success border-success/50'
                                   : param.access_rights === 'ro' || param.access_rights === 'RO'
-                                  ? 'bg-blue-500/20 text-blue-400 border-blue-500/50'
-                                  : 'bg-orange-500/20 text-orange-400 border-orange-500/50'
+                                  ? 'bg-brand-green/20 text-brand-green border-brand-green/50'
+                                  : 'bg-warning/20 text-warning border-warning/50'
                               }`}>
                                 {param.access_rights}
                               </Badge>
@@ -3333,7 +3333,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             <td className="py-3 px-4 text-sm">
                               {param.enumeration_values && param.default_value ? (
                                 <div className="flex items-center space-x-2">
-                                  <span className="font-mono text-[#3DB60F]">{param.default_value}</span>
+                                  <span className="font-mono text-brand-green">{param.default_value}</span>
                                   <span className="text-muted-foreground">=</span>
                                   <span className="text-foreground">
                                     {param.enumeration_values[param.default_value] || 'Unknown'}
@@ -3348,7 +3348,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             <td className="py-3 px-4 text-sm">
                               {param.enumeration_values && Object.keys(param.enumeration_values).length > 0 ? (
                                 <div className="space-y-1">
-                                  <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/50 text-xs">
+                                  <Badge className="bg-secondary/20 text-foreground-secondary border-secondary/50 text-xs">
                                     {Object.keys(param.enumeration_values).length} options
                                   </Badge>
                                   <div className="text-xs text-muted-foreground">
@@ -3365,14 +3365,14 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                   {param.min_value} - {param.max_value}
                                 </span>
                               ) : (
-                                <span className="text-slate-600">-</span>
+                                <span className="text-muted-foreground">-</span>
                               )}
                             </td>
                             <td className="py-3 px-4 text-sm">
                               {(param.access_rights === 'rw' || param.access_rights === 'RW') ? (
                                 param.enumeration_values && Object.keys(param.enumeration_values).length > 0 ? (
                                   <Select defaultValue={param.default_value || Object.keys(param.enumeration_values)[0]}>
-                                    <SelectTrigger className="w-full bg-secondary border-border text-foreground hover:border-purple-500/50 transition-all">
+                                    <SelectTrigger className="w-full bg-secondary border-border text-foreground hover:border-secondary/50 transition-all">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="bg-secondary border-border">
@@ -3380,10 +3380,10 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                         <SelectItem
                                           key={value}
                                           value={value}
-                                          className="text-foreground hover:bg-purple-500/20 cursor-pointer"
+                                          className="text-foreground hover:bg-secondary/20 cursor-pointer"
                                         >
                                           <div className="flex items-center space-x-2">
-                                            <span className="font-mono text-[#3DB60F] text-xs">{value}:</span>
+                                            <span className="font-mono text-brand-green text-xs">{value}:</span>
                                             <span>{label}</span>
                                           </div>
                                         </SelectItem>
@@ -3392,14 +3392,14 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                   </Select>
                                 ) : param.data_type === 'BooleanT' ? (
                                   <Select defaultValue={param.default_value || '0'}>
-                                    <SelectTrigger className="w-full bg-secondary border-border text-foreground hover:border-purple-500/50 transition-all">
+                                    <SelectTrigger className="w-full bg-secondary border-border text-foreground hover:border-secondary/50 transition-all">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="bg-secondary border-border">
-                                      <SelectItem value="0" className="text-foreground hover:bg-purple-500/20 cursor-pointer">
+                                      <SelectItem value="0" className="text-foreground hover:bg-secondary/20 cursor-pointer">
                                         False (0)
                                       </SelectItem>
-                                      <SelectItem value="1" className="text-foreground hover:bg-purple-500/20 cursor-pointer">
+                                      <SelectItem value="1" className="text-foreground hover:bg-secondary/20 cursor-pointer">
                                         True (1)
                                       </SelectItem>
                                     </SelectContent>
@@ -3409,7 +3409,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                     type="text"
                                     defaultValue={param.default_value || ''}
                                     placeholder="Enter value..."
-                                    className="w-full bg-secondary border-border text-foreground focus:border-purple-500/50 focus:ring-purple-500/20 transition-all"
+                                    className="w-full bg-secondary border-border text-foreground focus:border-secondary/50 focus:ring-secondary/20 transition-all"
                                   />
                                 ) : (
                                   <Input
@@ -3418,7 +3418,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                     min={param.min_value || undefined}
                                     max={param.max_value || undefined}
                                     placeholder="Enter value..."
-                                    className="w-full bg-secondary border-border text-foreground focus:border-purple-500/50 focus:ring-purple-500/20 transition-all font-mono"
+                                    className="w-full bg-secondary border-border text-foreground focus:border-secondary/50 focus:ring-secondary/20 transition-all font-mono"
                                   />
                                 )
                               ) : (
@@ -3441,7 +3441,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <Database className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                    <Database className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">
                       {paramSearchQuery ? 'No parameters match your search' : 'No parameters found'}
                     </p>
@@ -3449,7 +3449,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                       <Button
                         variant="link"
                         onClick={() => setParamSearchQuery('')}
-                        className="mt-2 text-purple-400"
+                        className="mt-2 text-secondary"
                       >
                         Clear search
                       </Button>
@@ -3466,7 +3466,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               <CardHeader>
                 <CardTitle className="text-foreground text-xl flex items-center gap-2">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center">
-                    <ImageIcon className="w-5 h-5 text-orange-400" />
+                    <ImageIcon className="w-5 h-5 text-warning" />
                   </div>
                   Device Images
                 </CardTitle>
@@ -3484,7 +3484,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             setLightboxIndex(index);
                             setLightboxOpen(true);
                           }}
-                          className="aspect-square bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg p-4 border border-border hover:border-orange-500/50 transition-all cursor-pointer relative overflow-hidden"
+                          className="aspect-square bg-gradient-to-br from-surface to-surface rounded-lg p-4 border border-border hover:border-warning/50 transition-all cursor-pointer relative overflow-hidden"
                         >
                           {/* Hover glow */}
                           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-amber-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -3498,7 +3498,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         <div>
                           <p className="text-sm text-foreground font-medium truncate">{asset.file_name}</p>
                           {asset.image_purpose && (
-                            <Badge className="text-xs mt-1 bg-orange-500/20 text-orange-400 border-orange-500/50">
+                            <Badge className="text-xs mt-1 bg-warning/20 text-warning border-warning/50">
                               {asset.image_purpose}
                             </Badge>
                           )}
@@ -3508,7 +3508,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <ImageIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                    <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">No images found</p>
                   </div>
                 )}
@@ -3522,7 +3522,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               <CardHeader>
                 <CardTitle className="text-foreground text-xl flex items-center gap-2">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500/20 to-rose-500/20 flex items-center justify-center">
-                    <AlertTriangle className="w-5 h-5 text-red-400" />
+                    <AlertTriangle className="w-5 h-5 text-error" />
                   </div>
                   Error Types
                 </CardTitle>
@@ -3541,7 +3541,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         placeholder="Search errors by name, code, or description..."
                         value={errorSearchQuery}
                         onChange={(e) => setErrorSearchQuery(e.target.value)}
-                        className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-red-500/50 focus:ring-red-500/20 text-sm"
+                        className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-error/50 focus:ring-error/20 text-sm"
                       />
                     </div>
                   </div>
@@ -3563,7 +3563,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     <Button
                       variant="link"
                       onClick={() => setErrorSearchQuery('')}
-                      className="mt-2 text-red-400"
+                      className="mt-2 text-error"
                     >
                       Clear search
                     </Button>
@@ -3573,12 +3573,12 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     {filteredErrors.map((error) => (
                       <div
                         key={error.id}
-                        className="p-4 rounded-lg bg-gradient-to-br from-red-500/10 to-rose-500/5 border border-border hover:border-red-500/50 transition-all"
+                        className="p-4 rounded-lg bg-gradient-to-br from-red-500/10 to-rose-500/5 border border-border hover:border-error/50 transition-all"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-3 flex-wrap">
-                            <div className="px-3 py-1 rounded-md bg-red-500/20 border border-red-500/30">
-                              <span className="text-red-300 font-mono text-sm font-bold">
+                            <div className="px-3 py-1 rounded-md bg-error/20 border border-error/30">
+                              <span className="text-error font-mono text-sm font-bold">
                                 {error.code}/{error.additional_code}
                               </span>
                             </div>
@@ -3607,7 +3607,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               <CardHeader>
                 <CardTitle className="text-foreground text-xl flex items-center gap-2">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500/20 to-amber-500/20 flex items-center justify-center">
-                    <Radio className="w-5 h-5 text-yellow-400" />
+                    <Radio className="w-5 h-5 text-warning" />
                   </div>
                   Device Events
                 </CardTitle>
@@ -3626,7 +3626,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         placeholder="Search events by name, code, type, or description..."
                         value={eventSearchQuery}
                         onChange={(e) => setEventSearchQuery(e.target.value)}
-                        className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-yellow-500/50 focus:ring-yellow-500/20 text-sm"
+                        className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-warning/50 focus:ring-yellow-500/20 text-sm"
                       />
                     </div>
                   </div>
@@ -3648,7 +3648,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     <Button
                       variant="link"
                       onClick={() => setEventSearchQuery('')}
-                      className="mt-2 text-yellow-400"
+                      className="mt-2 text-warning"
                     >
                       Clear search
                     </Button>
@@ -3658,12 +3658,12 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     {filteredEvents.map((event) => (
                       <div
                         key={event.id}
-                        className="p-4 rounded-lg bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border border-border hover:border-yellow-500/50 transition-all"
+                        className="p-4 rounded-lg bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border border-border hover:border-warning/50 transition-all"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-3 flex-wrap">
-                            <div className="px-3 py-1 rounded-md bg-yellow-500/20 border border-yellow-500/30">
-                              <span className="text-yellow-300 font-mono text-sm font-bold">
+                            <div className="px-3 py-1 rounded-md bg-warning/20 border border-warning/30">
+                              <span className="text-warning font-mono text-sm font-bold">
                                 {event.code}
                               </span>
                             </div>
@@ -3674,9 +3674,9 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             </div>
                             {event.event_type && (
                               <Badge className={`
-                                ${event.event_type === 'Error' ? 'bg-red-500/20 text-red-400 border-red-500/50' : ''}
-                                ${event.event_type === 'Warning' ? 'bg-orange-500/20 text-orange-400 border-orange-500/50' : ''}
-                                ${event.event_type === 'Notification' ? 'bg-blue-500/20 text-blue-400 border-blue-500/50' : ''}
+                                ${event.event_type === 'Error' ? 'bg-error/20 text-error border-error/50' : ''}
+                                ${event.event_type === 'Warning' ? 'bg-warning/20 text-warning border-warning/50' : ''}
+                                ${event.event_type === 'Notification' ? 'bg-brand-green/20 text-brand-green border-brand-green/50' : ''}
                                 font-semibold
                               `}>
                                 {event.event_type}
@@ -3703,8 +3703,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-foreground text-xl flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center">
-                        <ArrowRightLeft className="w-5 h-5 text-blue-400" />
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-green/20 to-brand-green/20 flex items-center justify-center">
+                        <ArrowRightLeft className="w-5 h-5 text-brand-green" />
                       </div>
                       Process Data Structure
                     </CardTitle>
@@ -3718,7 +3718,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                       size="sm"
                       onClick={() => handleExportProcessData('csv')}
                       disabled={processData.length === 0}
-                      className="border-blue-500/50 text-blue-300 hover:bg-blue-500/10"
+                      className="border-brand-green/50 text-foreground-secondary hover:bg-brand-green/10"
                       title="Export to CSV"
                     >
                       <Download className="w-4 h-4 mr-1" />
@@ -3729,7 +3729,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                       size="sm"
                       onClick={() => handleExportProcessData('json')}
                       disabled={processData.length === 0}
-                      className="border-blue-500/50 text-blue-300 hover:bg-blue-500/10"
+                      className="border-brand-green/50 text-foreground-secondary hover:bg-brand-green/10"
                       title="Export to JSON"
                     >
                       <Download className="w-4 h-4 mr-1" />
@@ -3754,21 +3754,21 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     {/* Process Data Inputs */}
                     {processData.filter(pd => pd.direction === 'input').length > 0 && (
                       <div>
-                        <h3 className="text-lg font-semibold text-[#3DB60F] mb-3 flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                        <h3 className="text-lg font-semibold text-brand-green mb-3 flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
                           Process Data Inputs ({processData.filter(pd => pd.direction === 'input').length})
                         </h3>
                         <div className="space-y-3">
                           {processData.filter(pd => pd.direction === 'input').map((pd) => (
                             <div
                               key={pd.id}
-                              className="p-4 rounded-lg bg-gradient-to-br from-[#3DB60F]/10 to-blue-500/5 border border-border hover:border-[#3DB60F]/50 transition-all"
+                              className="p-4 rounded-lg bg-gradient-to-br from-brand-green/10 to-brand-green/5 border border-border hover:border-brand-green/50 transition-all"
                             >
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-2">
                                     <h4 className="text-foreground font-semibold">{pd.name}</h4>
-                                    <Badge className="bg-[#3DB60F]/20 text-green-300 border-[#3DB60F]/50 text-xs">
+                                    <Badge className="bg-brand-green/20 text-foreground-secondary border-brand-green/50 text-xs">
                                       {pd.bit_length} bits
                                     </Badge>
                                     <Badge className="bg-muted text-foreground text-xs">
@@ -3824,7 +3824,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                                 {bits.map((bit, idx) => {
                                                   const color = bit.field
                                                     ? `hsl(${(bit.field.subindex * 137.5) % 360}, 70%, 50%)`
-                                                    : '#475569';
+                                                    : 'hsl(var(--muted-foreground))';
 
                                                   return (
                                                     <div
@@ -3835,8 +3835,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                                       <div
                                                         className="h-8 border border-border flex items-center justify-center text-xs font-mono transition-all hover:z-10 hover:scale-110"
                                                         style={{
-                                                          backgroundColor: bit.field ? `${color}20` : '#1e293b',
-                                                          borderColor: bit.field ? `${color}80` : '#334155',
+                                                          backgroundColor: bit.field ? `${color}20` : 'hsl(var(--background))',
+                                                          borderColor: bit.field ? `${color}80` : 'hsl(var(--border))',
                                                           borderLeftWidth: bit.isStart ? '2px' : '1px',
                                                           borderRightWidth: bit.isEnd ? '2px' : '1px'
                                                         }}
@@ -3912,7 +3912,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                                     className="text-xs px-2 py-1 rounded bg-muted/50 text-foreground"
                                                     title={sv.description || sv.name}
                                                   >
-                                                    <span className="font-mono text-[#3DB60F]">{sv.value}</span>
+                                                    <span className="font-mono text-brand-green">{sv.value}</span>
                                                     <span className="text-muted-foreground mx-1">=</span>
                                                     <span>{sv.name}</span>
                                                   </div>
@@ -3935,21 +3935,21 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     {/* Process Data Outputs */}
                     {processData.filter(pd => pd.direction === 'output').length > 0 && (
                       <div>
-                        <h3 className="text-lg font-semibold text-purple-400 mb-3 flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                        <h3 className="text-lg font-semibold text-secondary mb-3 flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
                           Process Data Outputs ({processData.filter(pd => pd.direction === 'output').length})
                         </h3>
                         <div className="space-y-3">
                           {processData.filter(pd => pd.direction === 'output').map((pd) => (
                             <div
                               key={pd.id}
-                              className="p-4 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-border hover:border-purple-500/50 transition-all"
+                              className="p-4 rounded-lg bg-gradient-to-br from-secondary/10 to-accent/5 border border-border hover:border-secondary/50 transition-all"
                             >
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-2">
                                     <h4 className="text-foreground font-semibold">{pd.name}</h4>
-                                    <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/50 text-xs">
+                                    <Badge className="bg-secondary/20 text-foreground-secondary border-secondary/50 text-xs">
                                       {pd.bit_length} bits
                                     </Badge>
                                     <Badge className="bg-muted text-foreground text-xs">
@@ -4005,7 +4005,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                                 {bits.map((bit, idx) => {
                                                   const color = bit.field
                                                     ? `hsl(${(bit.field.subindex * 137.5) % 360}, 70%, 50%)`
-                                                    : '#475569';
+                                                    : 'hsl(var(--muted-foreground))';
 
                                                   return (
                                                     <div
@@ -4016,8 +4016,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                                       <div
                                                         className="h-8 border border-border flex items-center justify-center text-xs font-mono transition-all hover:z-10 hover:scale-110"
                                                         style={{
-                                                          backgroundColor: bit.field ? `${color}20` : '#1e293b',
-                                                          borderColor: bit.field ? `${color}80` : '#334155',
+                                                          backgroundColor: bit.field ? `${color}20` : 'hsl(var(--background))',
+                                                          borderColor: bit.field ? `${color}80` : 'hsl(var(--border))',
                                                           borderLeftWidth: bit.isStart ? '2px' : '1px',
                                                           borderRightWidth: bit.isEnd ? '2px' : '1px'
                                                         }}
@@ -4093,7 +4093,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                                     className="text-xs px-2 py-1 rounded bg-muted/50 text-foreground"
                                                     title={sv.description || sv.name}
                                                   >
-                                                    <span className="font-mono text-[#3DB60F]">{sv.value}</span>
+                                                    <span className="font-mono text-brand-green">{sv.value}</span>
                                                     <span className="text-muted-foreground mx-1">=</span>
                                                     <span>{sv.name}</span>
                                                   </div>
@@ -4146,17 +4146,17 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                           </div>
                         )}
                         {communicationProfile.compatible_with && (
-                          <div className="p-4 rounded-lg bg-gradient-to-br from-blue-500/10 to-green-500/5 border border-border">
+                          <div className="p-4 rounded-lg bg-gradient-to-br from-brand-green/10 to-brand-green/5 border border-border">
                             <p className="text-xs text-muted-foreground mb-1">Compatible With</p>
-                            <p className="text-lg font-bold text-blue-400">{communicationProfile.compatible_with}</p>
+                            <p className="text-lg font-bold text-brand-green">{communicationProfile.compatible_with}</p>
                           </div>
                         )}
                         {communicationProfile.bitrate && (() => {
                           const bitrateDisplay = translateBitrate(communicationProfile.bitrate);
                           return (
-                            <div className="p-4 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-border">
+                            <div className="p-4 rounded-lg bg-gradient-to-br from-secondary/10 to-accent/5 border border-border">
                               <p className="text-xs text-muted-foreground mb-1">Bitrate</p>
-                              <p className="text-lg font-bold text-purple-400" title={`${communicationProfile.bitrate} - ${bitrateDisplay}`}>
+                              <p className="text-lg font-bold text-secondary" title={`${communicationProfile.bitrate} - ${bitrateDisplay}`}>
                                 {bitrateDisplay}
                               </p>
                             </div>
@@ -4172,7 +4172,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         {communicationProfile.min_cycle_time && (
                           <div className="p-4 rounded-lg bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-border">
                             <p className="text-xs text-muted-foreground mb-1">Min Cycle Time</p>
-                            <p className="text-lg font-bold text-orange-400" title={`${communicationProfile.min_cycle_time} microseconds`}>
+                            <p className="text-lg font-bold text-warning" title={`${communicationProfile.min_cycle_time} microseconds`}>
                               {formatCycleTime(communicationProfile.min_cycle_time)}
                             </p>
                           </div>
@@ -4180,14 +4180,14 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         {communicationProfile.msequence_capability && (
                           <div className="p-4 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-border">
                             <p className="text-xs text-muted-foreground mb-1">M-Sequence Capability</p>
-                            <p className="text-lg font-bold text-green-400" title={`${communicationProfile.msequence_capability} bytes`}>
+                            <p className="text-lg font-bold text-success" title={`${communicationProfile.msequence_capability} bytes`}>
                               {decodeMSequence(communicationProfile.msequence_capability)}
                             </p>
                           </div>
                         )}
-                        <div className={`p-4 rounded-lg border ${communicationProfile.sio_supported ? 'bg-green-500/10 border-green-500/30' : 'bg-secondary/50 border-border'}`}>
+                        <div className={`p-4 rounded-lg border ${communicationProfile.sio_supported ? 'bg-success/10 border-success/30' : 'bg-secondary/50 border-border'}`}>
                           <p className="text-xs text-muted-foreground mb-1">SIO Support</p>
-                          <p className={`text-lg font-bold ${communicationProfile.sio_supported ? 'text-green-400' : 'text-muted-foreground'}`}>
+                          <p className={`text-lg font-bold ${communicationProfile.sio_supported ? 'text-success' : 'text-muted-foreground'}`}>
                             {communicationProfile.sio_supported ? 'Supported' : 'Not Supported'}
                           </p>
                         </div>
@@ -4200,14 +4200,14 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                       return (
                         <div>
                           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Physical Connection</h3>
-                          <div className="p-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-border">
+                          <div className="p-4 rounded-lg bg-gradient-to-br from-surface to-surface border border-border">
                             <p className="text-xs text-muted-foreground mb-2">Connection Type</p>
                             <p className="text-lg font-bold text-foreground">{communicationProfile.connection_type}</p>
                             {connInfo.description !== communicationProfile.connection_type && (
                               <p className="text-xs text-muted-foreground mt-2">{connInfo.description}</p>
                             )}
                             {connInfo.pins > 0 && (
-                              <p className="text-xs text-green-400 mt-1">{connInfo.pins} pins</p>
+                              <p className="text-xs text-success mt-1">{connInfo.pins} pins</p>
                             )}
                           </div>
                         </div>
@@ -4222,7 +4222,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                           {Object.entries(communicationProfile.wire_config).map(([wire, func]) => {
                             const wireInfo = getWireColorInfo(wire);
                             return (
-                              <div key={wire} className="p-3 rounded-lg bg-gradient-to-br from-[#3DB60F]/10 to-blue-500/5 border border-border hover:border-[#3DB60F]/50 transition-all">
+                              <div key={wire} className="p-3 rounded-lg bg-gradient-to-br from-brand-green/10 to-brand-green/5 border border-border hover:border-brand-green/50 transition-all">
                                 <div className="flex items-center gap-2 mb-1">
                                   <div
                                     className="w-4 h-4 rounded-full border-2 border-border shadow-inner"
@@ -4232,7 +4232,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                   <p className="text-xs text-muted-foreground font-mono">{wire}</p>
                                 </div>
                                 <p className="text-xs text-foreground mb-1">{wireInfo.name}</p>
-                                <p className="text-xs font-semibold text-[#3DB60F]">{func}</p>
+                                <p className="text-xs font-semibold text-brand-green">{func}</p>
                               </div>
                             );
                           })}
@@ -4254,23 +4254,23 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             {configSchema && configSchema.menus && configSchema.menus.length > 0 ? (
               <div className="space-y-4">
                 {/* Configuration Toolbar */}
-                <Card className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 border-violet-500/30">
+                <Card className="bg-gradient-to-r from-secondary/10 to-secondary/10 border-secondary/30">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center">
-                          <Settings className="w-5 h-5 text-violet-400" />
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary/20 to-secondary/20 flex items-center justify-center">
+                          <Settings className="w-5 h-5 text-secondary" />
                         </div>
                         <div className="flex-1">
                           <Input
                             value={configurationName}
                             onChange={(e) => setConfigurationName(e.target.value)}
-                            className="bg-secondary/50 border-violet-500/30 text-foreground font-semibold max-w-md"
+                            className="bg-secondary/50 border-secondary/30 text-foreground font-semibold max-w-md"
                             placeholder="Configuration name..."
                           />
                           <p className="text-xs text-muted-foreground mt-1">
                             {hasUnsavedChanges ? (
-                              <span className="text-orange-400">Unsaved changes</span>
+                              <span className="text-warning">Unsaved changes</span>
                             ) : (
                               'All changes auto-saved'
                             )}
@@ -4291,7 +4291,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                           variant="outline"
                           size="sm"
                           onClick={exportConfiguration}
-                          className="bg-violet-500/10 border-violet-500/50 hover:bg-violet-500/20 text-violet-400"
+                          className="bg-secondary/10 border-secondary/50 hover:bg-secondary/20 text-secondary"
                         >
                           <Download className="w-4 h-4 mr-2" />
                           Export
@@ -4320,7 +4320,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                               <TabsTrigger
                                 key={menu.id}
                                 value={menu.id}
-                                className="data-[state=active]:bg-violet-500/20 data-[state=active]:text-violet-400 text-muted-foreground text-sm"
+                                className="data-[state=active]:bg-secondary/20 data-[state=active]:text-secondary text-muted-foreground text-sm"
                               >
                                 {menu.name}
                                 <Badge className="ml-2 bg-muted text-foreground text-xs">
@@ -4354,7 +4354,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                     <Card className="bg-card/80 backdrop-blur-sm border-border sticky top-4">
                       <CardHeader>
                         <CardTitle className="text-foreground text-lg flex items-center gap-2">
-                          <Info className="w-5 h-5 text-violet-400" />
+                          <Info className="w-5 h-5 text-secondary" />
                           Parameter Details
                         </CardTitle>
                       </CardHeader>
@@ -4365,7 +4365,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                               <h3 className="text-lg font-semibold text-foreground mb-1">
                                 {selectedParameter.parameter.name}
                               </h3>
-                              <Badge className="font-mono text-xs bg-[#3DB60F]/20 text-green-300 border-[#3DB60F]/50">
+                              <Badge className="font-mono text-xs bg-brand-green/20 text-foreground-secondary border-brand-green/50">
                                 {selectedParameter.variable_id}
                               </Badge>
                             </div>
@@ -4384,7 +4384,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                               </div>
                               <div className="p-2 rounded bg-secondary/50 border border-border">
                                 <p className="text-xs text-muted-foreground mb-1">Access</p>
-                                <Badge className={`text-xs ${selectedParameter.access_right_restriction === 'ro' ? 'bg-blue-500/20 text-blue-400' : selectedParameter.access_right_restriction === 'wo' ? 'bg-orange-500/20 text-orange-400' : 'bg-green-500/20 text-green-400'}`}>
+                                <Badge className={`text-xs ${selectedParameter.access_right_restriction === 'ro' ? 'bg-brand-green/20 text-brand-green' : selectedParameter.access_right_restriction === 'wo' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}`}>
                                   {selectedParameter.access_right_restriction}
                                 </Badge>
                               </div>
@@ -4403,8 +4403,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             </div>
 
                             {(selectedParameter.parameter.min_value !== null || selectedParameter.parameter.max_value !== null) && (
-                              <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                                <p className="text-xs text-blue-400 font-semibold mb-2">Value Range</p>
+                              <div className="p-3 rounded-lg bg-brand-green/10 border border-brand-green/30">
+                                <p className="text-xs text-brand-green font-semibold mb-2">Value Range</p>
                                 <div className="flex items-center justify-between text-sm">
                                   <span className="text-foreground">Min: <span className="font-mono">{selectedParameter.parameter.min_value}</span></span>
                                   <span className="text-foreground">Max: <span className="font-mono">{selectedParameter.parameter.max_value}</span></span>
@@ -4413,8 +4413,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                             )}
 
                             {selectedParameter.parameter.enumeration_values && Object.keys(selectedParameter.parameter.enumeration_values).length > 0 && (
-                              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
-                                <p className="text-xs text-green-400 font-semibold mb-2">Valid Values</p>
+                              <div className="p-3 rounded-lg bg-success/10 border border-success/30">
+                                <p className="text-xs text-success font-semibold mb-2">Valid Values</p>
                                 <div className="space-y-1 max-h-40 overflow-y-auto">
                                   {Object.entries(selectedParameter.parameter.enumeration_values).map(([value, name]) => (
                                     <div key={value} className="text-xs text-foreground flex items-center gap-2">
@@ -4468,7 +4468,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             <Card className="bg-card/80 backdrop-blur-sm border-border">
               <CardHeader>
                 <CardTitle className="text-foreground text-xl flex items-center gap-2">
-                  <FileCode className="w-5 h-5 text-green-400" />
+                  <FileCode className="w-5 h-5 text-success" />
                   IODD XML Source
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
@@ -4498,7 +4498,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                       Copy
                     </Button>
                     <div className="h-[600px] w-full rounded-lg border border-border bg-background overflow-auto">
-                      <pre className="p-4 text-xs font-mono text-green-400 whitespace-pre-wrap break-words">
+                      <pre className="p-4 text-xs font-mono text-success whitespace-pre-wrap break-words">
                         {xmlContent}
                       </pre>
                     </div>
@@ -4518,7 +4518,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               <CardHeader>
                 <CardTitle className="text-foreground text-xl flex items-center gap-2">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center">
-                    <Code2 className="w-5 h-5 text-green-400" />
+                    <Code2 className="w-5 h-5 text-success" />
                   </div>
                   Technical Information
                 </CardTitle>
@@ -4528,17 +4528,17 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-lg bg-gradient-to-br from-[#3DB60F]/10 to-blue-500/5 border border-border">
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-brand-green/10 to-brand-green/5 border border-border">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Cpu className="w-4 h-4 text-[#3DB60F]" />
+                      <Cpu className="w-4 h-4 text-brand-green" />
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Vendor ID</p>
                     </div>
                     <p className="text-lg font-mono font-bold text-foreground">{device.vendor_id}</p>
                   </div>
 
-                  <div className="p-4 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-border">
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-secondary/10 to-accent/5 border border-border">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Package className="w-4 h-4 text-purple-400" />
+                      <Package className="w-4 h-4 text-secondary" />
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Device ID</p>
                     </div>
                     <p className="text-lg font-mono font-bold text-foreground">{device.device_id}</p>
@@ -4546,7 +4546,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
 
                   <div className="p-4 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-border">
                     <div className="flex items-center space-x-2 mb-2">
-                      <FileCode className="w-4 h-4 text-green-400" />
+                      <FileCode className="w-4 h-4 text-success" />
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">IODD Version</p>
                     </div>
                     <p className="text-lg font-bold text-foreground">v{formatVersion(device.iodd_version)}</p>
@@ -4554,15 +4554,15 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
 
                   <div className="p-4 rounded-lg bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-border">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Database className="w-4 h-4 text-orange-400" />
+                      <Database className="w-4 h-4 text-warning" />
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Parameters</p>
                     </div>
                     <p className="text-lg font-bold text-foreground">{parameters.length}</p>
                   </div>
 
-                  <div className="p-4 rounded-lg bg-gradient-to-br from-blue-500/10 to-indigo-500/5 border border-border">
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-brand-green/10 to-brand-green/5 border border-border">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Calendar className="w-4 h-4 text-blue-400" />
+                      <Calendar className="w-4 h-4 text-brand-green" />
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Import Date</p>
                     </div>
                     <p className="text-sm font-medium text-foreground">
@@ -4582,8 +4582,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                 {/* Standard Variables */}
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                      <Database className="w-4 h-4 text-green-400" />
+                    <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                      <Database className="w-4 h-4 text-success" />
                     </div>
                     Standard Variables
                   </h3>
@@ -4597,17 +4597,17 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr className="border-b border-border hover:bg-green-500/5">
+                        <tr className="border-b border-border hover:bg-success/5">
                           <td className="py-3 px-4 text-sm font-medium text-foreground">Product Name</td>
                           <td className="py-3 px-4 text-sm text-foreground">{device.product_name}</td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">Device product name</td>
                         </tr>
-                        <tr className="border-b border-border hover:bg-green-500/5">
+                        <tr className="border-b border-border hover:bg-success/5">
                           <td className="py-3 px-4 text-sm font-medium text-foreground">Manufacturer</td>
                           <td className="py-3 px-4 text-sm text-foreground">{device.manufacturer}</td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">Manufacturer name</td>
                         </tr>
-                        <tr className="border-b border-border hover:bg-green-500/5">
+                        <tr className="border-b border-border hover:bg-success/5">
                           <td className="py-3 px-4 text-sm font-medium text-foreground">IODD Version</td>
                           <td className="py-3 px-4 text-sm font-mono text-foreground">{device.iodd_version}</td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">IO-Link Device Description version</td>
@@ -4625,8 +4625,8 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             <Card className="bg-card/80 backdrop-blur-sm border-border">
               <CardHeader>
                 <CardTitle className="text-foreground text-xl flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-blue-500/20 flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-indigo-400" />
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-green/20 to-brand-green/20 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-brand-green" />
                   </div>
                   Generate Adapter
                 </CardTitle>
@@ -4637,20 +4637,20 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Button
-                    className="h-32 flex-col space-y-3 bg-gradient-to-br from-[#3DB60F]/20 to-blue-600/20 border-[#3DB60F]/50 transition-all"
+                    className="h-32 flex-col space-y-3 bg-gradient-to-br from-brand-green/20 to-brand-green/20 border-brand-green/50 transition-all"
                     disabled
                   >
-                    <div className="w-16 h-16 rounded-xl bg-[#3DB60F]/20 flex items-center justify-center">
-                      <Code2 className="w-8 h-8 text-[#3DB60F] opacity-50" />
+                    <div className="w-16 h-16 rounded-xl bg-brand-green/20 flex items-center justify-center">
+                      <Code2 className="w-8 h-8 text-brand-green opacity-50" />
                     </div>
                     <span className="text-base font-semibold">Node-RED (Coming Soon)</span>
                   </Button>
                   <Button
-                    className="h-32 flex-col space-y-3 bg-gradient-to-br from-green-500/20 to-emerald-600/20 border-green-500/50 transition-all"
+                    className="h-32 flex-col space-y-3 bg-gradient-to-br from-green-500/20 to-emerald-600/20 border-success/50 transition-all"
                     disabled
                   >
-                    <div className="w-16 h-16 rounded-xl bg-green-500/20 flex items-center justify-center">
-                      <FileCode className="w-8 h-8 text-green-400 opacity-50" />
+                    <div className="w-16 h-16 rounded-xl bg-success/20 flex items-center justify-center">
+                      <FileCode className="w-8 h-8 text-success opacity-50" />
                     </div>
                     <span className="text-base font-semibold">Python (Coming Soon)</span>
                   </Button>
@@ -4671,16 +4671,16 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="bg-card border-red-700/50 text-foreground">
+        <DialogContent className="bg-card border-error/50 text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-red-400 flex items-center">
+            <DialogTitle className="text-error flex items-center">
               <Trash2 className="w-5 h-5 mr-2" />
               Delete Device
             </DialogTitle>
             <DialogDescription className="text-foreground">
               Are you sure you want to delete <span className="font-semibold text-foreground">{device.product_name}</span>?
               <br />
-              <span className="text-red-400">This action cannot be undone.</span> All device data, parameters, and assets will be permanently removed.
+              <span className="text-error">This action cannot be undone.</span> All device data, parameters, and assets will be permanently removed.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-3 mt-4">
@@ -4695,7 +4695,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             <Button
               onClick={handleDelete}
               disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-foreground"
+              className="bg-error hover:bg-error/90 text-foreground"
             >
               {deleting ? 'Deleting...' : 'Delete Device'}
             </Button>
@@ -5683,7 +5683,7 @@ const IODDManager = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center z-50">
           <Card className="bg-secondary border-border p-8">
             <div className="flex flex-col items-center space-y-4">
-              <div className="w-16 h-16 border-4 border-[#3DB60F] border-t-transparent rounded-full animate-spin" />
+              <div className="w-16 h-16 border-4 border-brand-green border-t-transparent rounded-full animate-spin" />
               <p className="text-foreground">Processing...</p>
               {uploadProgress > 0 && (
                 <Progress value={uploadProgress} className="w-48" />

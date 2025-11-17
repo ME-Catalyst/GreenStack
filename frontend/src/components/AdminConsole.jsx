@@ -248,7 +248,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <RefreshCw className="w-12 h-12 text-cyan-500 animate-spin mx-auto mb-4" />
+          <RefreshCw className="w-12 h-12 text-brand-green animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">Loading admin console...</p>
         </div>
       </div>
@@ -261,7 +261,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Settings className="w-8 h-8 text-cyan-500" />
+            <Settings className="w-8 h-8 text-brand-green" />
             Admin Console
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -294,7 +294,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-3 font-medium transition-all flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? 'text-cyan-400 border-b-2 border-cyan-400'
+                    ? 'text-brand-green border-b-2 border-brand-green'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -383,7 +383,7 @@ const HubTab = ({ overview, onNavigate }) => {
       title: 'Browse Devices',
       description: 'View and manage IO-Link devices',
       icon: Package,
-      color: 'from-blue-600 to-cyan-600',
+      color: 'from-primary to-brand-green',
       action: () => onNavigate?.('devices'),
       count: overview?.devices?.iodd || 0
     },
@@ -391,7 +391,7 @@ const HubTab = ({ overview, onNavigate }) => {
       title: 'Browse EDS Files',
       description: 'Manage EtherNet/IP device files',
       icon: FileText,
-      color: 'from-purple-600 to-pink-600',
+      color: 'from-secondary to-accent',
       action: () => onNavigate?.('eds-files'),
       count: overview?.devices?.eds || 0
     },
@@ -399,14 +399,14 @@ const HubTab = ({ overview, onNavigate }) => {
       title: 'Search',
       description: 'Find devices and parameters',
       icon: Search,
-      color: 'from-orange-600 to-red-600',
+      color: 'from-warning to-error',
       action: () => onNavigate?.('search')
     },
     {
       title: 'Compare',
       description: 'Compare device specifications',
       icon: GitBranch,
-      color: 'from-green-600 to-emerald-600',
+      color: 'from-success to-brand-green',
       action: () => onNavigate?.('compare')
     }
   ];
@@ -447,11 +447,11 @@ const HubTab = ({ overview, onNavigate }) => {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <Card className="bg-gradient-to-br from-cyan-900/20 via-blue-900/20 to-purple-900/20 border-cyan-800/50">
+      <Card className="bg-gradient-to-br from-brand-green/10 via-primary/10 to-secondary/10 border-brand-green/30">
         <CardContent className="p-8">
           <div className="flex items-start gap-6">
-            <div className="p-4 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
-              <Rocket className="w-12 h-12 text-cyan-400" />
+            <div className="p-4 bg-brand-green/10 rounded-xl border border-brand-green/20">
+              <Rocket className="w-12 h-12 text-brand-green" />
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-foreground mb-2">
@@ -463,16 +463,16 @@ const HubTab = ({ overview, onNavigate }) => {
               </p>
               <div className="flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Package className="w-4 h-4 text-blue-400" />
-                  <span className="text-blue-400 font-semibold">{overview?.devices?.total || 0}</span> Total Devices
+                  <Package className="w-4 h-4 text-primary" />
+                  <span className="text-primary font-semibold">{overview?.devices?.total || 0}</span> Total Devices
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Settings className="w-4 h-4 text-purple-400" />
-                  <span className="text-purple-400 font-semibold">{overview?.parameters?.total?.toLocaleString() || 0}</span> Parameters
+                  <Settings className="w-4 h-4 text-secondary" />
+                  <span className="text-secondary font-semibold">{overview?.parameters?.total?.toLocaleString() || 0}</span> Parameters
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <HardDrive className="w-4 h-4 text-green-400" />
-                  <span className="text-green-400 font-semibold">{overview?.storage?.total_size_mb || 0} MB</span> Storage
+                  <HardDrive className="w-4 h-4 text-success" />
+                  <span className="text-success font-semibold">{overview?.storage?.total_size_mb || 0} MB</span> Storage
                 </div>
               </div>
             </div>
@@ -483,7 +483,7 @@ const HubTab = ({ overview, onNavigate }) => {
       {/* Quick Actions */}
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-yellow-500" />
+          <Zap className="w-5 h-5 text-warning" />
           Quick Actions
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -493,12 +493,12 @@ const HubTab = ({ overview, onNavigate }) => {
               <button
                 key={idx}
                 onClick={action.action}
-                className="group text-left p-6 bg-card border border-border rounded-lg hover:border-border hover:shadow-lg hover:shadow-cyan-500/10 transition-all"
+                className="group text-left p-6 bg-card border border-border rounded-lg hover:border-brand-green hover:shadow-lg hover:shadow-brand-green/10 transition-all"
               >
                 <div className={`inline-flex p-3 rounded-lg bg-gradient-to-br ${action.color} mb-4`}>
                   <Icon className="w-6 h-6 text-foreground" />
                 </div>
-                <h4 className="font-semibold text-foreground mb-1 group-hover:text-cyan-400 transition-colors">
+                <h4 className="font-semibold text-foreground mb-1 group-hover:text-brand-green transition-colors">
                   {action.title}
                 </h4>
                 <p className="text-sm text-muted-foreground">
@@ -520,7 +520,7 @@ const HubTab = ({ overview, onNavigate }) => {
       {/* Resources */}
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-orange-500" />
+          <BookOpen className="w-5 h-5 text-warning" />
           Resources & Documentation
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -530,7 +530,7 @@ const HubTab = ({ overview, onNavigate }) => {
               <Card key={idx} className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="text-foreground text-base flex items-center gap-2">
-                    <Icon className="w-5 h-5 text-cyan-400" />
+                    <Icon className="w-5 h-5 text-brand-green" />
                     {section.title}
                   </CardTitle>
                 </CardHeader>
@@ -542,7 +542,7 @@ const HubTab = ({ overview, onNavigate }) => {
                         href={item.href}
                         target={item.external ? '_self' : '_blank'}
                         rel={item.external ? undefined : 'noopener noreferrer'}
-                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-cyan-400 transition-colors group"
+                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-brand-green transition-colors group"
                       >
                         <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <span>{item.label}</span>
@@ -559,7 +559,7 @@ const HubTab = ({ overview, onNavigate }) => {
       {/* IoT Platform Services */}
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Server className="w-5 h-5 text-cyan-500" />
+          <Server className="w-5 h-5 text-brand-green" />
           IoT Platform Services
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -569,13 +569,13 @@ const HubTab = ({ overview, onNavigate }) => {
               <CardTitle className="text-foreground text-sm flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   {mqttStatus?.connected ? (
-                    <Wifi className="w-4 h-4 text-green-400" />
+                    <Wifi className="w-4 h-4 text-success" />
                   ) : (
-                    <WifiOff className="w-4 h-4 text-red-400" />
+                    <WifiOff className="w-4 h-4 text-error" />
                   )}
                   MQTT Broker
                 </span>
-                <Badge className={mqttStatus?.connected ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-red-500/20 text-red-400 border-red-500/30"}>
+                <Badge className={mqttStatus?.connected ? "bg-success/20 text-success border-success/30" : "bg-error/20 text-error border-error/30"}>
                   {mqttStatus?.connected ? 'Online' : 'Offline'}
                 </Badge>
               </CardTitle>
@@ -597,7 +597,7 @@ const HubTab = ({ overview, onNavigate }) => {
                     size="sm"
                     onClick={() => handleMqttAction('connect')}
                     disabled={mqttLoading}
-                    className="flex-1 bg-green-600 hover:bg-green-500"
+                    className="flex-1 bg-success hover:bg-success/80"
                   >
                     <Play className="w-3 h-3 mr-1" />
                     Connect
@@ -630,7 +630,7 @@ const HubTab = ({ overview, onNavigate }) => {
                 href="http://localhost:1883"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                className="text-xs text-brand-green hover:text-brand-green/80 flex items-center gap-1"
               >
                 <ExternalLink className="w-3 h-3" />
                 Broker Details
@@ -642,7 +642,7 @@ const HubTab = ({ overview, onNavigate }) => {
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="text-foreground text-sm flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-orange-400" />
+                <BarChart3 className="w-4 h-4 text-warning" />
                 Grafana
               </CardTitle>
             </CardHeader>
@@ -666,7 +666,7 @@ const HubTab = ({ overview, onNavigate }) => {
                 rel="noopener noreferrer"
                 className="block"
               >
-                <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-500">
+                <Button size="sm" className="w-full bg-warning hover:bg-warning/80">
                   <ExternalLink className="w-3 h-3 mr-1" />
                   Open Grafana
                 </Button>
@@ -678,7 +678,7 @@ const HubTab = ({ overview, onNavigate }) => {
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="text-foreground text-sm flex items-center gap-2">
-                <Zap className="w-4 h-4 text-red-400" />
+                <Zap className="w-4 h-4 text-error" />
                 Node-RED
               </CardTitle>
             </CardHeader>
@@ -702,7 +702,7 @@ const HubTab = ({ overview, onNavigate }) => {
                 rel="noopener noreferrer"
                 className="block"
               >
-                <Button size="sm" className="w-full bg-red-600 hover:bg-red-500">
+                <Button size="sm" className="w-full bg-error hover:bg-error/80">
                   <ExternalLink className="w-3 h-3 mr-1" />
                   Open Node-RED
                 </Button>
@@ -714,7 +714,7 @@ const HubTab = ({ overview, onNavigate }) => {
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="text-foreground text-sm flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-blue-400" />
+                <TrendingUp className="w-4 h-4 text-primary" />
                 InfluxDB
               </CardTitle>
             </CardHeader>
@@ -738,7 +738,7 @@ const HubTab = ({ overview, onNavigate }) => {
                 rel="noopener noreferrer"
                 className="block"
               >
-                <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-500">
+                <Button size="sm" className="w-full bg-primary hover:bg-primary/80">
                   <ExternalLink className="w-3 h-3 mr-1" />
                   Open InfluxDB
                 </Button>
@@ -751,7 +751,7 @@ const HubTab = ({ overview, onNavigate }) => {
       {/* System Status Summary */}
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Activity className="w-5 h-5 text-green-500" />
+          <Activity className="w-5 h-5 text-success" />
           System Status
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -761,11 +761,11 @@ const HubTab = ({ overview, onNavigate }) => {
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Database Health</p>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <CheckCircle className="w-5 h-5 text-success" />
                     <span className="text-lg font-semibold text-foreground">Healthy</span>
                   </div>
                 </div>
-                <Database className="w-8 h-8 text-green-500/30" />
+                <Database className="w-8 h-8 text-success/30" />
               </div>
             </CardContent>
           </Card>
@@ -781,7 +781,7 @@ const HubTab = ({ overview, onNavigate }) => {
                     </span>
                   </div>
                 </div>
-                <Bug className="w-8 h-8 text-blue-500/30" />
+                <Bug className="w-8 h-8 text-primary/30" />
               </div>
             </CardContent>
           </Card>
@@ -797,7 +797,7 @@ const HubTab = ({ overview, onNavigate }) => {
                     </span>
                   </div>
                 </div>
-                <TrendingUp className="w-8 h-8 text-purple-500/30" />
+                <TrendingUp className="w-8 h-8 text-secondary/30" />
               </div>
             </CardContent>
           </Card>
@@ -813,7 +813,7 @@ const HubTab = ({ overview, onNavigate }) => {
                     </span>
                   </div>
                 </div>
-                <AlertTriangle className="w-8 h-8 text-orange-500/30" />
+                <AlertTriangle className="w-8 h-8 text-warning/30" />
               </div>
             </CardContent>
           </Card>
@@ -833,7 +833,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
-            <Shield className="w-5 h-5 text-green-500" />
+            <Shield className="w-5 h-5 text-success" />
             Database Health
           </CardTitle>
         </CardHeader>
@@ -841,27 +841,27 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
           <div className="space-y-4">
             {/* Overall Health Status */}
             <div className={`flex items-center justify-between p-4 rounded-lg border ${
-              dbHealth?.health_status === 'healthy' ? 'bg-green-500/10 border-green-500/50' :
-              dbHealth?.health_status === 'needs_attention' ? 'bg-blue-500/10 border-blue-500/50' :
-              dbHealth?.health_status === 'warning' ? 'bg-yellow-500/10 border-yellow-500/50' :
-              'bg-red-500/10 border-red-500/50'
+              dbHealth?.health_status === 'healthy' ? 'bg-success/10 border-success/50' :
+              dbHealth?.health_status === 'needs_attention' ? 'bg-primary/10 border-primary/50' :
+              dbHealth?.health_status === 'warning' ? 'bg-warning/10 border-warning/50' :
+              'bg-error/10 border-error/50'
             }`}>
               <div className="flex items-center gap-3">
                 {dbHealth?.health_status === 'healthy' ? (
-                  <CheckCircle className="w-6 h-6 text-green-500" />
+                  <CheckCircle className="w-6 h-6 text-success" />
                 ) : dbHealth?.health_status === 'needs_attention' ? (
-                  <Info className="w-6 h-6 text-blue-500" />
+                  <Info className="w-6 h-6 text-primary" />
                 ) : dbHealth?.health_status === 'warning' ? (
-                  <AlertTriangle className="w-6 h-6 text-yellow-500" />
+                  <AlertTriangle className="w-6 h-6 text-warning" />
                 ) : (
-                  <AlertTriangle className="w-6 h-6 text-red-500" />
+                  <AlertTriangle className="w-6 h-6 text-error" />
                 )}
                 <div>
                   <p className={`font-medium ${
-                    dbHealth?.health_status === 'healthy' ? 'text-green-400' :
-                    dbHealth?.health_status === 'needs_attention' ? 'text-blue-400' :
-                    dbHealth?.health_status === 'warning' ? 'text-yellow-400' :
-                    'text-red-400'
+                    dbHealth?.health_status === 'healthy' ? 'text-success' :
+                    dbHealth?.health_status === 'needs_attention' ? 'text-primary' :
+                    dbHealth?.health_status === 'warning' ? 'text-warning' :
+                    'text-error'
                   }`}>
                     {dbHealth?.health_status === 'healthy' ? 'Healthy' :
                      dbHealth?.health_status === 'needs_attention' ? 'Needs Attention' :
@@ -883,24 +883,24 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             {dbHealth?.issues && dbHealth.issues.length > 0 && (
               <div className="space-y-3">
                 <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-orange-500" />
+                  <AlertTriangle className="w-4 h-4 text-warning" />
                   Detected Issues ({dbHealth.issues.length})
                 </h4>
                 {dbHealth.issues.map((issue, idx) => (
                   <div key={idx} className={`p-4 rounded-lg border ${
-                    issue.severity === 'critical' ? 'bg-red-500/10 border-red-500/50' :
-                    issue.severity === 'high' ? 'bg-orange-500/10 border-orange-500/50' :
-                    issue.severity === 'medium' ? 'bg-yellow-500/10 border-yellow-500/50' :
-                    'bg-blue-500/10 border-blue-500/50'
+                    issue.severity === 'critical' ? 'bg-error/10 border-error/50' :
+                    issue.severity === 'high' ? 'bg-warning/10 border-warning/50' :
+                    issue.severity === 'medium' ? 'bg-warning/10 border-warning/50' :
+                    'bg-primary/10 border-primary/50'
                   }`}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <Badge className={
-                            issue.severity === 'critical' ? 'bg-red-900/30 text-red-300 border-red-700/50' :
-                            issue.severity === 'high' ? 'bg-orange-900/30 text-orange-300 border-orange-700/50' :
-                            issue.severity === 'medium' ? 'bg-yellow-900/30 text-yellow-300 border-yellow-700/50' :
-                            'bg-blue-900/30 text-blue-300 border-blue-700/50'
+                            issue.severity === 'critical' ? 'bg-error/20 text-error border-error/50' :
+                            issue.severity === 'high' ? 'bg-warning/20 text-warning border-warning/50' :
+                            issue.severity === 'medium' ? 'bg-warning/20 text-warning border-warning/50' :
+                            'bg-primary/20 text-primary border-primary/50'
                           }>
                             {issue.severity?.toUpperCase()}
                           </Badge>
@@ -915,9 +915,9 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
                                    issue.action === 'vacuum' ? handleVacuum :
                                    null}
                           className={
-                            issue.severity === 'critical' ? 'bg-red-600 hover:bg-red-700' :
-                            issue.severity === 'high' ? 'bg-orange-600 hover:bg-orange-700' :
-                            'bg-blue-600 hover:bg-blue-700'
+                            issue.severity === 'critical' ? 'bg-error hover:bg-error/80' :
+                            issue.severity === 'high' ? 'bg-warning hover:bg-warning/80' :
+                            'bg-primary hover:bg-primary/80'
                           }
                         >
                           {issue.action_label || 'Fix Now'}
@@ -931,15 +931,15 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
 
             {/* Recommendations */}
             {dbHealth?.recommendations && dbHealth.recommendations.length > 0 && (
-              <div className="p-4 bg-blue-500/10 border border-blue-500/50 rounded-lg">
-                <h4 className="text-sm font-semibold text-blue-400 mb-2 flex items-center gap-2">
+              <div className="p-4 bg-primary/10 border border-primary/50 rounded-lg">
+                <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
                   <Info className="w-4 h-4" />
                   Recommendations
                 </h4>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   {dbHealth.recommendations.map((rec, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <span className="text-blue-400 mt-1">•</span>
+                      <span className="text-primary mt-1">•</span>
                       <span>{rec}</span>
                     </li>
                   ))}
@@ -951,7 +951,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-secondary/30 rounded-lg border border-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <HardDrive className="w-4 h-4 text-cyan-400" />
+                  <HardDrive className="w-4 h-4 text-brand-green" />
                   <span className="text-sm text-muted-foreground">Database Size</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">{overview?.storage?.database_size_mb} MB</p>
@@ -959,7 +959,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
 
               <div className="p-4 bg-secondary/30 rounded-lg border border-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <Package className="w-4 h-4 text-purple-400" />
+                  <Package className="w-4 h-4 text-secondary" />
                   <span className="text-sm text-muted-foreground">Indexes</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">{dbHealth?.index_count || 0}</p>
@@ -973,7 +973,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-cyan-500" />
+            <BarChart3 className="w-5 h-5 text-brand-green" />
             Table Statistics
           </CardTitle>
         </CardHeader>
@@ -1003,7 +1003,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
-            <Zap className="w-5 h-5 text-yellow-500" />
+            <Zap className="w-5 h-5 text-warning" />
             Database Actions
           </CardTitle>
         </CardHeader>
@@ -1011,7 +1011,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button
               onClick={handleVacuum}
-              className="bg-blue-600 hover:bg-blue-700 text-foreground h-auto py-4 flex-col items-start"
+              className="bg-primary hover:bg-primary/80 text-foreground h-auto py-4 flex-col items-start"
             >
               <div className="flex items-center gap-2 mb-1">
                 <Zap className="w-4 h-4" />
@@ -1024,7 +1024,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
 
             <Button
               onClick={handleBackup}
-              className="bg-green-600 hover:bg-green-700 text-foreground h-auto py-4 flex-col items-start"
+              className="bg-success hover:bg-success/80 text-foreground h-auto py-4 flex-col items-start"
             >
               <div className="flex items-center gap-2 mb-1">
                 <Database className="w-4 h-4" />
@@ -1037,7 +1037,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
 
             <Button
               onClick={handleDownloadBackup}
-              className="bg-purple-600 hover:bg-purple-700 text-foreground h-auto py-4 flex-col items-start"
+              className="bg-secondary hover:bg-secondary/80 text-foreground h-auto py-4 flex-col items-start"
             >
               <div className="flex items-center gap-2 mb-1">
                 <Download className="w-4 h-4" />
@@ -1052,9 +1052,9 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
       </Card>
 
       {/* Danger Zone */}
-      <Card className="bg-red-950/20 border-red-900/50">
+      <Card className="bg-error/10 border-error/50">
         <CardHeader>
-          <CardTitle className="text-red-400 flex items-center gap-2">
+          <CardTitle className="text-error flex items-center gap-2">
             <AlertTriangle className="w-5 h-5" />
             Danger Zone
           </CardTitle>
@@ -1067,7 +1067,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <Button
               onClick={handleDeleteIODD}
               variant="destructive"
-              className="h-auto py-4 flex-col items-start bg-red-900/50 hover:bg-red-900/70 border-red-800"
+              className="h-auto py-4 flex-col items-start bg-error/30 hover:bg-error/50 border-error"
             >
               <div className="flex items-center gap-2 mb-1">
                 <Trash2 className="w-4 h-4" />
@@ -1081,7 +1081,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <Button
               onClick={handleDeleteEDS}
               variant="destructive"
-              className="h-auto py-4 flex-col items-start bg-red-900/50 hover:bg-red-900/70 border-red-800"
+              className="h-auto py-4 flex-col items-start bg-error/30 hover:bg-error/50 border-error"
             >
               <div className="flex items-center gap-2 mb-1">
                 <Trash2 className="w-4 h-4" />
@@ -1095,7 +1095,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <Button
               onClick={handleDeleteTickets}
               variant="destructive"
-              className="h-auto py-4 flex-col items-start bg-red-900/50 hover:bg-red-900/70 border-red-800"
+              className="h-auto py-4 flex-col items-start bg-error/30 hover:bg-error/50 border-error"
             >
               <div className="flex items-center gap-2 mb-1">
                 <Trash2 className="w-4 h-4" />
@@ -1109,7 +1109,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <Button
               onClick={handleDeleteTemp}
               variant="destructive"
-              className="h-auto py-4 flex-col items-start bg-orange-900/50 hover:bg-orange-900/70 border-orange-800"
+              className="h-auto py-4 flex-col items-start bg-warning/30 hover:bg-warning/50 border-warning"
             >
               <div className="flex items-center gap-2 mb-1">
                 <Trash2 className="w-4 h-4" />
@@ -1123,7 +1123,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
             <Button
               onClick={handleDeleteAll}
               variant="destructive"
-              className="h-auto py-4 flex-col items-start bg-red-900 hover:bg-red-800 border-red-700"
+              className="h-auto py-4 flex-col items-start bg-error hover:bg-error/80 border-error"
             >
               <div className="flex items-center gap-2 mb-1">
                 <Trash2 className="w-4 h-4" />
@@ -1145,28 +1145,28 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleBackup, handleDow
  */
 const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
   const getQualityColor = (score) => {
-    if (score >= 90) return 'text-green-500';
-    if (score >= 70) return 'text-yellow-500';
-    return 'text-red-500';
+    if (score >= 90) return 'text-success';
+    if (score >= 70) return 'text-warning';
+    return 'text-error';
   };
 
   const getQualityBgColor = (score) => {
-    if (score >= 90) return 'bg-green-500/20 border-green-500/50';
-    if (score >= 70) return 'bg-yellow-500/20 border-yellow-500/50';
-    return 'bg-red-500/20 border-red-500/50';
+    if (score >= 90) return 'bg-success/20 border-success/50';
+    if (score >= 70) return 'bg-warning/20 border-warning/50';
+    return 'bg-error/20 border-error/50';
   };
 
   const ProgressBar = ({ value, label }) => (
     <div className="space-y-1">
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">{label}</span>
-        <span className={value >= 90 ? 'text-green-400' : value >= 70 ? 'text-yellow-400' : 'text-red-400'}>
+        <span className={value >= 90 ? 'text-success' : value >= 70 ? 'text-warning' : 'text-error'}>
           {value.toFixed(1)}%
         </span>
       </div>
       <div className="w-full bg-secondary/30 rounded-full h-2">
         <div
-          className={`h-2 rounded-full transition-all ${value >= 90 ? 'bg-green-500' : value >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
+          className={`h-2 rounded-full transition-all ${value >= 90 ? 'bg-success' : value >= 70 ? 'bg-warning' : 'bg-error'}`}
           style={{ width: `${value}%` }}
         />
       </div>
@@ -1182,7 +1182,7 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
           <CardHeader>
             <CardTitle className="text-foreground flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-orange-500" />
+                <Activity className="w-5 h-5 text-warning" />
                 EDS Parsing Quality
               </span>
               <span className={`text-3xl font-bold ${getQualityColor(edsDiagnostics?.quality_score || 0)}`}>
@@ -1194,11 +1194,11 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="p-3 bg-secondary/30 rounded-lg">
-                  <p className="text-2xl font-bold text-green-400">{edsDiagnostics?.total_files || 0}</p>
+                  <p className="text-2xl font-bold text-success">{edsDiagnostics?.total_files || 0}</p>
                   <p className="text-xs text-muted-foreground">Total Files</p>
                 </div>
                 <div className="p-3 bg-secondary/30 rounded-lg">
-                  <p className="text-2xl font-bold text-red-400">{edsDiagnostics?.total_files_with_issues || 0}</p>
+                  <p className="text-2xl font-bold text-error">{edsDiagnostics?.total_files_with_issues || 0}</p>
                   <p className="text-xs text-muted-foreground">With Issues</p>
                 </div>
               </div>
@@ -1220,7 +1220,7 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
           <CardHeader>
             <CardTitle className="text-foreground flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-500" />
+                <FileText className="w-5 h-5 text-primary" />
                 IODD Parsing Quality
               </span>
               <span className={`text-3xl font-bold ${getQualityColor(ioddDiagnostics?.quality_score || 0)}`}>
@@ -1232,11 +1232,11 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="p-3 bg-secondary/30 rounded-lg">
-                  <p className="text-2xl font-bold text-green-400">{ioddDiagnostics?.total_files || 0}</p>
+                  <p className="text-2xl font-bold text-success">{ioddDiagnostics?.total_files || 0}</p>
                   <p className="text-xs text-muted-foreground">Total Files</p>
                 </div>
                 <div className="p-3 bg-secondary/30 rounded-lg">
-                  <p className="text-2xl font-bold text-red-400">{ioddDiagnostics?.total_files_with_issues || 0}</p>
+                  <p className="text-2xl font-bold text-error">{ioddDiagnostics?.total_files_with_issues || 0}</p>
                   <p className="text-xs text-muted-foreground">With Issues</p>
                 </div>
               </div>
@@ -1258,7 +1258,7 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-orange-500" />
+              <AlertTriangle className="w-5 h-5 text-warning" />
               EDS Diagnostic Issues by Severity
             </CardTitle>
           </CardHeader>
@@ -1266,10 +1266,10 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {edsDiagnostics.by_severity.map((item, idx) => {
                 const colors = {
-                  INFO: { text: 'text-blue-400', bg: 'bg-blue-500/20' },
-                  WARN: { text: 'text-yellow-400', bg: 'bg-yellow-500/20' },
-                  ERROR: { text: 'text-orange-400', bg: 'bg-orange-500/20' },
-                  FATAL: { text: 'text-red-400', bg: 'bg-red-500/20' }
+                  INFO: { text: 'text-primary', bg: 'bg-primary/20' },
+                  WARN: { text: 'text-warning', bg: 'bg-warning/20' },
+                  ERROR: { text: 'text-warning', bg: 'bg-warning/20' },
+                  FATAL: { text: 'text-error', bg: 'bg-error/20' }
                 };
                 return (
                   <div key={idx} className={`p-4 ${colors[item.severity].bg} rounded-lg border border-border`}>
@@ -1290,7 +1290,7 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500" />
+              <AlertCircle className="w-5 h-5 text-error" />
               EDS Files with Parsing Issues ({edsDiagnostics.files_with_issues.length})
             </CardTitle>
           </CardHeader>
@@ -1305,17 +1305,17 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
                     </div>
                     <div className="flex gap-2 text-xs">
                       {file.fatal > 0 && (
-                        <Badge className="bg-red-900/30 text-red-300 border-red-700/50">
+                        <Badge className="bg-error/20 text-error border-error/50">
                           {file.fatal} fatal
                         </Badge>
                       )}
                       {file.errors > 0 && (
-                        <Badge className="bg-orange-900/30 text-orange-300 border-orange-700/50">
+                        <Badge className="bg-warning/20 text-warning border-warning/50">
                           {file.errors} errors
                         </Badge>
                       )}
                       {file.warnings > 0 && (
-                        <Badge className="bg-yellow-900/30 text-yellow-300 border-yellow-700/50">
+                        <Badge className="bg-warning/20 text-warning border-warning/50">
                           {file.warnings} warnings
                         </Badge>
                       )}
@@ -1333,7 +1333,7 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500" />
+              <AlertCircle className="w-5 h-5 text-error" />
               IODD Files with Issues ({ioddDiagnostics.files_with_issues.length})
             </CardTitle>
           </CardHeader>
@@ -1348,7 +1348,7 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
                     </div>
                     <div className="flex flex-wrap gap-1 text-xs">
                       {file.issues.map((issue, i) => (
-                        <Badge key={i} className="bg-orange-900/30 text-orange-300 border-orange-700/50">
+                        <Badge key={i} className="bg-warning/20 text-warning border-warning/50">
                           {issue}
                         </Badge>
                       ))}
@@ -1366,7 +1366,7 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              <AlertTriangle className="w-5 h-5 text-warning" />
               Most Common EDS Diagnostic Codes
             </CardTitle>
           </CardHeader>
@@ -1376,10 +1376,10 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
                 <div key={idx} className="flex items-center justify-between p-3 bg-secondary/30 rounded border border-border/50">
                   <div className="flex items-center gap-3">
                     <Badge className={
-                      code.severity === 'FATAL' ? 'bg-red-900/30 text-red-300 border-red-700/50' :
-                      code.severity === 'ERROR' ? 'bg-orange-900/30 text-orange-300 border-orange-700/50' :
-                      code.severity === 'WARN' ? 'bg-yellow-900/30 text-yellow-300 border-yellow-700/50' :
-                      'bg-blue-900/30 text-blue-300 border-blue-700/50'
+                      code.severity === 'FATAL' ? 'bg-error/20 text-error border-error/50' :
+                      code.severity === 'ERROR' ? 'bg-warning/20 text-warning border-warning/50' :
+                      code.severity === 'WARN' ? 'bg-warning/20 text-warning border-warning/50' :
+                      'bg-primary/20 text-primary border-primary/50'
                     }>
                       {code.severity}
                     </Badge>
@@ -1395,9 +1395,9 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
 
       {/* Success Message when no issues */}
       {edsDiagnostics?.total_files_with_issues === 0 && ioddDiagnostics?.total_files_with_issues === 0 && (
-        <Card className="bg-green-500/10 border-green-500/50">
+        <Card className="bg-success/10 border-success/50">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-3 text-green-400">
+            <div className="flex items-center gap-3 text-success">
               <CheckCircle2 className="w-6 h-6" />
               <div>
                 <p className="font-semibold">Excellent Parsing Quality!</p>
@@ -1423,7 +1423,7 @@ const SystemTab = ({ systemInfo, overview }) => {
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
-            <Cpu className="w-5 h-5 text-cyan-500" />
+            <Cpu className="w-5 h-5 text-brand-green" />
             Application Information
           </CardTitle>
         </CardHeader>
@@ -1446,13 +1446,13 @@ const SystemTab = ({ systemInfo, overview }) => {
               <div className="flex items-center gap-2">
                 {systemInfo?.application?.database_exists ? (
                   <>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span className="text-green-400">Connected</span>
+                    <CheckCircle className="w-4 h-4 text-success" />
+                    <span className="text-success">Connected</span>
                   </>
                 ) : (
                   <>
-                    <AlertTriangle className="w-4 h-4 text-red-500" />
-                    <span className="text-red-400">Not Found</span>
+                    <AlertTriangle className="w-4 h-4 text-error" />
+                    <span className="text-error">Not Found</span>
                   </>
                 )}
               </div>
@@ -1465,7 +1465,7 @@ const SystemTab = ({ systemInfo, overview }) => {
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
-            <Server className="w-5 h-5 text-purple-500" />
+            <Server className="w-5 h-5 text-secondary" />
             Platform Information
           </CardTitle>
         </CardHeader>
@@ -1491,7 +1491,7 @@ const SystemTab = ({ systemInfo, overview }) => {
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
-            <Terminal className="w-5 h-5 text-green-500" />
+            <Terminal className="w-5 h-5 text-success" />
             Python Environment
           </CardTitle>
         </CardHeader>
@@ -1517,7 +1517,7 @@ const SystemTab = ({ systemInfo, overview }) => {
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-foreground flex items-center gap-2">
-            <HardDrive className="w-5 h-5 text-orange-500" />
+            <HardDrive className="w-5 h-5 text-warning" />
             Storage Information
           </CardTitle>
         </CardHeader>
@@ -1534,7 +1534,7 @@ const SystemTab = ({ systemInfo, overview }) => {
             </div>
             <div className="p-4 bg-secondary/30 rounded-lg border border-border">
               <p className="text-sm text-muted-foreground mb-1">Total</p>
-              <p className="text-2xl font-bold text-cyan-400">{overview?.storage?.total_size_mb} MB</p>
+              <p className="text-2xl font-bold text-brand-green">{overview?.storage?.total_size_mb} MB</p>
             </div>
           </div>
         </CardContent>

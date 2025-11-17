@@ -134,20 +134,20 @@ const GrafanaManager = ({ API_BASE, toast }) => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <BarChart3 className="w-7 h-7 text-[#3DB60F]" />
+            <BarChart3 className="w-7 h-7 text-brand-green" />
             Grafana Manager
           </h2>
           <p className="text-muted-foreground mt-1">Visualization and analytics platform</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className={status?.connected ? 'bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50' : 'bg-red-500/20 text-red-400 border-red-500/50'}>
+          <Badge className={status?.connected ? 'bg-brand-green/20 text-brand-green border-brand-green/50' : 'bg-error/20 text-error border-error/50'}>
             {status?.connected ? 'Online' : 'Offline'}
           </Badge>
           <Button variant="outline" size="sm" onClick={fetchStatus}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Button size="sm" className="bg-gradient-to-r from-[#3DB60F] to-green-500" asChild>
+          <Button size="sm" className="bg-gradient-to-r from-brand-green to-brand-green" asChild>
             <a href="http://localhost:3001" target="_blank" rel="noopener noreferrer">
               <ExternalLink className="w-4 h-4 mr-2" />
               Open Grafana
@@ -165,7 +165,7 @@ const GrafanaManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Dashboards</p>
                 <p className="text-2xl font-bold text-foreground mt-1">{dashboards.length}</p>
               </div>
-              <Grid className="w-8 h-8 text-[#3DB60F]" />
+              <Grid className="w-8 h-8 text-brand-green" />
             </div>
           </CardContent>
         </Card>
@@ -177,7 +177,7 @@ const GrafanaManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Data Sources</p>
                 <p className="text-2xl font-bold text-foreground mt-1">{datasources.length}</p>
               </div>
-              <Database className="w-8 h-8 text-blue-400" />
+              <Database className="w-8 h-8 text-brand-green" />
             </div>
           </CardContent>
         </Card>
@@ -189,7 +189,7 @@ const GrafanaManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Active Alerts</p>
                 <p className="text-2xl font-bold text-foreground mt-1">0</p>
               </div>
-              <AlertCircle className="w-8 h-8 text-orange-400" />
+              <AlertCircle className="w-8 h-8 text-warning" />
             </div>
           </CardContent>
         </Card>
@@ -201,7 +201,7 @@ const GrafanaManager = ({ API_BASE, toast }) => {
                 <p className="text-muted-foreground text-sm">Version</p>
                 <p className="text-2xl font-bold text-foreground mt-1">{status?.version || 'N/A'}</p>
               </div>
-              <Activity className="w-8 h-8 text-purple-400" />
+              <Activity className="w-8 h-8 text-accent" />
             </div>
           </CardContent>
         </Card>
@@ -257,10 +257,10 @@ const GrafanaManager = ({ API_BASE, toast }) => {
                   <div key={ds.id} className="p-3 bg-secondary/50 rounded border border-border">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <Database className="w-4 h-4 text-[#3DB60F]" />
+                        <Database className="w-4 h-4 text-brand-green" />
                         <span className="font-semibold text-foreground">{ds.name}</span>
                       </div>
-                      <Badge className={ds.status === 'healthy' ? 'bg-[#3DB60F]/20 text-[#3DB60F]' : 'bg-red-500/20 text-red-400'}>
+                      <Badge className={ds.status === 'healthy' ? 'bg-brand-green/20 text-brand-green' : 'bg-error/20 text-error'}>
                         {ds.status}
                       </Badge>
                     </div>
@@ -278,7 +278,7 @@ const GrafanaManager = ({ API_BASE, toast }) => {
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="text-foreground flex items-center gap-2">
-                <Star className="w-5 h-5 text-yellow-400" />
+                <Star className="w-5 h-5 text-warning" />
                 Starred Dashboards
               </CardTitle>
               <CardDescription>Your favorite dashboards</CardDescription>
@@ -288,7 +288,7 @@ const GrafanaManager = ({ API_BASE, toast }) => {
                 {dashboards.filter(d => d.starred).map((dash) => (
                   <div key={dash.id} className="flex items-center justify-between p-4 bg-secondary/50 rounded border border-border">
                     <div className="flex items-center gap-4">
-                      <Grid className="w-5 h-5 text-[#3DB60F]" />
+                      <Grid className="w-5 h-5 text-brand-green" />
                       <div>
                         <div className="font-semibold text-foreground">{dash.title}</div>
                         <div className="text-sm text-muted-foreground">{dash.folder} • {dash.panels} panels</div>
@@ -318,7 +318,7 @@ const GrafanaManager = ({ API_BASE, toast }) => {
               placeholder="Search dashboards..."
               className="max-w-md bg-background border-border text-foreground"
             />
-            <Button className="bg-gradient-to-r from-[#3DB60F] to-green-500">
+            <Button className="bg-gradient-to-r from-brand-green to-brand-green">
               <Plus className="w-4 h-4 mr-2" />
               New Dashboard
             </Button>
@@ -330,7 +330,7 @@ const GrafanaManager = ({ API_BASE, toast }) => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      {dash.starred && <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
+                      {dash.starred && <Star className="w-4 h-4 text-warning fill-yellow-400" />}
                       <h3 className="text-lg font-semibold text-foreground">{dash.title}</h3>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
@@ -376,7 +376,7 @@ const GrafanaManager = ({ API_BASE, toast }) => {
         <TabsContent value="datasources" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-foreground">Configured Data Sources</h3>
-            <Button className="bg-gradient-to-r from-[#3DB60F] to-green-500">
+            <Button className="bg-gradient-to-r from-brand-green to-brand-green">
               <Plus className="w-4 h-4 mr-2" />
               Add Data Source
             </Button>
@@ -388,12 +388,12 @@ const GrafanaManager = ({ API_BASE, toast }) => {
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
-                      <Database className="w-6 h-6 text-[#3DB60F]" />
+                      <Database className="w-6 h-6 text-brand-green" />
                       <div>
                         <h3 className="text-lg font-semibold text-foreground">{ds.name}</h3>
                         <p className="text-sm text-muted-foreground">{ds.type.toUpperCase()}</p>
                       </div>
-                      <Badge className={ds.status === 'healthy' ? 'bg-[#3DB60F]/20 text-[#3DB60F] border-[#3DB60F]/50' : 'bg-red-500/20 text-red-400'}>
+                      <Badge className={ds.status === 'healthy' ? 'bg-brand-green/20 text-brand-green border-brand-green/50' : 'bg-error/20 text-error'}>
                         <CheckCircle2 className="w-3 h-3 mr-1" />
                         {ds.status}
                       </Badge>
@@ -435,7 +435,7 @@ const GrafanaManager = ({ API_BASE, toast }) => {
                 {recentActivity.map((activity, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 bg-secondary/50 rounded border border-border">
                     <div className="text-sm text-muted-foreground w-16">{activity.time}</div>
-                    <Activity className="w-4 h-4 text-[#3DB60F]" />
+                    <Activity className="w-4 h-4 text-brand-green" />
                     <div className="flex-1">
                       <div className="text-foreground text-sm">{activity.action}</div>
                       <div className="text-muted-foreground text-xs">{activity.item}</div>

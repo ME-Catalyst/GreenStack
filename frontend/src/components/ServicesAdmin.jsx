@@ -159,10 +159,10 @@ const ServicesAdmin = ({ API_BASE, toast }) => {
 
   const getStatusBadge = (service) => {
     if (service.running) {
-      return <Badge className="bg-green-600 text-foreground"><CheckCircle2 className="w-3 h-3 mr-1" />Running</Badge>;
+      return <Badge className="bg-success text-foreground"><CheckCircle2 className="w-3 h-3 mr-1" />Running</Badge>;
     }
     if (service.error) {
-      return <Badge className="bg-red-600 text-foreground"><XCircle className="w-3 h-3 mr-1" />Error</Badge>;
+      return <Badge className="bg-error text-foreground"><XCircle className="w-3 h-3 mr-1" />Error</Badge>;
     }
     return <Badge className="bg-muted text-muted-foreground">Stopped</Badge>;
   };
@@ -170,9 +170,9 @@ const ServicesAdmin = ({ API_BASE, toast }) => {
   const getHealthColor = (health) => {
     if (!health) return 'muted';
     switch (health.health) {
-      case 'healthy': return 'green-600';
-      case 'degraded': return 'yellow-600';
-      case 'critical': return 'red-600';
+      case 'healthy': return 'success';
+      case 'degraded': return 'warning';
+      case 'critical': return 'error';
       default: return 'muted';
     }
   };
@@ -202,15 +202,15 @@ const ServicesAdmin = ({ API_BASE, toast }) => {
                 <div className="text-sm text-muted-foreground mt-1">Running</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-500">{health.enabled}</div>
+                <div className="text-3xl font-bold text-primary">{health.enabled}</div>
                 <div className="text-sm text-muted-foreground mt-1">Enabled</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-yellow-500">{health.errors}</div>
+                <div className="text-3xl font-bold text-warning">{health.errors}</div>
                 <div className="text-sm text-muted-foreground mt-1">Errors</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-red-500">{health.port_conflicts}</div>
+                <div className="text-3xl font-bold text-error">{health.port_conflicts}</div>
                 <div className="text-sm text-muted-foreground mt-1">Conflicts</div>
               </div>
               <div className="text-center">
@@ -225,7 +225,7 @@ const ServicesAdmin = ({ API_BASE, toast }) => {
 
       {/* Port Conflicts Alert */}
       {conflicts.length > 0 && (
-        <Alert className="bg-red-900/20 border-red-600">
+        <Alert className="bg-error/10 border-error">
           <AlertTriangle className="w-4 h-4" />
           <AlertDescription>
             <div className="font-semibold mb-2">Port Conflicts Detected</div>
@@ -255,12 +255,12 @@ const ServicesAdmin = ({ API_BASE, toast }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
-                <Card className={`bg-card border-border ${service.error ? 'border-red-600' : ''}`}>
+                <Card className={`bg-card border-border ${service.error ? 'border-error' : ''}`}>
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`p-3 rounded-lg ${service.running ? 'bg-green-600/20' : 'bg-muted'}`}>
-                          <IconComponent className={`w-6 h-6 ${service.running ? 'text-green-400' : 'text-muted-foreground'}`} />
+                        <div className={`p-3 rounded-lg ${service.running ? 'bg-success/20' : 'bg-muted'}`}>
+                          <IconComponent className={`w-6 h-6 ${service.running ? 'text-success' : 'text-muted-foreground'}`} />
                         </div>
                         <div>
                           <CardTitle className="text-foreground">{service.name}</CardTitle>
@@ -299,31 +299,31 @@ const ServicesAdmin = ({ API_BASE, toast }) => {
                       {/* Status Indicators */}
                       <div className="flex flex-wrap gap-2">
                         {service.port_available ? (
-                          <Badge variant="outline" className="text-green-400 border-green-600">
+                          <Badge variant="outline" className="text-success border-success">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
                             Port Available
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-red-400 border-red-600">
+                          <Badge variant="outline" className="text-error border-error">
                             <AlertCircle className="w-3 h-3 mr-1" />
                             Port Conflict
                           </Badge>
                         )}
 
                         {service.executable_found ? (
-                          <Badge variant="outline" className="text-green-400 border-green-600">
+                          <Badge variant="outline" className="text-success border-success">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
                             Executable Found
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-red-400 border-red-600">
+                          <Badge variant="outline" className="text-error border-error">
                             <XCircle className="w-3 h-3 mr-1" />
                             Not Installed
                           </Badge>
                         )}
 
                         {service.config_valid && (
-                          <Badge variant="outline" className="text-green-400 border-green-600">
+                          <Badge variant="outline" className="text-success border-success">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
                             Config Valid
                           </Badge>
@@ -332,7 +332,7 @@ const ServicesAdmin = ({ API_BASE, toast }) => {
 
                       {/* Error Message */}
                       {service.error && (
-                        <Alert className="bg-red-900/20 border-red-600">
+                        <Alert className="bg-error/10 border-error">
                           <AlertTriangle className="w-4 h-4" />
                           <AlertDescription className="text-sm">{service.error}</AlertDescription>
                         </Alert>
@@ -340,7 +340,7 @@ const ServicesAdmin = ({ API_BASE, toast }) => {
 
                       {/* Port Conflict Details */}
                       {service.port_conflict && (
-                        <Alert className="bg-yellow-900/20 border-yellow-600">
+                        <Alert className="bg-warning/10 border-warning">
                           <AlertCircle className="w-4 h-4" />
                           <AlertDescription className="text-sm">
                             Port {service.port_conflict.port} is in use by <strong>{service.port_conflict.process_name}</strong> (PID: {service.port_conflict.pid})
@@ -381,7 +381,7 @@ const ServicesAdmin = ({ API_BASE, toast }) => {
                             variant="default"
                             size="sm"
                             disabled={loading || !service.executable_found}
-                            className="flex-1 bg-green-600 hover:bg-green-700"
+                            className="flex-1 bg-success hover:bg-success/90"
                           >
                             <Play className="w-4 h-4 mr-2" />
                             Start
@@ -457,7 +457,7 @@ const ServicesAdmin = ({ API_BASE, toast }) => {
             </div>
 
             {editingService && services[editingService]?.running && tempConfig.port !== services[editingService]?.port && (
-              <Alert className="bg-yellow-900/20 border-yellow-600">
+              <Alert className="bg-warning/10 border-warning">
                 <AlertTriangle className="w-4 h-4" />
                 <AlertDescription className="text-sm">
                   The service must be stopped before changing the port.

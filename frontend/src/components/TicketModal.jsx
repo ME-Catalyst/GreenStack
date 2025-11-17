@@ -101,14 +101,14 @@ const TicketModal = ({ isOpen, onClose, deviceType, deviceId, deviceName, vendor
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Title <span className="text-red-400">*</span>
+              Title <span className="text-error">*</span>
             </label>
             <input
               type="text"
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
               placeholder="Brief description of the issue"
             />
           </div>
@@ -122,7 +122,7 @@ const TicketModal = ({ isOpen, onClose, deviceType, deviceId, deviceName, vendor
               <select
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -138,7 +138,7 @@ const TicketModal = ({ isOpen, onClose, deviceType, deviceId, deviceName, vendor
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
               >
                 <option value="data_issue">Data Issue</option>
                 <option value="parser_bug">Parser Bug</option>
@@ -159,7 +159,7 @@ const TicketModal = ({ isOpen, onClose, deviceType, deviceId, deviceName, vendor
                 type="text"
                 value={formData.eds_reference}
                 onChange={(e) => setFormData({ ...formData, eds_reference: e.target.value })}
-                className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                 placeholder="e.g., Param2, Assem100, Connection1"
               />
               <p className="text-xs text-muted-foreground mt-1">
@@ -171,31 +171,31 @@ const TicketModal = ({ isOpen, onClose, deviceType, deviceId, deviceName, vendor
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Description <span className="text-red-400">*</span>
+              Description <span className="text-error">*</span>
             </label>
             <textarea
               required
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={6}
-              className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-none"
               placeholder="Detailed description of the issue, including steps to reproduce, expected behavior, and actual behavior..."
             />
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-3 flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-red-200">{error}</div>
+            <div className="bg-error/20 border border-error/50 rounded-lg p-3 flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-error">{error}</div>
             </div>
           )}
 
           {/* Success Message */}
           {success && (
-            <div className="bg-green-900/30 border border-green-700/50 rounded-lg p-3 flex items-start gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-green-200">Ticket created successfully!</div>
+            <div className="bg-success/30 border border-success/50 rounded-lg p-3 flex items-start gap-2">
+              <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-success">Ticket created successfully!</div>
             </div>
           )}
 
@@ -212,7 +212,7 @@ const TicketModal = ({ isOpen, onClose, deviceType, deviceId, deviceName, vendor
             <button
               type="submit"
               disabled={isSubmitting || !formData.title || !formData.description}
-              className="px-6 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-foreground rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-accent hover:bg-accent/90 text-foreground rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Creating...' : 'Create Ticket'}
             </button>

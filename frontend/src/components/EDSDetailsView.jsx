@@ -239,7 +239,7 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
           </Button>
           <Button
             onClick={onExportZIP}
-            className="bg-purple-600 hover:bg-purple-700 text-foreground"
+            className="bg-secondary hover:bg-accent text-foreground"
           >
             <Download className="w-4 h-4 mr-2" />
             Export ZIP
@@ -261,7 +261,7 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
                   e.target.nextSibling.style.display = 'block';
                 }}
               />
-              <FileText className="w-8 h-8 text-purple-400" style={{display: 'none'}} />
+              <FileText className="w-8 h-8 text-secondary" style={{display: 'none'}} />
             </div>
             <div className="flex-1">
               <CardTitle className="text-foreground text-2xl">{selectedEds.product_name || 'Unknown Product'}</CardTitle>
@@ -277,19 +277,19 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
             <div className="hidden md:flex gap-4">
               {selectedEds.capacity && selectedEds.capacity.max_msg_connections && (
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">{selectedEds.capacity.max_msg_connections}</div>
+                  <div className="text-2xl font-bold text-secondary">{selectedEds.capacity.max_msg_connections}</div>
                   <div className="text-xs text-muted-foreground">Msg Conn</div>
                 </div>
               )}
               {selectedEds.capacity && selectedEds.capacity.max_io_producers && (
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">{selectedEds.capacity.max_io_producers}</div>
+                  <div className="text-2xl font-bold text-success">{selectedEds.capacity.max_io_producers}</div>
                   <div className="text-xs text-muted-foreground">IO Prod</div>
                 </div>
               )}
               {selectedEds.capacity && selectedEds.capacity.max_io_consumers && (
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-400">{selectedEds.capacity.max_io_consumers}</div>
+                  <div className="text-2xl font-bold text-primary">{selectedEds.capacity.max_io_consumers}</div>
                   <div className="text-xs text-muted-foreground">IO Cons</div>
                 </div>
               )}
@@ -310,7 +310,7 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
                 className={`
                   flex items-center px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap
                   ${activeTab === tab.id
-                    ? 'border-purple-500 text-foreground'
+                    ? 'border-brand-green text-foreground'
                     : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                   }
                 `}
@@ -360,7 +360,7 @@ const OverviewTab = ({ selectedEds }) => {
         <Card className="bg-card border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-foreground text-sm flex items-center">
-              <Clock className="w-4 h-4 mr-2 text-purple-400" />
+              <Clock className="w-4 h-4 mr-2 text-secondary" />
               File History
             </CardTitle>
           </CardHeader>
@@ -383,7 +383,7 @@ const OverviewTab = ({ selectedEds }) => {
         <Card className="bg-card border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-foreground text-sm flex items-center">
-              <FileText className="w-4 h-4 mr-2 text-blue-400" />
+              <FileText className="w-4 h-4 mr-2 text-primary" />
               Device Classification
             </CardTitle>
           </CardHeader>
@@ -408,7 +408,7 @@ const OverviewTab = ({ selectedEds }) => {
         <Card className="bg-card border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-foreground text-sm flex items-center">
-              <Database className="w-4 h-4 mr-2 text-green-400" />
+              <Database className="w-4 h-4 mr-2 text-success" />
               Quick Stats
             </CardTitle>
           </CardHeader>
@@ -452,7 +452,7 @@ const OverviewTab = ({ selectedEds }) => {
               href={selectedEds.home_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-purple-400 hover:text-purple-300 underline"
+              className="text-brand-green hover:text-accent underline"
             >
               {selectedEds.home_url}
             </a>
@@ -627,7 +627,7 @@ const ParametersTab = ({ selectedEds, groups, comparisonMode = false, parameterD
           placeholder={`Search ${totalParams} parameters...`}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 min-w-[300px] px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="flex-1 min-w-[300px] px-4 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-green"
         />
 
         <div className="flex items-center gap-2">
@@ -662,7 +662,7 @@ const ParametersTab = ({ selectedEds, groups, comparisonMode = false, parameterD
               size="sm"
               className={`border-border hover:bg-secondary ${
                 groupingMode === 'eds_groups'
-                  ? 'bg-blue-900/30 text-blue-300 border-blue-700'
+                  ? 'bg-primary/30 text-primary border-primary'
                   : 'text-foreground'
               }`}
             >
@@ -808,7 +808,7 @@ const ConnectionsTab = ({ selectedEds }) => {
                 <CardHeader className="cursor-pointer hover:bg-secondary/50 transition-colors" onClick={() => toggleConnection(index)}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Activity className="w-5 h-5 text-green-400" />
+                      <Activity className="w-5 h-5 text-success" />
                       <div>
                         <CardTitle className="text-foreground text-base">
                           {conn.connection_name || `Connection ${conn.connection_number || index + 1}`}
@@ -832,8 +832,8 @@ const ConnectionsTab = ({ selectedEds }) => {
                     {triggerDecoded && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                          <Code className="w-4 h-4 text-purple-400" />
-                          <h4 className="text-sm font-semibold text-purple-300">Trigger/Transport</h4>
+                          <Code className="w-4 h-4 text-secondary" />
+                          <h4 className="text-sm font-semibold text-foreground">Trigger/Transport</h4>
                           <Badge variant="outline" className="ml-auto text-xs font-mono">{triggerDecoded.rawValue}</Badge>
                         </div>
 
@@ -841,16 +841,16 @@ const ConnectionsTab = ({ selectedEds }) => {
                           <div className="bg-background rounded-lg p-3 border border-border">
                             <div className="text-xs text-muted-foreground mb-1">Transport Classes (bits 0-15)</div>
                             <div className="text-sm text-foreground">{triggerDecoded.transportClasses.description}</div>
-                            <div className="text-xs text-slate-600 mt-1 font-mono">{triggerDecoded.transportClasses.hex}</div>
+                            <div className="text-xs text-muted-foreground mt-1 font-mono">{triggerDecoded.transportClasses.hex}</div>
                           </div>
 
                           <div className="bg-background rounded-lg p-3 border border-border">
                             <div className="text-xs text-muted-foreground mb-1">Trigger Types (bits 16-23)</div>
                             <div className="text-sm text-foreground">{triggerDecoded.triggers.description}</div>
                             <div className="flex gap-2 mt-2">
-                              {triggerDecoded.triggers.cyclic && <Badge className="text-xs bg-green-900/50 text-green-300">Cyclic</Badge>}
-                              {triggerDecoded.triggers.changeOfState && <Badge className="text-xs bg-blue-900/50 text-blue-300">COS</Badge>}
-                              {triggerDecoded.triggers.application && <Badge className="text-xs bg-purple-900/50 text-purple-300">App</Badge>}
+                              {triggerDecoded.triggers.cyclic && <Badge className="text-xs bg-success/50 text-success">Cyclic</Badge>}
+                              {triggerDecoded.triggers.changeOfState && <Badge className="text-xs bg-primary/50 text-primary">COS</Badge>}
+                              {triggerDecoded.triggers.application && <Badge className="text-xs bg-secondary/50 text-secondary">App</Badge>}
                             </div>
                           </div>
 
@@ -858,17 +858,17 @@ const ConnectionsTab = ({ selectedEds }) => {
                             <div className="text-xs text-muted-foreground mb-1">Application Types (bits 24-27)</div>
                             <div className="text-sm text-foreground">{triggerDecoded.applicationTypes.description}</div>
                             <div className="flex gap-2 mt-2 flex-wrap">
-                              {triggerDecoded.applicationTypes.listenOnly && <Badge className="text-xs bg-yellow-900/50 text-yellow-300">Listen-Only</Badge>}
-                              {triggerDecoded.applicationTypes.inputOnly && <Badge className="text-xs bg-orange-900/50 text-orange-300">Input-Only</Badge>}
-                              {triggerDecoded.applicationTypes.exclusiveOwner && <Badge className="text-xs bg-red-900/50 text-red-300">Exclusive Owner</Badge>}
-                              {triggerDecoded.applicationTypes.redundantOwner && <Badge className="text-xs bg-pink-900/50 text-pink-300">Redundant Owner</Badge>}
+                              {triggerDecoded.applicationTypes.listenOnly && <Badge className="text-xs bg-warning/20 text-warning">Listen-Only</Badge>}
+                              {triggerDecoded.applicationTypes.inputOnly && <Badge className="text-xs bg-warning/20 text-warning">Input-Only</Badge>}
+                              {triggerDecoded.applicationTypes.exclusiveOwner && <Badge className="text-xs bg-error/20 text-error">Exclusive Owner</Badge>}
+                              {triggerDecoded.applicationTypes.redundantOwner && <Badge className="text-xs bg-accent/50 text-accent">Redundant Owner</Badge>}
                             </div>
                           </div>
 
                           <div className="bg-background rounded-lg p-3 border border-border">
                             <div className="text-xs text-muted-foreground mb-1">Direction (bit 31)</div>
                             <div className="text-sm text-foreground">{triggerDecoded.direction.description}</div>
-                            <Badge className={`text-xs mt-2 ${triggerDecoded.direction.isServer ? 'bg-indigo-900/50 text-indigo-300' : 'bg-cyan-900/50 text-cyan-300'}`}>
+                            <Badge className={`text-xs mt-2 ${triggerDecoded.direction.isServer ? 'bg-secondary/50 text-secondary' : 'bg-brand-green/50 text-brand-green'}`}>
                               {triggerDecoded.direction.isServer ? 'Server' : 'Client'}
                             </Badge>
                           </div>
@@ -880,8 +880,8 @@ const ConnectionsTab = ({ selectedEds }) => {
                     {paramsDecoded && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                          <Database className="w-4 h-4 text-blue-400" />
-                          <h4 className="text-sm font-semibold text-blue-300">Connection Parameters</h4>
+                          <Database className="w-4 h-4 text-primary" />
+                          <h4 className="text-sm font-semibold text-foreground">Connection Parameters</h4>
                           <Badge variant="outline" className="ml-auto text-xs font-mono">{paramsDecoded.rawValue}</Badge>
                         </div>
 
@@ -890,10 +890,10 @@ const ConnectionsTab = ({ selectedEds }) => {
                             <div className="text-xs text-muted-foreground mb-1">Size Support (bits 0-3)</div>
                             <div className="text-sm text-foreground">{paramsDecoded.sizeSupport.description}</div>
                             <div className="flex gap-2 mt-2 flex-wrap">
-                              {paramsDecoded.sizeSupport.oToTFixed && <Badge className="text-xs bg-emerald-900/50 text-emerald-300">O→T Fixed</Badge>}
-                              {paramsDecoded.sizeSupport.oToTVariable && <Badge className="text-xs bg-teal-900/50 text-teal-300">O→T Var</Badge>}
-                              {paramsDecoded.sizeSupport.tToOFixed && <Badge className="text-xs bg-sky-900/50 text-sky-300">T→O Fixed</Badge>}
-                              {paramsDecoded.sizeSupport.tToOVariable && <Badge className="text-xs bg-blue-900/50 text-blue-300">T→O Var</Badge>}
+                              {paramsDecoded.sizeSupport.oToTFixed && <Badge className="text-xs bg-success/50 text-success">O→T Fixed</Badge>}
+                              {paramsDecoded.sizeSupport.oToTVariable && <Badge className="text-xs bg-brand-green/50 text-brand-green">O→T Var</Badge>}
+                              {paramsDecoded.sizeSupport.tToOFixed && <Badge className="text-xs bg-primary/50 text-primary">T→O Fixed</Badge>}
+                              {paramsDecoded.sizeSupport.tToOVariable && <Badge className="text-xs bg-primary/50 text-primary">T→O Var</Badge>}
                             </div>
                           </div>
 
@@ -908,13 +908,13 @@ const ConnectionsTab = ({ selectedEds }) => {
                             <div className="grid grid-cols-2 gap-2 mt-2">
                               <div className="text-xs">
                                 <div className="text-muted-foreground mb-1">O→T:</div>
-                                {paramsDecoded.connectionTypes.oToT.multicast && <Badge className="text-xs bg-violet-900/50 text-violet-300 mr-1">Multicast</Badge>}
-                                {paramsDecoded.connectionTypes.oToT.pointToPoint && <Badge className="text-xs bg-fuchsia-900/50 text-fuchsia-300">P2P</Badge>}
+                                {paramsDecoded.connectionTypes.oToT.multicast && <Badge className="text-xs bg-secondary/50 text-secondary mr-1">Multicast</Badge>}
+                                {paramsDecoded.connectionTypes.oToT.pointToPoint && <Badge className="text-xs bg-accent/50 text-accent">P2P</Badge>}
                               </div>
                               <div className="text-xs">
                                 <div className="text-muted-foreground mb-1">T→O:</div>
-                                {paramsDecoded.connectionTypes.tToO.multicast && <Badge className="text-xs bg-violet-900/50 text-violet-300 mr-1">Multicast</Badge>}
-                                {paramsDecoded.connectionTypes.tToO.pointToPoint && <Badge className="text-xs bg-fuchsia-900/50 text-fuchsia-300">P2P</Badge>}
+                                {paramsDecoded.connectionTypes.tToO.multicast && <Badge className="text-xs bg-secondary/50 text-secondary mr-1">Multicast</Badge>}
+                                {paramsDecoded.connectionTypes.tToO.pointToPoint && <Badge className="text-xs bg-accent/50 text-accent">P2P</Badge>}
                               </div>
                             </div>
                           </div>
@@ -925,15 +925,15 @@ const ConnectionsTab = ({ selectedEds }) => {
                             <div className="grid grid-cols-2 gap-2 mt-2">
                               <div className="text-xs">
                                 <div className="text-muted-foreground mb-1">O→T:</div>
-                                {paramsDecoded.priority.oToT.low && <Badge className="text-xs bg-gray-900/50 text-gray-300 mr-1">Low</Badge>}
-                                {paramsDecoded.priority.oToT.high && <Badge className="text-xs bg-amber-900/50 text-amber-300 mr-1">High</Badge>}
-                                {paramsDecoded.priority.oToT.scheduled && <Badge className="text-xs bg-red-900/50 text-red-300">Sched</Badge>}
+                                {paramsDecoded.priority.oToT.low && <Badge className="text-xs bg-muted text-muted-foreground mr-1">Low</Badge>}
+                                {paramsDecoded.priority.oToT.high && <Badge className="text-xs bg-warning/20 text-warning mr-1">High</Badge>}
+                                {paramsDecoded.priority.oToT.scheduled && <Badge className="text-xs bg-error/20 text-error">Sched</Badge>}
                               </div>
                               <div className="text-xs">
                                 <div className="text-muted-foreground mb-1">T→O:</div>
-                                {paramsDecoded.priority.tToO.low && <Badge className="text-xs bg-gray-900/50 text-gray-300 mr-1">Low</Badge>}
-                                {paramsDecoded.priority.tToO.high && <Badge className="text-xs bg-amber-900/50 text-amber-300 mr-1">High</Badge>}
-                                {paramsDecoded.priority.tToO.scheduled && <Badge className="text-xs bg-red-900/50 text-red-300">Sched</Badge>}
+                                {paramsDecoded.priority.tToO.low && <Badge className="text-xs bg-muted text-muted-foreground mr-1">Low</Badge>}
+                                {paramsDecoded.priority.tToO.high && <Badge className="text-xs bg-warning/20 text-warning mr-1">High</Badge>}
+                                {paramsDecoded.priority.tToO.scheduled && <Badge className="text-xs bg-error/20 text-error">Sched</Badge>}
                               </div>
                             </div>
                           </div>
@@ -943,11 +943,11 @@ const ConnectionsTab = ({ selectedEds }) => {
 
                     {/* Help String */}
                     {conn.help_string && (
-                      <div className="bg-blue-950/20 rounded-lg p-3 border border-blue-900/30">
+                      <div className="bg-surface rounded-lg p-3 border border-border">
                         <div className="flex items-start gap-2">
-                          <Info className="w-4 h-4 text-blue-400 mt-0.5" />
+                          <Info className="w-4 h-4 text-primary mt-0.5" />
                           <div>
-                            <div className="text-xs text-blue-400 font-semibold mb-1">Description</div>
+                            <div className="text-xs text-primary font-semibold mb-1">Description</div>
                             <p className="text-sm text-foreground">{conn.help_string}</p>
                           </div>
                         </div>
@@ -956,16 +956,16 @@ const ConnectionsTab = ({ selectedEds }) => {
 
                     {/* Assembly References */}
                     {(conn.o_to_t_params || conn.t_to_o_params) && (
-                      <div className="bg-green-950/20 rounded-lg p-3 border border-green-900/30">
+                      <div className="bg-surface rounded-lg p-3 border border-border">
                         <div className="flex items-start gap-2">
-                          <Package className="w-4 h-4 text-green-400 mt-0.5" />
+                          <Package className="w-4 h-4 text-success mt-0.5" />
                           <div className="flex-1">
-                            <div className="text-xs text-green-400 font-semibold mb-2">Assembly References</div>
+                            <div className="text-xs text-success font-semibold mb-2">Assembly References</div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                               {conn.o_to_t_params && (
                                 <div>
                                   <div className="text-xs text-muted-foreground mb-1">O→T (Output)</div>
-                                  <div className="font-mono text-xs text-green-300">
+                                  <div className="font-mono text-xs text-success">
                                     {conn.o_to_t_params}
                                   </div>
                                 </div>
@@ -973,7 +973,7 @@ const ConnectionsTab = ({ selectedEds }) => {
                               {conn.t_to_o_params && (
                                 <div>
                                   <div className="text-xs text-muted-foreground mb-1">T→O (Input)</div>
-                                  <div className="font-mono text-xs text-cyan-300">
+                                  <div className="font-mono text-xs text-brand-green">
                                     {conn.t_to_o_params}
                                   </div>
                                 </div>
@@ -1018,50 +1018,50 @@ const CapacityTab = ({ selectedEds }) => {
     <div className="space-y-6">
       {/* Capacity Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-purple-900/20 to-purple-800/10 border-purple-800/30">
+        <Card className="bg-gradient-to-br from-secondary/20 to-secondary/10 border-secondary/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-purple-300 mb-1">Max Message Connections</p>
+                <p className="text-sm text-secondary mb-1">Max Message Connections</p>
                 <p className="text-3xl font-bold text-foreground">{capacity?.max_msg_connections ?? 'N/A'}</p>
               </div>
-              <Server className="w-8 h-8 text-purple-400" />
+              <Server className="w-8 h-8 text-secondary" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-900/20 to-green-800/10 border-green-800/30">
+        <Card className="bg-gradient-to-br from-success/20 to-success/10 border-success/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-300 mb-1">Max I/O Producers</p>
+                <p className="text-sm text-success mb-1">Max I/O Producers</p>
                 <p className="text-3xl font-bold text-foreground">{capacity?.max_io_producers ?? 'N/A'}</p>
               </div>
-              <ArrowUpRight className="w-8 h-8 text-green-400" />
+              <ArrowUpRight className="w-8 h-8 text-success" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-900/20 to-blue-800/10 border-blue-800/30">
+        <Card className="bg-gradient-to-br from-primary/20 to-primary/10 border-primary/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-300 mb-1">Max I/O Consumers</p>
+                <p className="text-sm text-primary mb-1">Max I/O Consumers</p>
                 <p className="text-3xl font-bold text-foreground">{capacity?.max_io_consumers ?? 'N/A'}</p>
               </div>
-              <ArrowDownRight className="w-8 h-8 text-blue-400" />
+              <ArrowDownRight className="w-8 h-8 text-primary" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-cyan-900/20 to-cyan-800/10 border-cyan-800/30">
+        <Card className="bg-gradient-to-br from-brand-green/20 to-brand-green/10 border-brand-green/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-cyan-300 mb-1">Max Config Tool Conn</p>
+                <p className="text-sm text-brand-green mb-1">Max Config Tool Conn</p>
                 <p className="text-3xl font-bold text-foreground">{capacity?.max_cx_per_config_tool ?? 'N/A'}</p>
               </div>
-              <Users className="w-8 h-8 text-cyan-400" />
+              <Users className="w-8 h-8 text-brand-green" />
             </div>
           </CardContent>
         </Card>
@@ -1072,7 +1072,7 @@ const CapacityTab = ({ selectedEds }) => {
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center">
-              <Activity className="w-5 h-5 mr-2 text-purple-400" />
+              <Activity className="w-5 h-5 mr-2 text-secondary" />
               Bandwidth Specifications (TSpecs)
             </CardTitle>
           </CardHeader>
@@ -1081,7 +1081,7 @@ const CapacityTab = ({ selectedEds }) => {
               {capacity.tspecs.map((tspec, index) => (
                 <div key={index} className="p-4 bg-secondary rounded-lg border border-border">
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-purple-900/50 text-purple-300 border-purple-800">
+                    <Badge className="bg-secondary/50 text-secondary border-secondary">
                       {tspec.tspec_name}
                     </Badge>
                     <span className="text-sm text-muted-foreground">{tspec.direction}</span>

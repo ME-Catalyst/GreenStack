@@ -1,4 +1,7 @@
 /** @type {import('tailwindcss').Config} */
+// Import the immutable brand color from centralized theme config
+const BRAND_GREEN = '#3DB60F';
+
 module.exports = {
   darkMode: ["class"],
   content: [
@@ -21,20 +24,35 @@ module.exports = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        // Greenstack immutable brand color
+        'brand-green': {
+          DEFAULT: BRAND_GREEN,
+          50: '#f0fde9',
+          100: '#dafbc7',
+          200: '#b8f68f',
+          300: '#8eeb4d',
+          400: '#6ed91e',
+          500: BRAND_GREEN, // #3DB60F - Primary brand color
+          600: '#2f990c',
+          700: '#24750d',
+          800: '#1f5c0f',
+          900: '#1c4d11',
+          950: '#092b04',
+        },
         primary: {
-          DEFAULT: "#00d4ff",
-          dark: "#00a8cc",
-          light: "#66e5ff",
-          50: "#e6fcff",
-          100: "#b3f5ff",
-          200: "#80edff",
-          300: "#4de6ff",
-          400: "#1adeff",
-          500: "#00d4ff",
-          600: "#00a8cc",
-          700: "#007d99",
-          800: "#005366",
-          900: "#002933",
+          DEFAULT: BRAND_GREEN,
+          dark: "#32a00c",
+          light: "#51cf66",
+          50: '#f0fde9',
+          100: '#dafbc7',
+          200: '#b8f68f',
+          300: '#8eeb4d',
+          400: '#6ed91e',
+          500: BRAND_GREEN,
+          600: '#2f990c',
+          700: '#24750d',
+          800: '#1f5c0f',
+          900: '#1c4d11',
         },
         secondary: {
           DEFAULT: "#667eea",
@@ -88,13 +106,13 @@ module.exports = {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'gradient-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'gradient-primary': `linear-gradient(135deg, ${BRAND_GREEN} 0%, #2d5016 100%)`,
         'gradient-success': 'linear-gradient(135deg, #51cf66 0%, #32b84d 100%)',
-        'gradient-info': 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)',
+        'gradient-info': `linear-gradient(135deg, ${BRAND_GREEN} 0%, #2f990c 100%)`,
         'gradient-danger': 'linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%)',
         'gradient-warning': 'linear-gradient(135deg, #ffd43b 0%, #ffac30 100%)',
         'gradient-dark': 'linear-gradient(135deg, #0a0e27 0%, #151935 100%)',
-        'gradient-mesh': 'radial-gradient(at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%), radial-gradient(at 80% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 50%), radial-gradient(at 40% 40%, rgba(118, 75, 162, 0.1) 0%, transparent 50%)',
+        'gradient-mesh': `radial-gradient(at 20% 80%, rgba(61, 182, 15, 0.1) 0%, transparent 50%), radial-gradient(at 80% 20%, rgba(81, 207, 102, 0.1) 0%, transparent 50%), radial-gradient(at 40% 40%, rgba(45, 80, 22, 0.1) 0%, transparent 50%)`,
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -139,12 +157,12 @@ module.exports = {
           to: { transform: "rotate(360deg)" },
         },
         "pulse-glow": {
-          "0%, 100%": { 
-            boxShadow: "0 0 20px rgba(0, 212, 255, 0.5)",
+          "0%, 100%": {
+            boxShadow: "0 0 20px rgba(61, 182, 15, 0.5)",
             transform: "scale(1)"
           },
-          "50%": { 
-            boxShadow: "0 0 40px rgba(0, 212, 255, 0.8)",
+          "50%": {
+            boxShadow: "0 0 40px rgba(61, 182, 15, 0.8)",
             transform: "scale(1.05)"
           },
         },
@@ -177,11 +195,11 @@ module.exports = {
         "gradient-shift": "gradient-shift 3s ease infinite",
       },
       boxShadow: {
-        'glow-sm': '0 0 10px rgba(0, 212, 255, 0.5)',
-        'glow-md': '0 0 20px rgba(0, 212, 255, 0.5)',
-        'glow-lg': '0 0 30px rgba(0, 212, 255, 0.5)',
-        'glow-xl': '0 0 40px rgba(0, 212, 255, 0.5)',
-        'inner-glow': 'inset 0 0 20px rgba(0, 212, 255, 0.2)',
+        'glow-sm': '0 0 10px rgba(61, 182, 15, 0.5)',
+        'glow-md': '0 0 20px rgba(61, 182, 15, 0.5)',
+        'glow-lg': '0 0 30px rgba(61, 182, 15, 0.5)',
+        'glow-xl': '0 0 40px rgba(61, 182, 15, 0.5)',
+        'inner-glow': 'inset 0 0 20px rgba(61, 182, 15, 0.2)',
       },
       backdropBlur: {
         xs: '2px',
@@ -193,13 +211,13 @@ module.exports = {
     function({ addUtilities }) {
       const newUtilities = {
         '.text-gradient': {
-          'background': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          'background': `linear-gradient(135deg, ${BRAND_GREEN} 0%, #2d5016 100%)`,
           '-webkit-background-clip': 'text',
           '-webkit-text-fill-color': 'transparent',
           'background-clip': 'text',
         },
         '.text-gradient-primary': {
-          'background': 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)',
+          'background': `linear-gradient(135deg, ${BRAND_GREEN} 0%, #51cf66 100%)`,
           '-webkit-background-clip': 'text',
           '-webkit-text-fill-color': 'transparent',
           'background-clip': 'text',

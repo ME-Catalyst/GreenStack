@@ -3,51 +3,140 @@
 @tailwind utilities;
 
 @layer base {
-  /* Dark theme as default for GreenStack */
+  /* Dark theme as default for Greenstack */
   :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* ===== BRAND COLORS (IMMUTABLE) ===== */
+    --brand-green: #3DB60F;
+    --brand-green-hover: #32a00c;
+    --brand-green-active: #2b8a0a;
+
+    /* ===== SEMANTIC COLORS ===== */
+    /* Primary - Brand green for interactive elements */
+    --primary: #3DB60F;
+    --primary-hover: #32a00c;
+    --primary-active: #2b8a0a;
+    --primary-foreground: #ffffff;
+
+    /* Secondary - Complementary green shades */
+    --secondary: #2d5016;
+    --secondary-hover: #3a6a1c;
+    --secondary-active: #1f3a0f;
+    --secondary-foreground: #e5e7eb;
+
+    /* Accent - Lighter green for highlights */
+    --accent: #51cf66;
+    --accent-hover: #70d682;
+    --accent-active: #32b84d;
+    --accent-foreground: #0a0e27;
+
+    /* ===== STATE COLORS ===== */
+    --success: #51cf66;
+    --warning: #ffd43b;
+    --error: #ff6b6b;
+    --info: #00d4ff;
+
+    /* ===== SURFACE COLORS ===== */
+    --background: #0a0e27;
+    --background-secondary: #151935;
+    --foreground: #e5e7eb;
+
+    --card: #1a1f3a;
+    --card-foreground: #e5e7eb;
+
+    --popover: #1a1f3a;
+    --popover-foreground: #e5e7eb;
+
+    --surface: #1a1f3a;
+    --surface-hover: #2a3050;
+    --surface-active: #3a4060;
+
+    /* ===== TEXT COLORS ===== */
+    --foreground-secondary: #9ca3af;
+    --foreground-muted: #6b7280;
+    --foreground-inverse: #0a0e27;
+
+    --muted: #2a3050;
+    --muted-foreground: #9ca3af;
+
+    /* ===== BORDER COLORS ===== */
+    --border: #2a3050;
+    --border-subtle: #1f2640;
+    --border-strong: #3a4060;
+    --input: #2a3050;
+
+    /* ===== OTHER ===== */
+    --destructive: #ff6b6b;
+    --destructive-foreground: #ffffff;
+
+    --ring: #3DB60F;
     --radius: 0.5rem;
+
+    /* ===== OVERLAY ===== */
+    --overlay: rgba(10, 14, 39, 0.8);
+    --overlay-light: rgba(10, 14, 39, 0.5);
   }
 
-  /* Light theme (if needed in future) */
+  /* Light theme (for future use) */
   .light {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Brand colors remain the same (immutable) */
+    --brand-green: #3DB60F;
+    --brand-green-hover: #32a00c;
+    --brand-green-active: #2b8a0a;
+
+    /* Semantic colors for light mode */
+    --primary: #3DB60F;
+    --primary-hover: #32a00c;
+    --primary-active: #2b8a0a;
+    --primary-foreground: #ffffff;
+
+    --secondary: #51cf66;
+    --secondary-hover: #70d682;
+    --secondary-active: #32b84d;
+    --secondary-foreground: #111827;
+
+    --accent: #2d5016;
+    --accent-hover: #3a6a1c;
+    --accent-active: #1f3a0f;
+    --accent-foreground: #ffffff;
+
+    --success: #51cf66;
+    --warning: #ffac30;
+    --error: #ff4757;
+    --info: #0099cc;
+
+    --background: #ffffff;
+    --background-secondary: #f9fafb;
+    --foreground: #111827;
+
+    --card: #f3f4f6;
+    --card-foreground: #111827;
+
+    --popover: #ffffff;
+    --popover-foreground: #111827;
+
+    --surface: #f3f4f6;
+    --surface-hover: #e5e7eb;
+    --surface-active: #d1d5db;
+
+    --foreground-secondary: #4b5563;
+    --foreground-muted: #6b7280;
+    --foreground-inverse: #ffffff;
+
+    --muted: #e5e7eb;
+    --muted-foreground: #6b7280;
+
+    --border: #d1d5db;
+    --border-subtle: #e5e7eb;
+    --border-strong: #9ca3af;
+    --input: #e5e7eb;
+
+    --destructive: #ff4757;
+    --destructive-foreground: #ffffff;
+
+    --ring: #3DB60F;
+
+    --overlay: rgba(255, 255, 255, 0.9);
+    --overlay-light: rgba(255, 255, 255, 0.7);
   }
 }
 
