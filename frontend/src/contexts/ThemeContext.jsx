@@ -20,8 +20,10 @@ const ThemeContext = createContext({
   setThemePreset: (presetId) => {},
   customTheme: null,
   setCustomTheme: (theme) => {},
+  clearCustomTheme: () => {},
   brandGreen: BRAND_GREEN,
   availablePresets: [],
+  applyTheme: (theme) => {},
 });
 
 export const useTheme = () => {
@@ -120,8 +122,10 @@ export const ThemeProvider = ({ children }) => {
   };
 
   const toggleTheme = () => {
-    // Toggle between dark and light presets
-    const newPreset = themePreset === 'light' ? 'greenstack' : 'light';
+    // Toggle between dark and light modes
+    // Check current theme's mode, not the preset name
+    const currentMode = currentTheme?.mode || 'dark';
+    const newPreset = currentMode === 'light' ? 'greenstack' : 'light';
     setThemePresetState(newPreset);
     setCustomThemeState(null); // Clear custom theme
   };
@@ -166,6 +170,7 @@ export const ThemeProvider = ({ children }) => {
     clearCustomTheme,
     brandGreen: BRAND_GREEN,
     availablePresets: getAllThemePresets(),
+    applyTheme,
   };
 
   return (

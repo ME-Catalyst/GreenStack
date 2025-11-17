@@ -4,13 +4,14 @@ import {
   Download, Trash2, BarChart3, Server, Cpu, Clock, Package, FileText,
   RefreshCw, Shield, Zap, TrendingUp, Users, Calendar, Info, BookOpen,
   ExternalLink, Home, Rocket, Terminal, Github, Bug, Eye, Search, GitBranch,
-  Wifi, WifiOff, Play, StopCircle, RotateCw
+  Wifi, WifiOff, Play, StopCircle, RotateCw, Palette
 } from 'lucide-react';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from './ui';
 import { Button } from './ui';
 import { Badge } from './ui';
 import TicketsPage from './TicketsPage';
+import ThemeManager from './ThemeManager';
 
 /**
  * Comprehensive Admin Console - System management hub
@@ -283,6 +284,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
           {[
             { id: 'hub', label: 'Hub', icon: Home },
             { id: 'tickets', label: 'Tickets', icon: Bug },
+            { id: 'appearance', label: 'Appearance', icon: Palette },
             { id: 'database', label: 'Database', icon: Database },
             { id: 'diagnostics', label: 'Diagnostics', icon: Activity },
             { id: 'system', label: 'System', icon: Server }
@@ -313,6 +315,10 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
 
       {activeTab === 'tickets' && (
         <TicketsPage API_BASE={API_BASE} toast={toast} />
+      )}
+
+      {activeTab === 'appearance' && (
+        <ThemeManager API_BASE={API_BASE} toast={toast} />
       )}
 
       {activeTab === 'database' && (

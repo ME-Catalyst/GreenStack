@@ -96,7 +96,7 @@ CardFooter.displayName = 'CardFooter';
 // ============================================================================
 
 export const Button = React.forwardRef(
-  ({ className, variant = 'default', size = 'default', ...props }, ref) => {
+  ({ className, variant = 'default', size = 'default', asChild, ...props }, ref) => {
     const variants = {
       default: 'bg-primary text-primary-foreground hover:bg-primary/90',
       destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
@@ -113,6 +113,7 @@ export const Button = React.forwardRef(
       icon: 'h-10 w-10',
     };
 
+    // Filter out asChild prop - it's used by some Radix components but not needed for button element
     return (
       <button
         className={cn(

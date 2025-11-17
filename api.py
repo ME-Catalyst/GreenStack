@@ -292,6 +292,11 @@ app.add_websocket_route("/ws/mqtt", mqtt_routes.websocket_endpoint)
 import service_routes
 app.include_router(service_routes.router, tags=["Services"])
 
+# Include Theme Management routes
+import theme_routes
+theme_routes.db_path = manager.storage.db_path
+app.include_router(theme_routes.router)
+
 # ============================================================================
 # API Endpoints
 # ============================================================================
