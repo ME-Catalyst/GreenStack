@@ -22,6 +22,9 @@ const ApiEndpoints = lazy(() => import('./api/Endpoints'));
 const ApiAuthentication = lazy(() => import('./api/Authentication'));
 const ApiErrors = lazy(() => import('./api/Errors'));
 const ComponentsOverview = lazy(() => import('./components/Overview'));
+const ComponentsGallery = lazy(() => import('./components/Gallery'));
+const ComponentsThemeSystem = lazy(() => import('./components/ThemeSystem'));
+const ComponentsUIComponents = lazy(() => import('./components/UIComponents'));
 const DeveloperOverview = lazy(() => import('./developer/Overview'));
 const BackendDevelopment = lazy(() => import('./developer/Backend'));
 const FrontendDevelopment = lazy(() => import('./developer/Frontend'));
@@ -41,6 +44,9 @@ export { metadata as apiEndpointsMeta } from './api/Endpoints';
 export { metadata as apiAuthenticationMeta } from './api/Authentication';
 export { metadata as apiErrorsMeta } from './api/Errors';
 export { metadata as componentsOverviewMeta } from './components/Overview';
+export { metadata as componentsGalleryMeta } from './components/Gallery';
+export { metadata as componentsThemeSystemMeta } from './components/ThemeSystem';
+export { metadata as componentsUIComponentsMeta } from './components/UIComponents';
 export { metadata as developerOverviewMeta } from './developer/Overview';
 export { metadata as backendDevelopmentMeta } from './developer/Backend';
 export { metadata as frontendDevelopmentMeta } from './developer/Frontend';
@@ -60,6 +66,9 @@ import { metadata as apiEndpointsMeta } from './api/Endpoints';
 import { metadata as apiAuthenticationMeta } from './api/Authentication';
 import { metadata as apiErrorsMeta } from './api/Errors';
 import { metadata as componentsOverviewMeta } from './components/Overview';
+import { metadata as componentsGalleryMeta } from './components/Gallery';
+import { metadata as componentsThemeSystemMeta } from './components/ThemeSystem';
+import { metadata as componentsUIComponentsMeta } from './components/UIComponents';
 import { metadata as developerOverviewMeta } from './developer/Overview';
 import { metadata as backendDevelopmentMeta } from './developer/Backend';
 import { metadata as frontendDevelopmentMeta } from './developer/Frontend';
@@ -208,45 +217,51 @@ export const docsRegistry = {
     component: ComponentsOverview,
     metadata: componentsOverviewMeta,
     previous: {
-      id: 'api/overview',
-      title: 'API Overview'
+      id: 'api/errors',
+      title: 'Error Handling'
     },
     next: {
-      id: 'developer/overview',
-      title: 'Developer Guide'
+      id: 'components/gallery',
+      title: 'Component Gallery'
     }
   },
 
   'components/gallery': {
-    component: null,
-    metadata: {
-      id: 'components/gallery',
-      title: 'Component Gallery',
-      description: 'Interactive showcase of all UI components',
-      category: 'components',
-      keywords: ['components', 'ui', 'library', 'showcase'],
+    component: ComponentsGallery,
+    metadata: componentsGalleryMeta,
+    previous: {
+      id: 'components/overview',
+      title: 'Component Gallery Overview'
+    },
+    next: {
+      id: 'components/theme-system',
+      title: 'Theme System'
     }
   },
 
   'components/theme-system': {
-    component: null,
-    metadata: {
-      id: 'components/theme-system',
-      title: 'Theme System',
-      description: 'Customize Greenstack appearance with themes',
-      category: 'components',
-      keywords: ['theme', 'colors', 'customization', 'branding'],
+    component: ComponentsThemeSystem,
+    metadata: componentsThemeSystemMeta,
+    previous: {
+      id: 'components/gallery',
+      title: 'Component Gallery'
+    },
+    next: {
+      id: 'components/ui-components',
+      title: 'UI Components Reference'
     }
   },
 
   'components/ui-components': {
-    component: null,
-    metadata: {
-      id: 'components/ui-components',
-      title: 'UI Components',
-      description: 'Reusable UI component reference',
-      category: 'components',
-      keywords: ['ui', 'components', 'button', 'card', 'dialog'],
+    component: ComponentsUIComponents,
+    metadata: componentsUIComponentsMeta,
+    previous: {
+      id: 'components/theme-system',
+      title: 'Theme System'
+    },
+    next: {
+      id: 'developer/overview',
+      title: 'Developer Guide'
     }
   },
 
