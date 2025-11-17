@@ -17,7 +17,7 @@ import {
   Wifi, Menu, ChevronDown, Info, Type, Hash, ToggleLeft, Command, RotateCcw,
   AlertCircle, Network, Server, Gauge, Cable, Clock, Tag, Layers, GitBranch,
   ArrowUpRight, ArrowDownRight, Users, HardDrive, CheckCircle, XCircle, AlertOctagon, FolderOpen, Bug,
-  Workflow, LineChart
+  Workflow, LineChart, Book
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -39,6 +39,7 @@ import ServicesAdmin from './components/ServicesAdmin';
 import ThemeToggle from './components/ThemeToggle';
 import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
+import DocsViewer from './components/docs/DocsViewer';
 import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from './hooks/useKeyboardShortcuts';
 import { useTheme } from './contexts/ThemeContext';
 import { getUnitInfo, formatValueWithUnit } from './utils/iolinkUnits';
@@ -202,6 +203,13 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
             label="Analytics"
             active={activeView === 'analytics'}
             onClick={() => setActiveView('analytics')}
+            collapsed={collapsed}
+          />
+          <NavItem
+            icon={<Book className="w-5 h-5" />}
+            label="Documentation"
+            active={activeView === 'documentation'}
+            onClick={() => setActiveView('documentation')}
             collapsed={collapsed}
           />
         </nav>
@@ -5606,6 +5614,19 @@ const IODDManager = () => {
                   toast={toast}
                   onNavigate={setActiveView}
                 />
+              </motion.div>
+            )}
+
+            {activeView === 'documentation' && (
+              <motion.div
+                key="documentation"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-50"
+              >
+                <DocsViewer />
               </motion.div>
             )}
           </AnimatePresence>

@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import {
   Book, BookOpen, Code, Wrench, Rocket, Settings, HelpCircle,
   ChevronRight, ChevronDown, Search, FileText, Package, Server,
-  Palette, Shield, Database, Cloud, Terminal, Layout
+  Palette, Shield, Database, Cloud, Terminal, Layout, Sparkles,
+  Zap, Grid3x3 as Grid, Box, AlertCircle, GitBranch, AlertTriangle,
+  Bug, Activity, CheckCircle
 } from 'lucide-react';
 import { ScrollArea } from '../ui';
 
