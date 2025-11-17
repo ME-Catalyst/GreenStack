@@ -1612,6 +1612,86 @@ class StorageManager:
             )
         """)
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS document_info (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                device_id INTEGER,
+                copyright TEXT,
+                release_date TEXT,
+                version TEXT,
+                FOREIGN KEY (device_id) REFERENCES devices (id)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS device_features (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                device_id INTEGER,
+                block_parameter INTEGER,
+                data_storage INTEGER,
+                profile_characteristic TEXT,
+                access_locks_data_storage INTEGER,
+                access_locks_local_parameterization INTEGER,
+                access_locks_local_user_interface INTEGER,
+                access_locks_parameter INTEGER,
+                FOREIGN KEY (device_id) REFERENCES devices (id)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS communication_profile (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                device_id INTEGER,
+                iolink_revision TEXT,
+                compatible_with TEXT,
+                bitrate TEXT,
+                min_cycle_time TEXT,
+                msequence_capability TEXT,
+                sio_supported INTEGER,
+                connection_type TEXT,
+                wire_config TEXT,
+                FOREIGN KEY (device_id) REFERENCES devices (id)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ui_menus (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                device_id INTEGER,
+                menu_id TEXT,
+                name TEXT,
+                FOREIGN KEY (device_id) REFERENCES devices (id)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ui_menu_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                menu_id INTEGER,
+                variable_id TEXT,
+                record_item_ref TEXT,
+                subindex INTEGER,
+                access_right_restriction TEXT,
+                display_format TEXT,
+                unit_code TEXT,
+                button_value TEXT,
+                menu_ref TEXT,
+                item_order INTEGER,
+                FOREIGN KEY (menu_id) REFERENCES ui_menus (id)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ui_menu_roles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                device_id INTEGER,
+                role_type TEXT,
+                menu_type TEXT,
+                menu_id TEXT,
+                FOREIGN KEY (device_id) REFERENCES devices (id)
+            )
+        """)
+
         conn.commit()
         conn.close()
     
