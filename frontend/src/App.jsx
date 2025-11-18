@@ -245,7 +245,7 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
           )}
         </div>
       </div>
-    </div>
+    </aside>
   );
 };
 
@@ -426,7 +426,7 @@ const OverviewDashboard = ({ stats, devices, onNavigate }) => (
         </CardContent>
       </Card>
     )}
-  </div>
+  </section>
 );
 
 // ============================================================================
