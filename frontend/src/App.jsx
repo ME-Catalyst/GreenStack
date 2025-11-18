@@ -261,7 +261,7 @@ const NavItem = ({ icon, label, badge, active, onClick, collapsed }) => (
     aria-current={active ? 'page' : undefined}
     role="menuitem"
   >
-    {React.cloneElement(icon, { 'aria-hidden': 'true' })}
+    <span aria-hidden="true">{icon}</span>
     {!collapsed && (
       <>
         <span className="flex-1 text-sm font-medium text-left">{label}</span>
