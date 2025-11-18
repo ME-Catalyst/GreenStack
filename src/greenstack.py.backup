@@ -2,10 +2,6 @@
 IODD Management System - Core Implementation
 ============================================
 A comprehensive tool for managing IODD files and generating custom adapters
-
-NOTE: This module has been refactored. Data models, parsing, and generation
-classes are now in dedicated modules (src/models, src/parsing, src/generation).
-This file maintains backward compatibility by re-exporting those classes.
 """
 
 import hashlib
@@ -22,47 +18,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from jinja2 import Environment, FileSystemLoader, Template
-
-# ============================================================================
-# Re-export from Modular Components (for backward compatibility)
-# ============================================================================
-
-# Re-export all models from src.models
-from src.models import (
-    AccessRights,
-    CommunicationProfile,
-    Constraint,
-    CustomDatatype,
-    DeviceFeatures,
-    DeviceInfo,
-    DeviceProfile,
-    DeviceTestConfig,
-    DeviceVariant,
-    DocumentInfo,
-    ErrorType,
-    Event,
-    IODDDataType,
-    Menu,
-    MenuButton,
-    MenuItem,
-    Parameter,
-    ProcessData,
-    ProcessDataCollection,
-    ProcessDataCondition,
-    ProcessDataUIInfo,
-    RecordItem,
-    SingleValue,
-    TestEventTrigger,
-    UserInterfaceMenus,
-    VendorInfo,
-    WireConfiguration,
-)
-
-# Re-export parser from src.parsing
-from src.parsing import IODDParser
-
-# Re-export generators from src.generation
-from src.generation import AdapterGenerator, NodeREDGenerator
 
 # Import modular storage system
 from src.storage import StorageManager as ModularStorageManager

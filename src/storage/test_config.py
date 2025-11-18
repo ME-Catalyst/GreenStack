@@ -25,9 +25,9 @@ class TestConfigSaver(BaseSaver):
             logger.debug(f"No test configurations to save for device {device_id}")
             return
 
-        # Delete existing
-        self._delete_existing('device_test_event_triggers', device_id)
+        # Delete existing (only tables with device_id)
         self._delete_existing('device_test_config', device_id)
+        # Note: Child table device_test_event_triggers will be recreated
 
         # Save each test configuration
         for test_config in test_configurations:

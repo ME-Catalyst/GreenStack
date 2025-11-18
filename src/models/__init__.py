@@ -1,0 +1,360 @@
+"""
+Data models for IODD Management System
+
+This module contains all the dataclasses and enums used throughout the system.
+"""
+
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+
+class IODDDataType(Enum):
+    """IODD standard data types"""
+    BOOLEAN = "BooleanT"
+    INTEGER = "IntegerT"
+    UNSIGNED_INTEGER = "UIntegerT"
+    FLOAT = "Float32T"
+    STRING = "StringT"
+    OCTET_STRING = "OctetStringT"
+    TIME = "TimeT"
+    RECORD = "RecordT"
+    ARRAY = "ArrayT"
+
+
+class AccessRights(Enum):
+    """Parameter access rights"""
+    READ_ONLY = "ro"
+    WRITE_ONLY = "wo"
+    READ_WRITE = "rw"
+
+
+@dataclass
+class VendorInfo:
+    """Vendor information from IODD"""
+    id: int
+    name: str
+    text: str
+    url: Optional[str] = None
+
+
+@dataclass
+class DeviceInfo:
+    """Device identification information"""
+    vendor_id: int
+    device_id: int
+    product_name: str
+    product_id: Optional[str] = None
+    product_text: Optional[str] = None
+    hardware_revision: Optional[str] = None
+    firmware_revision: Optional[str] = None
+    software_revision: Optional[str] = None
+
+
+@dataclass
+class Constraint:
+    """Parameter constraint definition"""
+    type: str  # min, max, enum
+    value: Any
+
+
+@dataclass
+class SingleValue:
+    """Single value enumeration for parameters/process data"""
+    value: str
+    name: str
+    description: Optional[str] = None
+
+
+@dataclass
+class Parameter:
+    """Device parameter definition"""
+    id: str
+    index: int
+    subindex: Optional[int]
+    name: str
+    data_type: IODDDataType
+    access_rights: AccessRights
+    default_value: Optional[Any] = None
+    min_value: Optional[Any] = None
+    max_value: Optional[Any] = None
+    unit: Optional[str] = None
+    description: Optional[str] = None
+    constraints: List[Constraint] = field(default_factory=list)
+    enumeration_values: Dict[str, str] = field(default_factory=dict)  # value -> label mapping
+    bit_length: Optional[int] = None
+    dynamic: bool = False
+    excluded_from_data_storage: bool = False
+    modifies_other_variables: bool = False
+    unit_code: Optional[str] = None
+    value_range_name: Optional[str] = None
+    single_values: List[SingleValue] = field(default_factory=list)
+
+
+@dataclass
+class RecordItem:
+    """Record item within process data"""
+    subindex: int
+    name: str
+    bit_offset: int
+    bit_length: int
+    data_type: str
+    default_value: Optional[str] = None
+    single_values: List[SingleValue] = field(default_factory=list)
+
+
+@dataclass
+class ProcessDataCondition:
+    """Conditional process data definition"""
+    variable_id: str
+    value: str
+
+
+@dataclass
+class ProcessData:
+    """Process data definition"""
+    id: str
+    name: str
+    bit_length: int
+    data_type: str
+    record_items: List[RecordItem] = field(default_factory=list)
+    description: Optional[str] = None
+    # Phase 2: Conditional process data
+    condition: Optional[ProcessDataCondition] = None
+
+
+@dataclass
+class ProcessDataCollection:
+    """Collection of process data inputs and outputs"""
+    inputs: List[ProcessData] = field(default_factory=list)
+    outputs: List[ProcessData] = field(default_factory=list)
+    total_input_bits: int = 0
+    total_output_bits: int = 0
+
+
+@dataclass
+class ErrorType:
+    """Device error type definition"""
+    code: int
+    additional_code: int
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+@dataclass
+class Event:
+    """Device event definition"""
+    code: int
+    name: Optional[str] = None
+    description: Optional[str] = None
+    event_type: Optional[str] = None  # Notification, Warning, Error
+
+
+@dataclass
+class DocumentInfo:
+    """IODD document metadata"""
+    copyright: Optional[str] = None
+    release_date: Optional[str] = None
+    version: Optional[str] = None
+
+
+@dataclass
+class DeviceFeatures:
+    """Device capabilities and features"""
+    block_parameter: bool = False
+    data_storage: bool = False
+    profile_characteristic: Optional[str] = None
+    access_locks_data_storage: bool = False
+    access_locks_local_parameterization: bool = False
+    access_locks_local_user_interface: bool = False
+    access_locks_parameter: bool = False
+
+
+@dataclass
+class CommunicationProfile:
+    """IO-Link communication network profile"""
+    iolink_revision: Optional[str] = None
+    compatible_with: Optional[str] = None
+    bitrate: Optional[str] = None
+    min_cycle_time: Optional[int] = None  # microseconds
+    msequence_capability: Optional[int] = None
+    sio_supported: bool = False
+    connection_type: Optional[str] = None
+    wire_config: Dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class MenuButton:
+    """UI menu button configuration"""
+    button_value: str
+    description: Optional[str] = None
+    action_started_message: Optional[str] = None
+
+
+@dataclass
+class MenuItem:
+    """User interface menu item reference"""
+    variable_id: Optional[str] = None
+    record_item_ref: Optional[str] = None
+    subindex: Optional[int] = None
+    access_right_restriction: Optional[str] = None
+    display_format: Optional[str] = None
+    unit_code: Optional[str] = None
+    button_value: Optional[str] = None
+    menu_ref: Optional[str] = None
+    # Phase 1: UI rendering metadata
+    gradient: Optional[float] = None
+    offset: Optional[float] = None
+    # Phase 3: Button configuration
+    buttons: List[MenuButton] = field(default_factory=list)
+
+
+@dataclass
+class Menu:
+    """User interface menu definition"""
+    id: str
+    name: str
+    items: List[MenuItem] = field(default_factory=list)
+    sub_menus: List[str] = field(default_factory=list)
+
+
+@dataclass
+class UserInterfaceMenus:
+    """Complete user interface menu structure"""
+    menus: List[Menu] = field(default_factory=list)
+    observer_role_menus: Dict[str, str] = field(default_factory=dict)
+    maintenance_role_menus: Dict[str, str] = field(default_factory=dict)
+    specialist_role_menus: Dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class ProcessDataUIInfo:
+    """UI rendering metadata for process data record items"""
+    process_data_id: str
+    subindex: int
+    gradient: Optional[float] = None
+    offset: Optional[float] = None
+    unit_code: Optional[str] = None
+    display_format: Optional[str] = None
+
+
+@dataclass
+class DeviceVariant:
+    """Device variant information"""
+    product_id: str
+    device_symbol: Optional[str] = None
+    device_icon: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+@dataclass
+class WireConfiguration:
+    """Wire connection configuration"""
+    connection_type: str
+    wire_number: int
+    wire_color: Optional[str] = None
+    wire_function: Optional[str] = None
+    wire_description: Optional[str] = None
+
+
+@dataclass
+class TestEventTrigger:
+    """Test event trigger configuration"""
+    appear_value: str
+    disappear_value: str
+
+
+@dataclass
+class DeviceTestConfig:
+    """Device test configuration"""
+    config_type: str
+    param_index: int
+    test_value: str
+    event_triggers: List[TestEventTrigger] = field(default_factory=list)
+
+
+@dataclass
+class CustomDatatype:
+    """Custom datatype definition"""
+    datatype_id: str
+    datatype_xsi_type: str
+    bit_length: Optional[int] = None
+    subindex_access_supported: bool = False
+    single_values: List[SingleValue] = field(default_factory=list)
+    record_items: List[RecordItem] = field(default_factory=list)
+
+
+@dataclass
+class DeviceProfile:
+    """Complete device profile from IODD"""
+    vendor_info: VendorInfo
+    device_info: DeviceInfo
+    parameters: List[Parameter]
+    process_data: ProcessDataCollection
+    error_types: List[ErrorType] = field(default_factory=list)
+    events: List[Event] = field(default_factory=list)
+    document_info: Optional[DocumentInfo] = None
+    device_features: Optional[DeviceFeatures] = None
+    communication_profile: Optional[CommunicationProfile] = None
+    ui_menus: Optional[UserInterfaceMenus] = None
+    iodd_version: str = ""
+    schema_version: str = ""
+    import_date: datetime = field(default_factory=datetime.now)
+    raw_xml: Optional[str] = None
+    all_text_data: Dict[str, Dict[str, str]] = field(default_factory=dict)  # Multi-language text data
+
+    # Phase 1: UI Rendering metadata
+    process_data_ui_info: List[ProcessDataUIInfo] = field(default_factory=list)
+    menu_item_ui_attrs: Dict[str, Dict[str, Any]] = field(default_factory=dict)  # Store gradient/offset for menu items
+
+    # Phase 2: Device Variants and Conditions
+    device_variants: List[DeviceVariant] = field(default_factory=list)
+    process_data_conditions: Dict[str, ProcessDataCondition] = field(default_factory=dict)  # pd_id -> condition
+
+    # Phase 3: Button Configurations
+    menu_buttons: Dict[str, List[MenuButton]] = field(default_factory=dict)  # menu_item_id -> buttons
+
+    # Phase 4: Wiring and Testing
+    wire_configurations: List[WireConfiguration] = field(default_factory=list)
+    test_configurations: List[DeviceTestConfig] = field(default_factory=list)
+
+    # Phase 5: Custom Datatypes
+    custom_datatypes: List[CustomDatatype] = field(default_factory=list)
+    vendor_logo_filename: Optional[str] = None
+    stamp_crc: Optional[str] = None
+    checker_name: Optional[str] = None
+    checker_version: Optional[str] = None
+
+
+# Export all models
+__all__ = [
+    'IODDDataType',
+    'AccessRights',
+    'VendorInfo',
+    'DeviceInfo',
+    'Constraint',
+    'Parameter',
+    'RecordItem',
+    'ProcessData',
+    'ProcessDataCollection',
+    'ErrorType',
+    'Event',
+    'DocumentInfo',
+    'DeviceFeatures',
+    'CommunicationProfile',
+    'MenuItem',
+    'Menu',
+    'UserInterfaceMenus',
+    'SingleValue',
+    'ProcessDataUIInfo',
+    'DeviceVariant',
+    'ProcessDataCondition',
+    'MenuButton',
+    'WireConfiguration',
+    'TestEventTrigger',
+    'DeviceTestConfig',
+    'CustomDatatype',
+    'DeviceProfile',
+]

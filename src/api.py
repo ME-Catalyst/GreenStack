@@ -44,7 +44,8 @@ from slowapi.util import get_remote_address
 
 from src import config
 from src.config import validate_production_security
-from src.greenstack import DeviceProfile, IODDManager
+from src.models import DeviceProfile
+from src.greenstack import IODDManager
 
 # ============================================================================
 # API Models
@@ -1870,11 +1871,11 @@ async def get_device_variants(device_id: int):
     variants = []
     for row in cursor.fetchall():
         variants.append({
-            'product_id': row[0],
+            'product_variant_id': row[0],
             'device_symbol': row[1],
-            'device_icon': row[2],
-            'name': row[3],
-            'description': row[4]
+            'product_variant_image': row[2],
+            'product_variant_name': row[3],
+            'product_variant_text': row[4]
         })
 
     conn.close()
@@ -2187,8 +2188,8 @@ async def generate_adapter(request: GenerateRequest):
     try:
         # For demonstration, we'll create a simple mock profile
         # In production, this would be properly deserialized from the database
-        from src.greenstack import DeviceInfo as DeviceInfoModel
-        from src.greenstack import DeviceProfile, ProcessDataCollection, VendorInfo
+        from src.models import DeviceInfo as DeviceInfoModel
+        from src.models import DeviceProfile, ProcessDataCollection, VendorInfo
 
         # Create mock profile (simplified)
         profile = DeviceProfile(

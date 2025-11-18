@@ -26,12 +26,13 @@ class ProcessDataSaver(BaseSaver):
             logger.debug(f"No process data to save for device {device_id}")
             return
 
-        # Delete existing (in reverse dependency order)
-        self._delete_existing('process_data_single_values', device_id)
-        self._delete_existing('process_data_record_items', device_id)
-        self._delete_existing('process_data_conditions', device_id)
-        self._delete_existing('process_data_ui_info', device_id)
+        # Delete existing process data (child tables deleted via cascade or manual cleanup)
+        # Only delete from tables that have device_id column
         self._delete_existing('process_data', device_id)
+
+        # Note: Child tables (process_data_single_values, process_data_record_items,
+        # process_data_conditions, process_data_ui_info) don't have device_id.
+        # They will be recreated when we save new data.
 
         # Map to store pd_id -> db_id for conditions and UI info
         pd_id_map = {}

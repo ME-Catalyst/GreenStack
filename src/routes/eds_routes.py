@@ -1111,12 +1111,35 @@ async def upload_eds_package(file: UploadFile = File(...)):
         existing = cursor.fetchone()
 
         if existing:
+            # Package already exists - return success with existing package info (idempotent)
+            package_id = existing[0]
+            cursor.execute("""
+                SELECT package_name, vendor_name, product_name, total_eds_files
+                FROM eds_packages WHERE id = ?
+            """, (package_id,))
+            pkg_info = cursor.fetchone()
+
+            # Count how many EDS files are in this package
+            cursor.execute("""
+                SELECT COUNT(*) FROM eds_package_files WHERE package_id = ?
+            """, (package_id,))
+            file_count = cursor.fetchone()[0]
+
             conn.close()
             os.unlink(tmp_path)
-            raise HTTPException(
-                status_code=409,
-                detail=f"Package already exists (ID: {existing[0]})"
-            )
+
+            return {
+                "package_id": package_id,
+                "package_name": pkg_info[0] if pkg_info else "Unknown",
+                "vendor_name": pkg_info[1] if pkg_info else "Unknown",
+                "product_name": pkg_info[2] if pkg_info else "Unknown",
+                "total_eds_files": pkg_info[3] if pkg_info else 0,
+                "imported_count": 0,
+                "skipped_count": file_count,
+                "versions": package_data.get('versions', []),
+                "variants": package_data.get('variants', []),
+                "message": f"Package already exists (ID: {package_id}), skipping duplicate"
+            }
 
         # Insert package record
         cursor.execute("""
@@ -1345,7 +1368,7 @@ async def upload_eds_package(file: UploadFile = File(...)):
                 imported_count += 1
 
             except Exception as e:
-                logger.error("importing EDS from package: {e}")
+                logger.error(f"Error importing EDS from package: {e}")
                 continue
 
         # Insert package metadata files

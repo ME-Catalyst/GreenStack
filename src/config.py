@@ -32,7 +32,7 @@ DEBUG = os.getenv('DEBUG', 'true').lower() == 'true'
 API_HOST = os.getenv('API_HOST', '0.0.0.0')
 API_PORT = int(os.getenv('API_PORT', '8000'))
 API_RELOAD = os.getenv('API_RELOAD', 'true').lower() == 'true'
-API_WORKERS = int(os.getenv('API_WORKERS', '1'))
+API_WORKERS = int(os.getenv('API_WORKERS', '4'))  # Enable parallel processing
 
 # ============================================================================
 # Frontend Settings
@@ -71,7 +71,7 @@ CORS_ORIGINS_STR = os.getenv(
 )
 CORS_ORIGINS: List[str] = [origin.strip() for origin in CORS_ORIGINS_STR.split(',')]
 
-CORS_METHODS_STR = os.getenv('CORS_METHODS', 'GET,POST,DELETE,OPTIONS')
+CORS_METHODS_STR = os.getenv('CORS_METHODS', 'GET,POST,PUT,PATCH,DELETE,OPTIONS')
 CORS_METHODS: List[str] = [method.strip() for method in CORS_METHODS_STR.split(',')]
 
 CORS_CREDENTIALS = os.getenv('CORS_CREDENTIALS', 'true').lower() == 'true'

@@ -71,7 +71,10 @@
       "Bash(git mv:*)",
       "Bash(test:*)",
       "Bash(git log:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(/tmp/storage_manager_section.py)",
+      "Bash(/tmp/ingester_section.py)",
+      "Bash(/tmp/manager_cli_section.py)"
     ],
     "deny": [],
     "ask": []

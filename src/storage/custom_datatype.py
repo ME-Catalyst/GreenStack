@@ -25,10 +25,9 @@ class CustomDatatypeSaver(BaseSaver):
             logger.debug(f"No custom datatypes to save for device {device_id}")
             return
 
-        # Delete existing
-        self._delete_existing('custom_datatype_single_values', device_id)
-        self._delete_existing('custom_datatype_record_items', device_id)
+        # Delete existing (only delete from tables with device_id)
         self._delete_existing('custom_datatypes', device_id)
+        # Note: Child tables will be recreated when we save new data
 
         # Save each custom datatype
         for datatype in custom_datatypes:
