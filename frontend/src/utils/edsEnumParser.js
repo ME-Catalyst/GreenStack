@@ -197,3 +197,133 @@ export function isBooleanParameter(param) {
  * @param {number} value - The numeric value to get label for
  * @returns {string} Label for the value, or the value itself if not found
  */
+export function getEnumLabel(enumInfo, value) {
+  if (!enumInfo || !enumInfo.values) return String(value);
+
+  const enumValue = enumInfo.values.find(ev => ev.value === value);
+  return enumValue ? enumValue.label : String(value);
+}
+
+/**
+ * Format enum values for display
+ * @param {Object} enumInfo - Enum info from parseEnumValues()
+ * @param {number} currentValue - Current/default value
+ * @returns {string} Formatted enum string for display
+ */
+export function formatEnumDisplay(enumInfo, currentValue = null) {
+  if (!enumInfo || !enumInfo.values) return '';
+
+  const useValue = currentValue !== null ? currentValue : enumInfo.defaultValue;
+
+  return enumInfo.values
+    .map(ev => {
+      const marker = ev.value === useValue ? '●' : '○';
+      const defaultTag = ev.isDefault ? ' (default)' : '';
+      return `${marker} ${ev.value}: ${ev.label}${defaultTag}`;
+    })
+    .join('\n');
+}
+
+/**
+ * Parse range constraints from parameter
+ * @param {Object} param - Parameter object
+ * @returns {Object} Range info with min, max, and validation
+ */
+export function parseRangeConstraints(param) {
+  if (!param) return null;
+
+  const min = param.min_value !== null && param.min_value !== undefined
+    ? parseFloat(param.min_value)
+    : null;
+
+  const max = param.max_value !== null && param.max_value !== undefined
+    ? parseFloat(param.max_value)
+    : null;
+
+  const defaultVal = param.default_value !== null && param.default_value !== undefined
+    ? parseFloat(String(param.default_value).replace(/[^\d.-]/g, ''))
+    : null;
+
+  let isDefaultValid = true;
+  if (defaultVal !== null && !isNaN(defaultVal)) {
+    if (min !== null && !isNaN(min) && defaultVal < min) {
+      isDefaultValid = false;
+    }
+    if (max !== null && !isNaN(max) && defaultVal > max) {
+      isDefaultValid = false;
+    }
+  }
+
+  return {
+    min,
+    max,
+    default: defaultVal,
+    hasRange: min !== null || max !== null,
+    isDefaultValid,
+    rangeSize: (min !== null && max !== null) ? max - min : null
+  };
+}
+
+/**
+ * Extract units from parameter description fields
+ * @param {Object} param - Parameter object
+ * @returns {string|null} Units string or null if not found
+ */
+export function extractUnits(param) {
+  if (!param) return null;
+
+  if (param.description && param.description.trim()) {
+    const desc = param.description.trim();
+    const commonUnits = [
+      'Microsecond', 'Millisecond', 'Second', 'Minute', 'Hour',
+      'Byte', 'Kilobyte', 'Megabyte',
+      'Bit', 'Bits',
+      'Meter', 'Centimeter', 'Millimeter',
+      'Hz', 'kHz', 'MHz',
+      'Volt', 'Ampere', 'Watt',
+      'Percent', '%',
+      'Degree', '°C', '°F'
+    ];
+
+    for (const unit of commonUnits) {
+      if (desc.toLowerCase().includes(unit.toLowerCase())) {
+        return unit;
+      }
+    }
+
+    if (desc.length < 20 && !/[.!?]/.test(desc)) {
+      return desc;
+    }
+  }
+
+  if (param.help_string_1 && param.help_string_1.trim()) {
+    const help1 = param.help_string_1.trim();
+    if (help1.length < 20 && !/[.!?]/.test(help1)) {
+      return help1;
+    }
+  }
+
+  const nameMatch = param.param_name?.match(/\(([^)]+)\)/);
+  if (nameMatch && nameMatch[1].length < 15) {
+    return nameMatch[1];
+  }
+
+  return null;
+}
+
+/**
+ * Get full parameter description from help string fields
+ */
+export function getParameterDescription(param) {
+  if (!param) return '';
+
+  const parts = [
+    param.help_string_2,
+    param.help_string_3,
+    param.help_string_1
+  ].filter(Boolean).map(s => s.trim()).filter(s => s.length > 0);
+
+  const unique = [...new Set(parts)];
+
+  return unique.join(' ');
+}

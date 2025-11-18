@@ -305,3 +305,112 @@ export function validateTheme(theme) {
 /**
  * Create a custom theme based on a preset
  */
+export function createCustomTheme(basePresetId, customColors = {}) {
+  const baseTheme = getThemePreset(basePresetId);
+
+  const customTheme = {
+    ...baseTheme,
+    id: `custom-${Date.now()}`,
+    name: `Custom ${baseTheme.name}`,
+    locked: false,
+    colors: {
+      ...baseTheme.colors,
+      ...customColors,
+      // Always enforce immutable brand color
+      brand: BRAND_GREEN
+    }
+  };
+
+  const validation = validateTheme(customTheme);
+  if (!validation.valid) {
+    throw new Error(`Invalid theme: ${validation.errors.join(', ')}`);
+  }
+
+  return customTheme;
+}
+
+// ===========================
+// CSS VARIABLE GENERATION
+// ===========================
+
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}`
+    : '0 0 0';
+}
+
+export function generateCSSVariables(theme) {
+  const colors = theme.colors;
+
+  return {
+    '--brand-green': colors.brand,
+    '--brand-green-rgb': hexToRgb(colors.brand),
+
+    '--primary': colors.primary,
+    '--primary-hover': colors.primaryHover,
+    '--primary-active': colors.primaryActive,
+
+    '--secondary': colors.secondary,
+    '--secondary-hover': colors.secondaryHover,
+    '--secondary-active': colors.secondaryActive,
+
+    '--accent': colors.accent,
+    '--accent-hover': colors.accentHover,
+    '--accent-active': colors.accentActive,
+
+    '--success': colors.success,
+    '--warning': colors.warning,
+    '--error': colors.error,
+    '--info': colors.info,
+
+    '--background': colors.background,
+    '--background-secondary': colors.backgroundSecondary,
+    '--surface': colors.surface,
+    '--surface-hover': colors.surfaceHover,
+    '--surface-active': colors.surfaceActive,
+
+    '--border': colors.border,
+    '--border-subtle': colors.borderSubtle,
+    '--border-strong': colors.borderStrong,
+
+    '--foreground': colors.foreground,
+    '--foreground-secondary': colors.foregroundSecondary,
+    '--foreground-muted': colors.foregroundMuted,
+    '--foreground-inverse': colors.foregroundInverse,
+
+    '--overlay': colors.overlay,
+    '--overlay-light': colors.overlayLight,
+  };
+}
+
+/**
+ * Apply theme CSS variables to the document
+ */
+export function applyTheme(theme) {
+  const root = document.documentElement;
+  const variables = generateCSSVariables(theme);
+
+  Object.entries(variables).forEach(([key, value]) => {
+    root.style.setProperty(key, value);
+  });
+
+  if (theme.mode === 'light') {
+    root.classList.add('light');
+    root.classList.remove('dark');
+  } else {
+    root.classList.add('dark');
+    root.classList.remove('light');
+  }
+}
+
+export default {
+  BRAND_GREEN,
+  THEME_PRESETS,
+  getThemePreset,
+  getAllThemePresets,
+  validateTheme,
+  createCustomTheme,
+  generateCSSVariables,
+  applyTheme,
+};

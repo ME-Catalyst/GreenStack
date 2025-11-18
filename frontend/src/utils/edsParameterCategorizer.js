@@ -238,3 +238,110 @@ export function getSortedCategories(groupedParameters, includeEmpty = false) {
  * @param {Array} parameters - Array of parameter objects
  * @returns {Object} Statistics about parameter categorization
  */
+export function getCategoryStatistics(parameters) {
+  if (!parameters || !Array.isArray(parameters)) {
+    return {
+      total: 0,
+      categorized: 0,
+      uncategorized: 0,
+      categories: {}
+    };
+  }
+
+  const grouped = groupParametersByCategory(parameters);
+  const total = parameters.length;
+  const uncategorized = grouped[PARAMETER_CATEGORIES.OTHER.id]?.count || 0;
+  const categorized = total - uncategorized;
+
+  const categoryCounts = {};
+  Object.entries(grouped).forEach(([categoryId, group]) => {
+    if (group.count > 0) {
+      categoryCounts[categoryId] = {
+        name: group.category.name,
+        count: group.count,
+        percentage: ((group.count / total) * 100).toFixed(1)
+      };
+    }
+  });
+
+  return {
+    total,
+    categorized,
+    uncategorized,
+    categorizationRate: total > 0 ? ((categorized / total) * 100).toFixed(1) : 0,
+    categories: categoryCounts
+  };
+}
+
+/**
+ * Get badge color classes for a category
+ */
+export function getCategoryBadgeColor(colorName) {
+  const colorMap = {
+    blue: 'bg-info/20 text-info border-info',
+    green: 'bg-success/20 text-success border-success',
+    purple: 'bg-secondary/20 text-secondary border-secondary',
+    orange: 'bg-warning/20 text-warning border-warning',
+    cyan: 'bg-cyan-900/50 text-cyan-300 border-cyan-700',
+    yellow: 'bg-warning/20 text-warning border-warning',
+    red: 'bg-error/20 text-error border-error',
+    gray: 'bg-muted/20 text-muted-foreground border-border'
+  };
+
+  return colorMap[colorName] || colorMap.gray;
+}
+
+/**
+ * Get icon color classes for a category
+ */
+export function getCategoryIconColor(colorName) {
+  const colorMap = {
+    blue: 'text-info',
+    green: 'text-success',
+    purple: 'text-secondary',
+    orange: 'text-warning',
+    cyan: 'text-cyan-400',
+    yellow: 'text-warning',
+    red: 'text-error',
+    gray: 'text-muted-foreground'
+  };
+
+  return colorMap[colorName] || colorMap.gray;
+}
+
+/**
+ * Filter parameters by multiple criteria
+ */
+export function filterParameters(parameters, filters = {}) {
+  if (!parameters || !Array.isArray(parameters)) {
+    return [];
+  }
+
+  let filtered = [...parameters];
+
+  if (filters.searchTerm) {
+    const term = filters.searchTerm.toLowerCase();
+    filtered = filtered.filter(param =>
+      param.param_name?.toLowerCase().includes(term) ||
+      param.description?.toLowerCase().includes(term) ||
+      param.help_string_2?.toLowerCase().includes(term)
+    );
+  }
+
+  if (filters.categories && filters.categories.length > 0) {
+    const grouped = groupParametersByCategory(filtered);
+    filtered = [];
+    filters.categories.forEach(categoryId => {
+      if (grouped[categoryId]) {
+        filtered.push(...grouped[categoryId].parameters);
+      }
+    });
+  }
+
+  if (filters.dataTypes && filters.dataTypes.length > 0) {
+    filtered = filtered.filter(param => filters.dataTypes.includes(param.data_type));
+  }
+
+  // Placeholder for future filters (connection usage, etc.)
+  return filtered;
+}
