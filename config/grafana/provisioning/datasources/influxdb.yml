@@ -4,13 +4,15 @@ datasources:
   - name: InfluxDB
     type: influxdb
     access: proxy
+    # NOTE: Change to https://influxdb:8086 when TLS is enabled in docker-compose
     url: http://influxdb:8086
     jsonData:
       version: Flux
       organization: iodd-manager
       defaultBucket: device-telemetry
+      # NOTE: Set to false for production with proper CA-signed certificates
       tlsSkipVerify: true
     secureJsonData:
-      token: my-super-secret-auth-token
+      token: ${INFLUXDB_TOKEN}
     editable: true
     isDefault: true

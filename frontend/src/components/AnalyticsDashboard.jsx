@@ -99,32 +99,47 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
     };
   }, [devices, edsFiles]);
 
-  // Chart configurations
+  // Chart configurations with readable colors
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
         labels: {
-          color: 'hsl(var(--muted-foreground))',
+          color: '#9ca3af',
+          font: { size: 12 },
         },
       },
       tooltip: {
-        backgroundColor: 'hsl(var(--surface) / 0.9)',
-        titleColor: 'hsl(var(--foreground))',
-        bodyColor: 'hsl(var(--muted-foreground))',
-        borderColor: 'hsl(var(--border))',
+        backgroundColor: 'rgba(17, 24, 39, 0.95)',
+        titleColor: '#f3f4f6',
+        bodyColor: '#d1d5db',
+        borderColor: '#374151',
         borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
       },
     },
     scales: {
       x: {
-        ticks: { color: 'hsl(var(--muted-foreground))' },
-        grid: { color: 'hsl(var(--border) / 0.1)' },
+        ticks: {
+          color: '#9ca3af',
+          font: { size: 11 },
+        },
+        grid: {
+          color: 'rgba(75, 85, 99, 0.2)',
+          drawBorder: false,
+        },
       },
       y: {
-        ticks: { color: 'hsl(var(--muted-foreground))' },
-        grid: { color: 'hsl(var(--border) / 0.1)' },
+        ticks: {
+          color: '#9ca3af',
+          font: { size: 11 },
+        },
+        grid: {
+          color: 'rgba(75, 85, 99, 0.2)',
+          drawBorder: false,
+        },
       },
     },
   };
@@ -136,18 +151,37 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       legend: {
         position: 'right',
         labels: {
-          color: 'hsl(var(--muted-foreground))',
+          color: '#9ca3af',
           padding: 15,
+          font: { size: 12 },
+          boxWidth: 15,
+          boxHeight: 15,
         },
       },
       tooltip: {
-        backgroundColor: 'hsl(var(--surface) / 0.9)',
-        titleColor: 'hsl(var(--foreground))',
-        bodyColor: 'hsl(var(--muted-foreground))',
-        borderColor: 'hsl(var(--border))',
+        backgroundColor: 'rgba(17, 24, 39, 0.95)',
+        titleColor: '#f3f4f6',
+        bodyColor: '#d1d5db',
+        borderColor: '#374151',
         borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
       },
     },
+  };
+
+  // Vibrant color palette for charts
+  const colors = {
+    green: { bg: 'rgba(34, 197, 94, 0.7)', border: 'rgb(34, 197, 94)' },
+    cyan: { bg: 'rgba(6, 182, 212, 0.7)', border: 'rgb(6, 182, 212)' },
+    blue: { bg: 'rgba(59, 130, 246, 0.7)', border: 'rgb(59, 130, 246)' },
+    purple: { bg: 'rgba(168, 85, 247, 0.7)', border: 'rgb(168, 85, 247)' },
+    pink: { bg: 'rgba(236, 72, 153, 0.7)', border: 'rgb(236, 72, 153)' },
+    orange: { bg: 'rgba(249, 115, 22, 0.7)', border: 'rgb(249, 115, 22)' },
+    yellow: { bg: 'rgba(234, 179, 8, 0.7)', border: 'rgb(234, 179, 8)' },
+    red: { bg: 'rgba(239, 68, 68, 0.7)', border: 'rgb(239, 68, 68)' },
+    teal: { bg: 'rgba(20, 184, 166, 0.7)', border: 'rgb(20, 184, 166)' },
+    indigo: { bg: 'rgba(99, 102, 241, 0.7)', border: 'rgb(99, 102, 241)' },
   };
 
   // Manufacturer chart data
@@ -157,9 +191,10 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {
         label: 'Devices',
         data: Object.values(analyticsData.manufacturerCounts).slice(0, 10),
-        backgroundColor: 'hsl(var(--brand-green) / 0.7)',
-        borderColor: 'hsl(var(--brand-green))',
+        backgroundColor: colors.green.bg,
+        borderColor: colors.green.border,
         borderWidth: 2,
+        borderRadius: 6,
       },
     ],
   };
@@ -171,9 +206,10 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {
         label: 'EDS Files',
         data: Object.values(analyticsData.vendorCounts).slice(0, 10),
-        backgroundColor: 'hsl(var(--primary) / 0.7)',
-        borderColor: 'hsl(var(--primary))',
+        backgroundColor: colors.cyan.bg,
+        borderColor: colors.cyan.border,
         borderWidth: 2,
+        borderRadius: 6,
       },
     ],
   };
@@ -185,16 +221,16 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {
         data: Object.values(analyticsData.ioTypeCounts),
         backgroundColor: [
-          'hsl(var(--brand-green) / 0.7)',
-          'hsl(var(--primary) / 0.7)',
-          'hsl(var(--secondary) / 0.7)',
-          'hsl(var(--accent) / 0.7)',
+          colors.green.bg,
+          colors.cyan.bg,
+          colors.purple.bg,
+          colors.orange.bg,
         ],
         borderColor: [
-          'hsl(var(--brand-green))',
-          'hsl(var(--primary))',
-          'hsl(var(--secondary))',
-          'hsl(var(--accent))',
+          colors.green.border,
+          colors.cyan.border,
+          colors.purple.border,
+          colors.orange.border,
         ],
         borderWidth: 2,
       },
@@ -208,9 +244,10 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {
         label: 'Number of Devices',
         data: Object.values(analyticsData.paramDistribution),
-        backgroundColor: 'hsl(var(--secondary) / 0.7)',
-        borderColor: 'hsl(var(--secondary))',
+        backgroundColor: colors.purple.bg,
+        borderColor: colors.purple.border,
         borderWidth: 2,
+        borderRadius: 6,
       },
     ],
   };
@@ -226,16 +263,28 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {
         data: topDatatypes.map(([, count]) => count),
         backgroundColor: [
-          'hsl(var(--brand-green) / 0.7)',
-          'hsl(var(--primary) / 0.7)',
-          'hsl(var(--secondary) / 0.7)',
-          'hsl(var(--accent) / 0.7)',
-          'hsl(var(--chart-5) / 0.7)',
-          'hsl(var(--chart-6) / 0.7)',
-          'hsl(var(--chart-7) / 0.7)',
-          'hsl(var(--error) / 0.7)',
-          'hsl(var(--chart-9) / 0.7)',
-          'hsl(var(--success) / 0.7)',
+          colors.green.bg,
+          colors.cyan.bg,
+          colors.blue.bg,
+          colors.purple.bg,
+          colors.pink.bg,
+          colors.orange.bg,
+          colors.yellow.bg,
+          colors.red.bg,
+          colors.teal.bg,
+          colors.indigo.bg,
+        ],
+        borderColor: [
+          colors.green.border,
+          colors.cyan.border,
+          colors.blue.border,
+          colors.purple.border,
+          colors.pink.border,
+          colors.orange.border,
+          colors.yellow.border,
+          colors.red.border,
+          colors.teal.border,
+          colors.indigo.border,
         ],
         borderWidth: 2,
       },
@@ -245,31 +294,32 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
   // Summary metrics
   const metrics = [
     {
-      title: 'Total Devices',
+      title: 'IO-Link Devices',
       value: devices.length,
       icon: <Package className="w-5 h-5" />,
-      color: 'cyan',
-      trend: '+12%',
+      bgColor: 'bg-emerald-500/10',
+      iconColor: 'text-emerald-500',
     },
     {
       title: 'Total Parameters',
       value: stats.total_parameters || 0,
       icon: <Database className="w-5 h-5" />,
-      color: 'green',
-      trend: '+8%',
+      bgColor: 'bg-cyan-500/10',
+      iconColor: 'text-cyan-500',
     },
     {
       title: 'EDS Files',
       value: edsFiles.length,
       icon: <Cpu className="w-5 h-5" />,
-      color: 'purple',
-      trend: '+15%',
+      bgColor: 'bg-purple-500/10',
+      iconColor: 'text-purple-500',
     },
     {
       title: 'Manufacturers',
       value: Object.keys(analyticsData.manufacturerCounts).length,
       icon: <Users className="w-5 h-5" />,
-      color: 'orange',
+      bgColor: 'bg-orange-500/10',
+      iconColor: 'text-orange-500',
     },
   ];
 
@@ -299,14 +349,15 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, index) => (
-          <Card key={index} className="bg-card border-border">
+          <Card key={index} className="bg-card border-border hover:border-border/80 transition-colors">
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-foreground">{metric.title}</p>
-                <div className="text-muted-foreground">{metric.icon}</div>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-medium text-muted-foreground">{metric.title}</p>
+                <div className={`p-2 rounded-lg ${metric.bgColor}`}>
+                  <div className={metric.iconColor}>{metric.icon}</div>
+                </div>
               </div>
-              <div className="text-3xl font-bold text-foreground mb-1">{metric.value}</div>
-              {metric.trend && <p className="text-sm text-success">{metric.trend} from last period</p>}
+              <div className="text-3xl font-bold text-foreground">{metric.value.toLocaleString()}</div>
             </CardContent>
           </Card>
         ))}
@@ -314,11 +365,19 @@ const AnalyticsDashboard = ({ devices, edsFiles, stats }) => {
 
       {/* Charts */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="bg-card border-b border-border">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="devices">Devices</TabsTrigger>
-          <TabsTrigger value="parameters">Parameters</TabsTrigger>
-          <TabsTrigger value="eds">EDS Files</TabsTrigger>
+        <TabsList className="bg-secondary/50 border-b border-border p-1">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-card data-[state=active]:text-foreground">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="devices" className="data-[state=active]:bg-card data-[state=active]:text-foreground">
+            Devices
+          </TabsTrigger>
+          <TabsTrigger value="parameters" className="data-[state=active]:bg-card data-[state=active]:text-foreground">
+            Parameters
+          </TabsTrigger>
+          <TabsTrigger value="eds" className="data-[state=active]:bg-card data-[state=active]:text-foreground">
+            EDS Files
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">

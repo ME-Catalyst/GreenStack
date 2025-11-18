@@ -22,7 +22,7 @@ if env_path.exists():
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
 APP_NAME = os.getenv('APP_NAME', 'Greenstack')
-APP_VERSION = os.getenv('APP_VERSION', '2.0.0')
+APP_VERSION = os.getenv('APP_VERSION', '2.0.1')
 DEBUG = os.getenv('DEBUG', 'true').lower() == 'true'
 
 # ============================================================================
@@ -170,6 +170,88 @@ def print_config():
     config = get_config_summary()
     for key, value in config.items():
         print(f"  {key:20s}: {value}")
+    print("=" * 60 + "\n")
+
+
+# ============================================================================
+# Security Validation
+# ============================================================================
+
+WEAK_PASSWORDS = [
+    'changeme123',
+    'postgres123',
+    'redis123',
+    'mqtt123',
+    'admin123changeme',
+    'my-super-secret-auth-token',
+    'change-this-secret',
+    'dev-secret-key-change-in-production',
+    '',  # Empty passwords
+]
+
+def validate_production_security():
+    """
+    Validate that production environment has strong passwords configured.
+    Raises SystemExit if weak/missing passwords detected in production.
+    """
+    if ENVIRONMENT.lower() != 'production':
+        # Only enforce in production
+        return
+
+    print("\n" + "=" * 60)
+    print("  🔒 PRODUCTION SECURITY VALIDATION")
+    print("=" * 60)
+
+    errors = []
+
+    # Check SECRET_KEY
+    secret_key = os.getenv('SECRET_KEY', '')
+    if not secret_key or secret_key in WEAK_PASSWORDS or len(secret_key) < 32:
+        errors.append("❌ SECRET_KEY is weak or missing! Generate with: openssl rand -hex 32")
+
+    # Check PostgreSQL password
+    postgres_pass = os.getenv('POSTGRES_PASSWORD', '')
+    if postgres_pass in WEAK_PASSWORDS:
+        errors.append("❌ POSTGRES_PASSWORD is weak or missing! Generate with: openssl rand -base64 32")
+
+    # Check Redis password
+    redis_pass = os.getenv('REDIS_PASSWORD', '')
+    if redis_pass in WEAK_PASSWORDS:
+        errors.append("❌ REDIS_PASSWORD is weak or missing! Generate with: openssl rand -base64 32")
+
+    # Check MQTT password
+    mqtt_pass = os.getenv('MQTT_PASSWORD', '')
+    if mqtt_pass in WEAK_PASSWORDS:
+        errors.append("❌ MQTT_PASSWORD is weak or missing! Generate with: openssl rand -base64 32")
+
+    # Check InfluxDB token
+    influx_token = os.getenv('INFLUXDB_TOKEN', '')
+    if influx_token in WEAK_PASSWORDS:
+        errors.append("❌ INFLUXDB_TOKEN is weak or missing! Generate with: openssl rand -base64 32")
+
+    # Check Grafana password
+    grafana_pass = os.getenv('GRAFANA_ADMIN_PASSWORD', '')
+    if grafana_pass in WEAK_PASSWORDS:
+        errors.append("❌ GRAFANA_ADMIN_PASSWORD is weak or missing! Generate with: openssl rand -base64 32")
+
+    # Check Node-RED secret
+    nodered_secret = os.getenv('NODERED_CREDENTIAL_SECRET', '')
+    if nodered_secret in WEAK_PASSWORDS:
+        errors.append("❌ NODERED_CREDENTIAL_SECRET is weak or missing! Generate with: openssl rand -hex 32")
+
+    if errors:
+        print("\n🚨 CRITICAL SECURITY ISSUES DETECTED:\n")
+        for error in errors:
+            print(f"  {error}")
+        print("\n💡 SOLUTION:")
+        print("  1. Run: ./scripts/generate-secrets.sh > .env.production")
+        print("  2. Set: chmod 600 .env.production")
+        print("  3. Update docker-compose to use .env.production")
+        print("\n⛔ APPLICATION STARTUP BLOCKED FOR SECURITY")
+        print("=" * 60 + "\n")
+        raise SystemExit(1)
+
+    print("  ✅ All security credentials validated")
     print("=" * 60 + "\n")
 
 

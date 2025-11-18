@@ -91,6 +91,12 @@ test-data/output/*
 .env
 .env.local
 .env.*.local
+.env.production
+
+# TLS/SSL Certificates (keep public certs, ignore private keys)
+config/mosquitto/certs/*.key
+config/influxdb/certs/*.key
+*.pem
 
 # Setup preferences
 .setup_prefs

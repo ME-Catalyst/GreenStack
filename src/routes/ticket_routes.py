@@ -433,7 +433,7 @@ async def add_comment(ticket_id: int, comment: CommentCreate):
     return result
 
 
-@router.get("/export/csv", response_class=None)
+@router.get("/export/csv", response_class=StreamingResponse)
 async def export_tickets_csv(
     status: Optional[str] = Query(None, description="Filter by status"),
     priority: Optional[str] = Query(None, description="Filter by priority"),
@@ -607,7 +607,7 @@ async def get_attachments(ticket_id: int):
     ]
 
 
-@router.get("/{ticket_id}/attachments/{attachment_id}/download")
+@router.get("/{ticket_id}/attachments/{attachment_id}/download", response_class=FileResponse)
 async def download_attachment(ticket_id: int, attachment_id: int):
     """Download a specific attachment"""
     conn = sqlite3.connect(DB_PATH)
@@ -676,7 +676,7 @@ async def delete_attachment(ticket_id: int, attachment_id: int):
     return {"message": "Attachment deleted successfully"}
 
 
-@router.get("/export-with-attachments")
+@router.get("/export-with-attachments", response_class=StreamingResponse)
 async def export_tickets_with_attachments(
     status: Optional[str] = Query(None),
     priority: Optional[str] = Query(None),

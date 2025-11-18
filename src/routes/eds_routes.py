@@ -823,7 +823,7 @@ async def get_eds_diagnostics(eds_id: int):
     }
 
 
-@router.get("/{eds_id}/icon")
+@router.get("/{eds_id}/icon", response_class=StreamingResponse)
 async def get_eds_icon(eds_id: int):
     """
     Get the icon for a specific EDS file
@@ -849,7 +849,7 @@ async def get_eds_icon(eds_id: int):
     return Response(content=row[0], media_type="image/x-icon")
 
 
-@router.get("/{eds_id}/export-zip")
+@router.get("/{eds_id}/export-zip", response_class=StreamingResponse)
 async def export_eds_zip(eds_id: int):
     """
     Export EDS file and related assets as a ZIP file
@@ -968,7 +968,10 @@ async def delete_eds_file(eds_id: int):
 @router.post("/bulk-delete")
 async def bulk_delete_eds_files(request: dict):
     """
-    Delete multiple EDS files
+    Delete multiple EDS files and all their revisions
+
+    When an EDS file is selected for deletion, all revisions of that device
+    (same vendor_code and product_code) will be deleted.
 
     Args:
         request: Dictionary with 'eds_ids' list
@@ -986,39 +989,73 @@ async def bulk_delete_eds_files(request: dict):
     conn.execute("PRAGMA foreign_keys = ON")
     cursor = conn.cursor()
 
-    # Delete all associated data for each EDS file
-    # Note: Using parameterized queries for security - placeholders are literal '?' chars
-    placeholders_str = ','.join('?' * len(eds_ids))
-
-    # List of tables to delete from (in order of dependencies)
-    tables_to_delete = [
-        "eds_diagnostics",
-        "eds_tspecs",
-        "eds_capacity",
-        "eds_groups",
-        "eds_ports",
-        "eds_modules",
-        "eds_variable_assemblies",
-        "eds_assemblies",
-        "eds_connections",
-        "eds_parameters"
-    ]
-
     try:
+        # First, get vendor_code and product_code for selected EDS files
+        placeholders_str = ','.join('?' * len(eds_ids))
+        cursor.execute(f"""
+            SELECT DISTINCT vendor_code, product_code
+            FROM eds_files
+            WHERE id IN ({placeholders_str})
+        """, eds_ids)
+
+        device_keys = cursor.fetchall()
+
+        if not device_keys:
+            conn.close()
+            raise HTTPException(status_code=404, detail="No matching EDS files found")
+
+        # Now find ALL IDs (all revisions) for these vendor_code/product_code combinations
+        all_ids_to_delete = []
+        for vendor_code, product_code in device_keys:
+            cursor.execute("""
+                SELECT id FROM eds_files
+                WHERE vendor_code = ? AND product_code = ?
+            """, (vendor_code, product_code))
+
+            for row in cursor.fetchall():
+                all_ids_to_delete.append(row[0])
+
+        # Remove duplicates
+        all_ids_to_delete = list(set(all_ids_to_delete))
+
+        if not all_ids_to_delete:
+            conn.close()
+            return {"message": "No EDS files to delete", "deleted_count": 0}
+
+        # Create new placeholders for all IDs
+        all_placeholders = ','.join('?' * len(all_ids_to_delete))
+
+        # List of tables to delete from (in order of dependencies)
+        tables_to_delete = [
+            "eds_diagnostics",
+            "eds_tspecs",
+            "eds_capacity",
+            "eds_groups",
+            "eds_ports",
+            "eds_modules",
+            "eds_variable_assemblies",
+            "eds_assemblies",
+            "eds_connections",
+            "eds_parameters"
+        ]
+
         # Delete from child tables first
         for table in tables_to_delete:
-            query = f"DELETE FROM {table} WHERE eds_file_id IN ({placeholders_str})"
-            cursor.execute(query, eds_ids)
+            query = f"DELETE FROM {table} WHERE eds_file_id IN ({all_placeholders})"
+            cursor.execute(query, all_ids_to_delete)
             print(f"Deleted from {table}: {cursor.rowcount} rows")
 
-        # Finally delete all specified EDS files from parent table
-        cursor.execute(f"DELETE FROM eds_files WHERE id IN ({placeholders_str})", eds_ids)
+        # Finally delete all EDS files (all revisions)
+        cursor.execute(f"DELETE FROM eds_files WHERE id IN ({all_placeholders})", all_ids_to_delete)
         deleted_count = cursor.rowcount
 
         # Commit the transaction
         conn.commit()
-        print(f"Successfully deleted {deleted_count} EDS files from database")
+        print(f"Successfully deleted {deleted_count} EDS file(s) including all revisions from database")
 
+    except HTTPException:
+        conn.close()
+        raise
     except Exception as e:
         conn.rollback()
         conn.close()
@@ -1027,7 +1064,7 @@ async def bulk_delete_eds_files(request: dict):
     finally:
         conn.close()
 
-    return {"message": f"Successfully deleted {deleted_count} EDS file(s)", "deleted_count": deleted_count}
+    return {"message": f"Successfully deleted {deleted_count} EDS file(s) and all revisions", "deleted_count": deleted_count}
 
 
 @router.post("/upload-package")

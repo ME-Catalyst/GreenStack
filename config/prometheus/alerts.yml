@@ -1,0 +1,403 @@
+# Prometheus Alert Rules for GreenStack
+# Version: 1.0
+# Documentation: https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/
+
+groups:
+  # ============================================================================
+  # CRITICAL ALERTS - Page immediately
+  # ============================================================================
+  - name: critical_alerts
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} on {{ $labels.instance }} has been down for more than 1 minute."
+          runbook: "Check service logs: docker logs {{ $labels.job }}"
+
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(http_requests_total{status=~"5.."}[5m])
+            /
+            rate(http_requests_total[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+          runbook: "Check application logs and recent deployments"
+
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL has been down for more than 1 minute. This affects all application functionality."
+          runbook: "Check postgres logs: docker logs greenstack-postgres"
+
+      - alert: APIServerDown
+        expr: up{job="greenstack-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "API server is not responding"
+          description: "The main API server has been unreachable for more than 1 minute."
+          runbook: "Check API logs: docker logs greenstack-api"
+
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            container_memory_usage_bytes{name=~"greenstack-.*"}
+            /
+            container_spec_memory_limit_bytes{name=~"greenstack-.*"}
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Container {{ $labels.name }} high memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} (threshold: 90%)"
+          runbook: "Consider scaling or investigating memory leak"
+
+      - alert: DiskSpaceCritical
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/"}
+            /
+            node_filesystem_size_bytes{mountpoint="/"}
+          ) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Only {{ $value | humanizePercentage }} disk space remaining"
+          runbook: "Clean up old backups, logs, or Docker images"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: db_connection_pool_checked_out >= db_connection_pool_size * 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "{{ $value }} of {{ db_connection_pool_size }} connections in use (>90%)"
+          runbook: "Check for connection leaks or increase pool size"
+
+  # ============================================================================
+  # HIGH PRIORITY ALERTS - Investigate promptly
+  # ============================================================================
+  - name: high_priority_alerts
+    interval: 1m
+    rules:
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket[5m])
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile response time is {{ $value }}s (threshold: 2s)"
+          runbook: "Check database performance and endpoint optimization"
+
+      - alert: HighCPUUsage
+        expr: |
+          (
+            rate(container_cpu_usage_seconds_total{name=~"greenstack-.*"}[5m])
+          ) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High CPU usage in {{ $labels.name }}"
+          description: "CPU usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook: "Check for high load or consider scaling"
+
+      - alert: HighRequestRate
+        expr: rate(http_requests_total[5m]) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Unusually high request rate"
+          description: "Request rate is {{ $value }} req/s (normal: <1000)"
+          runbook: "Check for DDoS attack or unusual traffic pattern"
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis has been down for 2 minutes. Application will work but slower."
+          runbook: "Check redis logs: docker logs greenstack-redis"
+
+      - alert: MQTTBrokerDown
+        expr: up{job="mosquitto"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: mqtt
+        annotations:
+          summary: "MQTT broker is down"
+          description: "Mosquitto has been down for 2 minutes. IoT devices cannot connect."
+          runbook: "Check mosquitto logs: docker logs greenstack-mosquitto"
+
+      - alert: InfluxDBDown
+        expr: up{job="influxdb"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: timeseries
+        annotations:
+          summary: "InfluxDB is down"
+          description: "InfluxDB has been down for 5 minutes. Telemetry data not being stored."
+          runbook: "Check influxdb logs: docker logs greenstack-influxdb"
+
+      - alert: BackupAgeTooOld
+        expr: (time() - backup_last_success_timestamp_seconds) > 86400 * 2
+        for: 1h
+        labels:
+          severity: warning
+          component: backup
+        annotations:
+          summary: "Backup is too old"
+          description: "Last successful backup was {{ $value | humanizeDuration }} ago (threshold: 48h)"
+          runbook: "Check backup script logs and cron job status"
+
+      - alert: SSLCertificateExpiringSoon
+        expr: (ssl_certificate_expiry_seconds - time()) < 86400 * 30
+        for: 1d
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "Certificate for {{ $labels.domain }} expires in {{ $value | humanizeDuration }}"
+          runbook: "Renew SSL certificate before expiration"
+
+  # ============================================================================
+  # BUSINESS METRICS ALERTS
+  # ============================================================================
+  - name: business_alerts
+    interval: 5m
+    rules:
+      - alert: NoIODDUploadsRecently
+        expr: increase(iodd_uploads_total[24h]) == 0
+        for: 24h
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "No IODD uploads in last 24 hours"
+          description: "This might indicate a problem with file upload functionality"
+          runbook: "Check upload endpoint and user activity"
+
+      - alert: HighParseFailureRate
+        expr: |
+          (
+            rate(iodd_uploads_total{status="failed"}[1h])
+            /
+            rate(iodd_uploads_total[1h])
+          ) > 0.2
+        for: 30m
+        labels:
+          severity: warning
+          component: parser
+        annotations:
+          summary: "High IODD parse failure rate"
+          description: "{{ $value | humanizePercentage }} of uploads failing to parse (threshold: 20%)"
+          runbook: "Check parser logs for common errors"
+
+      - alert: SlowIODDParsing
+        expr: |
+          histogram_quantile(0.95,
+            rate(iodd_parse_duration_seconds_bucket[10m])
+          ) > 5
+        for: 30m
+        labels:
+          severity: warning
+          component: parser
+        annotations:
+          summary: "IODD parsing is slow"
+          description: "95th percentile parse time is {{ $value }}s (threshold: 5s)"
+          runbook: "Check for complex IODD files or parser optimization needed"
+
+      - alert: NoDeviceSearchesRecently
+        expr: increase(device_searches_total[6h]) == 0
+        for: 6h
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "No device searches in last 6 hours"
+          description: "This might indicate low user activity or search functionality issue"
+          runbook: "Check application usage and search endpoint health"
+
+  # ============================================================================
+  # PERFORMANCE ALERTS
+  # ============================================================================
+  - name: performance_alerts
+    interval: 2m
+    rules:
+      - alert: SlowDatabaseQueries
+        expr: |
+          histogram_quantile(0.95,
+            rate(database_query_duration_seconds_bucket[5m])
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "95th percentile query time is {{ $value }}s (threshold: 1s)"
+          runbook: "Check slow query log and optimize indexes"
+
+      - alert: HighDatabaseConnections
+        expr: db_connection_pool_checked_out > db_connection_pool_size * 0.7
+        for: 15m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database connection usage"
+          description: "{{ $value }} of {{ db_connection_pool_size }} connections in use (>70%)"
+          runbook: "Monitor for connection leaks or increase pool size"
+
+      - alert: HighRedisMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis is using {{ $value | humanizePercentage }} of max memory (threshold: 80%)"
+          runbook: "Review cache eviction policy or increase memory"
+
+      - alert: HighNetworkTraffic
+        expr: |
+          rate(container_network_receive_bytes_total{name=~"greenstack-.*"}[5m])
+          > 100 * 1024 * 1024
+        for: 10m
+        labels:
+          severity: info
+          component: network
+        annotations:
+          summary: "High network traffic on {{ $labels.name }}"
+          description: "Receiving {{ $value | humanize }}B/s (threshold: 100MB/s)"
+          runbook: "Monitor for unusual traffic patterns or DDoS"
+
+  # ============================================================================
+  # SECURITY ALERTS
+  # ============================================================================
+  - name: security_alerts
+    interval: 1m
+    rules:
+      - alert: HighAuthenticationFailureRate
+        expr: rate(http_requests_total{path="/api/auth/login",status="401"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High authentication failure rate"
+          description: "{{ $value }} failed login attempts per second (threshold: 10/s)"
+          runbook: "Check for brute force attack, review access logs"
+
+      - alert: UnauthorizedAccessAttempts
+        expr: rate(http_requests_total{status="403"}[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High rate of unauthorized access attempts"
+          description: "{{ $value }} forbidden requests per second (threshold: 5/s)"
+          runbook: "Review security logs and IP addresses"
+
+      - alert: SuspiciousFileUploadActivity
+        expr: rate(iodd_uploads_total[5m]) > 50
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Unusually high file upload rate"
+          description: "{{ $value }} uploads per second (normal: <50/s)"
+          runbook: "Check for abuse or automated uploads"
+
+  # ============================================================================
+  # DATA QUALITY ALERTS
+  # ============================================================================
+  - name: data_quality_alerts
+    interval: 5m
+    rules:
+      - alert: MissingMetrics
+        expr: absent(up{job="greenstack-api"}) == 1
+        for: 5m
+        labels:
+          severity: warning
+          component: monitoring
+        annotations:
+          summary: "Missing metrics from API"
+          description: "Prometheus is not receiving metrics from the API server"
+          runbook: "Check if /metrics endpoint is accessible"
+
+      - alert: StaleTelemetryData
+        expr: (time() - influxdb_last_write_timestamp_seconds) > 600
+        for: 10m
+        labels:
+          severity: warning
+          component: telemetry
+        annotations:
+          summary: "Stale telemetry data"
+          description: "No new data written to InfluxDB for {{ $value | humanizeDuration }}"
+          runbook: "Check MQTT-to-InfluxDB pipeline"
+
+      - alert: InconsistentBackupSize
+        expr: |
+          (
+            backup_size_bytes
+            /
+            backup_size_bytes offset 24h
+          ) < 0.5 or
+          (
+            backup_size_bytes
+            /
+            backup_size_bytes offset 24h
+          ) > 2
+        for: 1h
+        labels:
+          severity: warning
+          component: backup
+        annotations:
+          summary: "Backup size inconsistent"
+          description: "Backup size changed by >50% compared to yesterday"
+          runbook: "Investigate if data was deleted or backup is incomplete"

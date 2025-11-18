@@ -499,7 +499,7 @@ async def backup_database():
         raise HTTPException(status_code=500, detail=f"Failed to create backup: {str(e)}")
 
 
-@router.get("/database/backup/download")
+@router.get("/database/backup/download", response_class=FileResponse)
 async def download_backup():
     """Download a database backup"""
     try:

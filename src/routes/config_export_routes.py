@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/config-export", tags=["Configuration Export"])
 DB_PATH = "greenstack.db"
 
 
-@router.get("/iodd/{device_id}/json")
+@router.get("/iodd/{device_id}/json", response_class=FileResponse)
 async def export_iodd_config_json(device_id: int):
     """
     Export IODD device configuration as JSON
@@ -117,7 +117,7 @@ async def export_iodd_config_json(device_id: int):
     )
 
 
-@router.get("/iodd/{device_id}/csv")
+@router.get("/iodd/{device_id}/csv", response_class=StreamingResponse)
 async def export_iodd_config_csv(device_id: int):
     """Export IODD device parameters as CSV"""
     conn = sqlite3.connect(DB_PATH)
@@ -169,7 +169,7 @@ async def export_iodd_config_csv(device_id: int):
     )
 
 
-@router.get("/eds/{eds_id}/json")
+@router.get("/eds/{eds_id}/json", response_class=FileResponse)
 async def export_eds_config_json(eds_id: int):
     """
     Export EDS device configuration as JSON
@@ -275,7 +275,7 @@ async def export_eds_config_json(eds_id: int):
     )
 
 
-@router.get("/eds/{eds_id}/csv")
+@router.get("/eds/{eds_id}/csv", response_class=StreamingResponse)
 async def export_eds_config_csv(eds_id: int):
     """Export EDS device parameters as CSV"""
     conn = sqlite3.connect(DB_PATH)
@@ -327,7 +327,7 @@ async def export_eds_config_csv(eds_id: int):
     )
 
 
-@router.get("/batch/json")
+@router.get("/batch/json", response_class=FileResponse)
 async def export_batch_configs_json(
     device_type: str = Query(..., description="Device type: IODD or EDS"),
     device_ids: str = Query(..., description="Comma-separated device IDs")

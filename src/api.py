@@ -7,16 +7,33 @@ Currently supports IO-Link (IODD) and EtherNet/IP (EDS) device configurations
 
 import json
 import logging
+import os
 import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+import sentry_sdk
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, Request, UploadFile
+from prometheus_client import Counter, Histogram
+from prometheus_fastapi_instrumentator import Instrumentator
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Initialize Sentry for error tracking (production only)
+if os.getenv("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=os.getenv("SENTRY_DSN"),
+        integrations=[FastApiIntegration()],
+        environment=os.getenv("ENVIRONMENT", "development"),
+        traces_sample_rate=0.1,  # 10% of transactions for performance monitoring
+        profiles_sample_rate=0.1,  # 10% for profiling
+        send_default_pii=False,  # Don't send personally identifiable information
+    )
+    logger.info("Sentry error tracking initialized")
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -26,6 +43,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from src import config
+from src.config import validate_production_security
 from src.greenstack import DeviceProfile, IODDManager
 
 # ============================================================================
@@ -244,11 +262,94 @@ class EDSUploadResponse(BaseModel):
 
 app = FastAPI(
     title="GreenStack API",
-    description="Intelligent device management API supporting IO-Link (IODD) and EtherNet/IP (EDS) configurations",
+    description="Intelligent device management API supporting IO-Link (IODD) and EDS) configurations",
     version=config.APP_VERSION,
     docs_url="/docs" if config.ENABLE_DOCS else None,
     redoc_url="/redoc" if config.ENABLE_DOCS else None,
 )
+
+# Validate production security (blocks startup if weak passwords detected)
+validate_production_security()
+
+# ============================================================================
+# Prometheus Metrics
+# ============================================================================
+
+# Initialize Prometheus instrumentation
+instrumentator = Instrumentator(
+    should_group_status_codes=True,
+    should_ignore_untemplated=True,
+    should_respect_env_var=True,
+    excluded_handlers=["/health", "/metrics"],
+    env_var_name="ENABLE_METRICS",
+    inprogress_name="http_requests_inprogress",
+    inprogress_labels=True,
+)
+
+# Instrument the app and expose metrics endpoint
+instrumentator.instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
+
+# Custom business metrics
+# Wrapped in try/except to handle uvicorn reloader on Windows (multiprocessing issue)
+try:
+    iodd_uploads_total = Counter(
+        'iodd_uploads_total',
+        'Total number of IODD file uploads',
+        ['status']  # success, failed
+    )
+
+    iodd_parse_duration_seconds = Histogram(
+        'iodd_parse_duration_seconds',
+        'Time spent parsing IODD files',
+        buckets=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+    )
+
+    device_searches_total = Counter(
+        'device_searches_total',
+        'Total number of device catalog searches',
+        ['search_type']  # vendor, device, parameter
+    )
+
+    adapter_generation_total = Counter(
+        'adapter_generation_total',
+        'Total number of adapter code generations',
+        ['platform', 'status']  # platform: node-red, python, plc; status: success, failed
+    )
+
+    adapter_generation_duration_seconds = Histogram(
+        'adapter_generation_duration_seconds',
+        'Time spent generating adapter code',
+        ['platform'],
+        buckets=[0.5, 1.0, 2.0, 5.0, 10.0, 30.0]
+    )
+
+    database_operations_total = Counter(
+        'database_operations_total',
+        'Total number of database operations',
+        ['operation', 'table']  # operation: insert, update, delete, select
+    )
+except ValueError:
+    # Metrics already registered (uvicorn reloader on Windows)
+    # Retrieve existing metrics from default registry
+    from prometheus_client import REGISTRY
+
+    # Get existing collectors
+    for collector in list(REGISTRY._collector_to_names.keys()):
+        if hasattr(collector, '_name'):
+            if collector._name == 'iodd_uploads_total':
+                iodd_uploads_total = collector
+            elif collector._name == 'iodd_parse_duration_seconds':
+                iodd_parse_duration_seconds = collector
+            elif collector._name == 'device_searches_total':
+                device_searches_total = collector
+            elif collector._name == 'adapter_generation_total':
+                adapter_generation_total = collector
+            elif collector._name == 'adapter_generation_duration_seconds':
+                adapter_generation_duration_seconds = collector
+            elif collector._name == 'database_operations_total':
+                database_operations_total = collector
+
+logger.info("Prometheus metrics endpoint enabled at /metrics")
 
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -1251,6 +1352,68 @@ async def reset_eds_database():
     }
 
 
+@app.post("/api/admin/database/delete-all")
+async def delete_all_data():
+    """Delete all IODD and EDS data from the system"""
+    import sqlite3
+    conn = sqlite3.connect(manager.storage.db_path)
+    # Enable foreign keys for this connection
+    conn.execute("PRAGMA foreign_keys = ON")
+    cursor = conn.cursor()
+
+    # Get counts before deletion
+    cursor.execute("SELECT COUNT(*) FROM devices")
+    iodd_device_count = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM eds_files")
+    eds_count = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM eds_packages")
+    package_count = cursor.fetchone()[0]
+
+    # Delete all IODD data
+    cursor.execute("DELETE FROM ui_menu_roles")
+    cursor.execute("DELETE FROM ui_menu_items")
+    cursor.execute("DELETE FROM ui_menus")
+    cursor.execute("DELETE FROM communication_profile")
+    cursor.execute("DELETE FROM device_features")
+    cursor.execute("DELETE FROM document_info")
+    cursor.execute("DELETE FROM process_data_single_values")
+    cursor.execute("DELETE FROM parameter_single_values")
+    cursor.execute("DELETE FROM process_data_record_items")
+    cursor.execute("DELETE FROM process_data")
+    cursor.execute("DELETE FROM error_types")
+    cursor.execute("DELETE FROM events")
+    cursor.execute("DELETE FROM parameters")
+    cursor.execute("DELETE FROM iodd_files")
+    cursor.execute("DELETE FROM iodd_assets")
+    cursor.execute("DELETE FROM generated_adapters")
+    cursor.execute("DELETE FROM devices")
+
+    # Delete all EDS data
+    cursor.execute("DELETE FROM eds_diagnostics")
+    cursor.execute("DELETE FROM eds_tspecs")
+    cursor.execute("DELETE FROM eds_capacity")
+    cursor.execute("DELETE FROM eds_groups")
+    cursor.execute("DELETE FROM eds_ports")
+    cursor.execute("DELETE FROM eds_modules")
+    cursor.execute("DELETE FROM eds_variable_assemblies")
+    cursor.execute("DELETE FROM eds_assemblies")
+    cursor.execute("DELETE FROM eds_connections")
+    cursor.execute("DELETE FROM eds_parameters")
+    cursor.execute("DELETE FROM eds_package_metadata")
+    cursor.execute("DELETE FROM eds_files")
+    cursor.execute("DELETE FROM eds_packages")
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "message": f"All data deleted successfully. Deleted {iodd_device_count} IODD device(s) and {eds_count} EDS file(s).",
+        "iodd_devices_deleted": iodd_device_count,
+        "eds_files_deleted": eds_count,
+        "eds_packages_deleted": package_count
+    }
+
+
 class BulkDeleteRequest(BaseModel):
     """Bulk delete request model"""
     device_ids: List[int]
@@ -1653,26 +1816,26 @@ async def get_process_data_ui_info(device_id: int):
         conn.close()
         raise HTTPException(status_code=404, detail="Device not found")
 
-    # Get UI info for all process data
+    # Get UI info for all process data with record item names
     cursor.execute("""
-        SELECT pd.pd_id, ui.subindex, ui.gradient, ui.offset, ui.unit_code, ui.display_format
+        SELECT pd.pd_id, ri.name, ui.subindex, ui.gradient, ui.offset, ui.unit_code, ui.display_format
         FROM process_data_ui_info ui
         JOIN process_data pd ON ui.process_data_id = pd.id
+        LEFT JOIN process_data_record_items ri ON ri.process_data_id = pd.id AND ri.subindex = ui.subindex
         WHERE pd.device_id = ?
         ORDER BY pd.pd_id, ui.subindex
     """, (device_id,))
 
-    ui_info = {}
+    ui_info = []
     for row in cursor.fetchall():
-        pd_id = row[0]
-        if pd_id not in ui_info:
-            ui_info[pd_id] = []
-        ui_info[pd_id].append({
-            'subindex': row[1],
-            'gradient': row[2],
-            'offset': row[3],
-            'unit_code': row[4],
-            'display_format': row[5]
+        ui_info.append({
+            'pd_id': row[0],
+            'record_item_name': row[1],
+            'subindex': row[2],
+            'gradient': row[3],
+            'offset': row[4],
+            'unit_code': row[5],
+            'display_format': row[6]
         })
 
     conn.close()
@@ -2159,6 +2322,32 @@ async def health_check():
         )
 
 
+@app.get("/api/health/db-pool", tags=["System"])
+async def db_pool_status():
+    """
+    Database connection pool status endpoint.
+
+    Returns current connection pool statistics for monitoring and debugging.
+    Useful for tracking connection exhaustion and tuning pool parameters.
+    """
+    try:
+        from src.db import get_pool_status
+        return get_pool_status()
+    except ImportError:
+        return {
+            "error": "Connection pooling module not available",
+            "message": "Using legacy SQLite direct connections"
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Failed to retrieve pool status",
+                "details": str(e)
+            }
+        )
+
+
 @app.get("/api/health/live", tags=["System"])
 async def liveness_probe():
     """Kubernetes liveness probe - indicates if application is running"""
@@ -2200,35 +2389,53 @@ async def readiness_probe():
 async def get_statistics():
     """Get system statistics"""
     import sqlite3
-    
+
     conn = sqlite3.connect(manager.storage.db_path)
     cursor = conn.cursor()
-    
-    # Get various statistics
+
+    # Get IO-Link statistics
     cursor.execute("SELECT COUNT(*) FROM devices")
     total_devices = cursor.fetchone()[0]
-    
+
     cursor.execute("SELECT COUNT(*) FROM parameters")
     total_parameters = cursor.fetchone()[0]
-    
+
     cursor.execute("SELECT COUNT(*) FROM generated_adapters")
     total_generated = cursor.fetchone()[0]
-    
+
     cursor.execute("""
-        SELECT target_platform, COUNT(*) 
-        FROM generated_adapters 
+        SELECT target_platform, COUNT(*)
+        FROM generated_adapters
         GROUP BY target_platform
     """)
     platform_stats = dict(cursor.fetchall())
-    
+
+    # Get EDS statistics
+    cursor.execute("SELECT COUNT(*) FROM eds_files")
+    total_eds_files = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM eds_parameters")
+    total_eds_parameters = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM eds_packages")
+    total_eds_packages = cursor.fetchone()[0]
+
+    # Get unique EDS devices (by vendor_code + product_code)
+    cursor.execute("SELECT COUNT(DISTINCT vendor_code || '_' || product_code) FROM eds_files")
+    unique_eds_devices = cursor.fetchone()[0]
+
     conn.close()
-    
+
     return {
         "total_devices": total_devices,
         "total_parameters": total_parameters,
         "total_generated_adapters": total_generated,
         "adapters_by_platform": platform_stats,
-        "supported_platforms": list(manager.generators.keys())
+        "supported_platforms": list(manager.generators.keys()),
+        "total_eds_files": total_eds_files,
+        "total_eds_parameters": total_eds_parameters,
+        "total_eds_packages": total_eds_packages,
+        "unique_eds_devices": unique_eds_devices
     }
 
 # ============================================================================

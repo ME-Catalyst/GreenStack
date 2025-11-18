@@ -1,0 +1,267 @@
+# Alertmanager Configuration for GreenStack
+# Version: 1.0
+# Documentation: https://prometheus.io/docs/alerting/latest/configuration/
+
+global:
+  # Global SMTP configuration (for email alerts)
+  smtp_from: 'alerts@greenstack.com'
+  smtp_smarthost: '${SMTP_HOST:-smtp.gmail.com:587}'
+  smtp_auth_username: '${SMTP_USERNAME}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+  # Slack API URL (if using Slack webhooks)
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+  # Resolve timeout - how long to wait before sending a resolved notification
+  resolve_timeout: 5m
+
+# Templates for custom notification formats
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Routing tree - determines which receiver handles which alerts
+route:
+  # Default receiver for all alerts
+  receiver: 'default-receiver'
+
+  # Group alerts by these labels
+  group_by: ['alertname', 'severity', 'component']
+
+  # How long to wait before sending a notification for a group of alerts
+  group_wait: 30s
+
+  # How long to wait before sending additional notifications for new alerts in a group
+  group_interval: 5m
+
+  # How long to wait before sending another notification for an already notified alert
+  repeat_interval: 4h
+
+  # Child routes (more specific routing)
+  routes:
+    # CRITICAL alerts - page immediately via email and Slack
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 1h
+      continue: false  # Don't match other routes
+
+    # WARNING alerts - send to Slack channel
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 1m
+      group_interval: 5m
+      repeat_interval: 6h
+
+    # INFO alerts - send to low-priority Slack channel
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+      group_interval: 15m
+      repeat_interval: 24h
+
+    # Database alerts - always send to DBA team
+    - match:
+        component: database
+      receiver: 'database-team'
+      continue: true  # Also match parent route
+
+    # Security alerts - send to security team
+    - match:
+        component: security
+      receiver: 'security-team'
+      continue: true
+
+    # Backup alerts - send to ops team
+    - match:
+        component: backup
+      receiver: 'ops-team'
+      continue: true
+
+# Inhibition rules - suppress certain alerts when others are firing
+inhibit_rules:
+  # Inhibit all alerts for a service if the service itself is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match_re:
+      alertname: '.*'
+    equal: ['job', 'instance']
+
+  # Inhibit high error rate if service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match:
+      alertname: 'HighErrorRate'
+    equal: ['job']
+
+  # Inhibit database connection alerts if database is down
+  - source_match:
+      alertname: 'DatabaseDown'
+    target_match_re:
+      alertname: 'Database.*'
+    equal: ['instance']
+
+  # Inhibit warning alerts if critical alert is firing for same component
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['component']
+
+# Receiver definitions
+receivers:
+  # ===========================================================================
+  # Default receiver (fallback)
+  # ===========================================================================
+  - name: 'default-receiver'
+    email_configs:
+      - to: '${ALERT_EMAIL_DEFAULT:-ops@example.com}'
+        headers:
+          Subject: '[GreenStack] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Severity:</strong> {{ .CommonLabels.severity }}</p>
+          <p><strong>Summary:</strong> {{ .CommonAnnotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Runbook:</strong> {{ .CommonAnnotations.runbook }}</p>
+
+  # ===========================================================================
+  # Critical alerts - email + Slack + PagerDuty (if configured)
+  # ===========================================================================
+  - name: 'critical-alerts'
+    email_configs:
+      - to: '${ALERT_EMAIL_CRITICAL:-ops@example.com,oncall@example.com}'
+        send_resolved: true
+        headers:
+          Subject: '[CRITICAL] {{ .GroupLabels.alertname }} - GreenStack'
+          Priority: 'urgent'
+        html: |
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; }
+              .critical { color: #d32f2f; font-weight: bold; }
+              .alert-box { border: 2px solid #d32f2f; padding: 15px; margin: 10px 0; background-color: #ffebee; }
+              .field { margin: 5px 0; }
+              .label { font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <div class="alert-box">
+              <h2 class="critical">🚨 CRITICAL ALERT</h2>
+              <div class="field"><span class="label">Alert:</span> {{ .GroupLabels.alertname }}</div>
+              <div class="field"><span class="label">Component:</span> {{ .CommonLabels.component }}</div>
+              <div class="field"><span class="label">Severity:</span> <span class="critical">{{ .CommonLabels.severity }}</span></div>
+              <div class="field"><span class="label">Summary:</span> {{ .CommonAnnotations.summary }}</div>
+              <div class="field"><span class="label">Description:</span> {{ .CommonAnnotations.description }}</div>
+              <div class="field"><span class="label">Runbook:</span> <pre>{{ .CommonAnnotations.runbook }}</pre></div>
+              <div class="field"><span class="label">Firing Since:</span> {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}</div>
+            </div>
+            {{ if .Alerts.Resolved }}
+            <div style="border: 2px solid #4caf50; padding: 15px; margin: 10px 0; background-color: #e8f5e9;">
+              <h3 style="color: #4caf50;">✅ RESOLVED</h3>
+              <p>Alert resolved at {{ .ResolvedAt.Format "2006-01-02 15:04:05 MST" }}</p>
+            </div>
+            {{ end }}
+          </body>
+          </html>
+
+    slack_configs:
+      - channel: '${SLACK_CHANNEL_CRITICAL:-#greenstack-critical}'
+        send_resolved: true
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          *Component:* {{ .CommonLabels.component }}
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Runbook:* {{ .CommonAnnotations.runbook }}
+        color: 'danger'
+        actions:
+          - type: button
+            text: 'View in Prometheus'
+            url: 'http://localhost:9090/alerts'
+          - type: button
+            text: 'View in Grafana'
+            url: 'http://localhost:3000'
+
+    # Uncomment for PagerDuty integration
+    # pagerduty_configs:
+    #   - service_key: '${PAGERDUTY_SERVICE_KEY}'
+    #     description: '{{ .CommonAnnotations.summary }}'
+    #     severity: 'critical'
+
+  # ===========================================================================
+  # Warning alerts - Slack only
+  # ===========================================================================
+  - name: 'warning-alerts'
+    slack_configs:
+      - channel: '${SLACK_CHANNEL_WARNINGS:-#greenstack-alerts}'
+        send_resolved: true
+        title: '⚠️ WARNING: {{ .GroupLabels.alertname }}'
+        text: |
+          *Component:* {{ .CommonLabels.component }}
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+        color: 'warning'
+
+  # ===========================================================================
+  # Info alerts - Low-priority Slack
+  # ===========================================================================
+  - name: 'info-alerts'
+    slack_configs:
+      - channel: '${SLACK_CHANNEL_INFO:-#greenstack-info}'
+        send_resolved: false
+        title: 'ℹ️ INFO: {{ .GroupLabels.alertname }}'
+        text: '{{ .CommonAnnotations.summary }}'
+        color: '#0288d1'
+
+  # ===========================================================================
+  # Database team alerts
+  # ===========================================================================
+  - name: 'database-team'
+    email_configs:
+      - to: '${ALERT_EMAIL_DBA:-dba@example.com}'
+        send_resolved: true
+        headers:
+          Subject: '[Database Alert] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Database Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Severity:</strong> {{ .CommonLabels.severity }}</p>
+          <p><strong>Summary:</strong> {{ .CommonAnnotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Runbook:</strong> {{ .CommonAnnotations.runbook }}</p>
+
+  # ===========================================================================
+  # Security team alerts
+  # ===========================================================================
+  - name: 'security-team'
+    email_configs:
+      - to: '${ALERT_EMAIL_SECURITY:-security@example.com}'
+        send_resolved: true
+        headers:
+          Subject: '[Security Alert] {{ .GroupLabels.alertname }}'
+          Priority: 'urgent'
+        html: |
+          <h2 style="color: #d32f2f;">Security Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Severity:</strong> {{ .CommonLabels.severity }}</p>
+          <p><strong>Summary:</strong> {{ .CommonAnnotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Action Required:</strong> {{ .CommonAnnotations.runbook }}</p>
+
+  # ===========================================================================
+  # Operations team alerts (backups, infrastructure)
+  # ===========================================================================
+  - name: 'ops-team'
+    email_configs:
+      - to: '${ALERT_EMAIL_OPS:-ops@example.com}'
+        send_resolved: true
+        headers:
+          Subject: '[Ops Alert] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - channel: '${SLACK_CHANNEL_OPS:-#greenstack-ops}'
+        send_resolved: true
+        title: '🔧 OPS: {{ .GroupLabels.alertname }}'
+        text: '{{ .CommonAnnotations.summary }}'

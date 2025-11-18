@@ -19,6 +19,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from jinja2 import Environment, FileSystemLoader, Template
 
+# Import modular storage system
+from src.storage import StorageManager as ModularStorageManager
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -2133,11 +2136,23 @@ class StorageManager:
         conn.close()
     
     def save_device(self, profile: DeviceProfile) -> int:
-        """Save device profile to database
+        """Save device profile to database using modular storage system
 
         Smart import logic:
         - If device with same vendor_id + device_id exists, return existing device_id
         - New assets will be merged in save_assets() method
+        """
+        # Use modular storage manager for clean, maintainable code
+        modular_storage = ModularStorageManager(self.db_path)
+        device_id = modular_storage.save_device(profile)
+        return device_id
+
+    def save_device_old(self, profile: DeviceProfile) -> int:
+        """OLD IMPLEMENTATION - Kept for reference during migration
+
+        This 483-line monolithic function has been replaced by the modular
+        storage system in src/storage/. Delete this method after confirming
+        the new system works correctly.
         """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()

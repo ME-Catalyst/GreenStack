@@ -106,7 +106,7 @@ export const THEME_PRESETS = {
       // Text colors
       foreground: '#e5e7eb',
       foregroundSecondary: '#9ca3af',
-      foregroundMuted: '#6b7280',
+      foregroundMuted: '#7d8694',  // Updated for WCAG AA contrast (4.5:1 ratio)
       foregroundInverse: '#0a0e27',
 
       // Overlay colors

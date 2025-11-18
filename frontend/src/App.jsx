@@ -75,13 +75,17 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className={`fixed left-0 top-0 h-screen bg-background border-r border-border transition-all duration-300 z-50 ${collapsed ? 'w-16' : 'w-64'}`}>
+    <aside
+      className={`fixed left-0 top-0 h-screen bg-background border-r border-border transition-all duration-300 z-50 ${collapsed ? 'w-16' : 'w-64'}`}
+      aria-label="Main navigation"
+      role="navigation"
+    >
       <div className="flex flex-col h-full">
         {/* Logo/Brand */}
-        <div className="px-4 py-5 border-b border-border flex items-center justify-between">
+        <header className="px-4 py-5 border-b border-border flex items-center justify-between">
           {!collapsed && (
             <div className="flex items-center space-x-2">
-              <Cpu className="w-6 h-6 text-brand-green" />
+              <Cpu className="w-6 h-6 text-brand-green" aria-hidden="true" />
               <h1 className="text-lg font-bold bg-gradient-to-r from-brand-green to-brand-green bg-clip-text text-transparent">
                 GreenStack
               </h1>
@@ -92,13 +96,15 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
             size="sm"
             onClick={() => setCollapsed(!collapsed)}
             className="text-muted-foreground hover:text-foreground"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
           >
-            <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? 'rotate-180' : ''}`} />
+            <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? 'rotate-180' : ''}`} aria-hidden="true" />
           </Button>
-        </div>
+        </header>
 
         {/* Navigation */}
-        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto" aria-label="Primary navigation">
           <NavItem
             icon={<Home className="w-5 h-5" />}
             label="Overview"
@@ -251,13 +257,18 @@ const NavItem = ({ icon, label, badge, active, onClick, collapsed }) => (
         ? 'bg-gradient-to-r from-brand-green to-brand-green text-foreground shadow-lg shadow-brand-green/20'
         : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
     }`}
+    aria-label={`${label}${badge !== undefined ? `, ${badge} items` : ''}`}
+    aria-current={active ? 'page' : undefined}
+    role="menuitem"
   >
-    {icon}
+    {React.cloneElement(icon, { 'aria-hidden': 'true' })}
     {!collapsed && (
       <>
         <span className="flex-1 text-sm font-medium text-left">{label}</span>
         {badge !== undefined && (
-          <Badge className="bg-muted text-foreground text-xs">{badge}</Badge>
+          <Badge className="bg-muted text-foreground text-xs" aria-label={`${badge} items`}>
+            {badge}
+          </Badge>
         )}
       </>
     )}
@@ -269,95 +280,154 @@ const NavItem = ({ icon, label, badge, active, onClick, collapsed }) => (
 // ============================================================================
 
 const OverviewDashboard = ({ stats, devices, onNavigate }) => (
-  <div className="space-y-6">
-    <div>
-      <h2 className="text-2xl font-bold text-foreground">Overview</h2>
-      <p className="text-muted-foreground mt-1">Quick stats and recent activity</p>
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <StatCard
-        title="Total Devices"
-        value={stats.total_devices}
-        icon={<Package className="w-5 h-5" />}
-        color="cyan"
-        change="+12%"
-      />
-      <StatCard
-        title="Parameters"
-        value={stats.total_parameters}
-        icon={<Database className="w-5 h-5" />}
-        color="green"
-        subtitle="Across all devices"
-      />
-      <StatCard
-        title="Generated"
-        value={stats.total_generated}
-        icon={<Code2 className="w-5 h-5" />}
-        color="purple"
-        subtitle="Adapters created"
-      />
-      <StatCard
-        title="Platforms"
-        value="5"
-        icon={<Activity className="w-5 h-5" />}
-        color="orange"
-        subtitle="Supported targets"
-      />
-    </div>
-
-    <Card className="bg-card border-border">
-      <CardHeader>
-        <CardTitle className="text-foreground">Recent Devices</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {devices.slice(0, 5).map((device) => (
-            <div
-              key={device.id}
-              className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer"
-              onClick={() => onNavigate('devices', device)}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded bg-gradient-to-br from-brand-green to-brand-green flex items-center justify-center">
-                  <Package className="w-5 h-5 text-foreground" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{device.product_name}</p>
-                  <p className="text-xs text-muted-foreground">{device.manufacturer}</p>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </div>
-          ))}
+  <section className="space-y-8" aria-labelledby="overview-heading">
+    {/* Hero Welcome Section */}
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-green/10 via-brand-green/5 to-transparent border border-brand-green/20 p-8 md:p-12">
+      <div className="relative z-10">
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-brand-green/20 flex items-center justify-center" aria-hidden="true">
+            <Package className="w-6 h-6 text-brand-green" aria-hidden="true" />
+          </div>
+          <h2 id="overview-heading" className="text-4xl md:text-5xl font-bold text-foreground">
+            Welcome to Greenstack
+          </h2>
         </div>
-      </CardContent>
-    </Card>
+        <p className="text-lg text-muted-foreground max-w-2xl">
+          Industrial IoT development platform
+        </p>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          {/* IO-Link Stats */}
+          <div className="bg-card/50 backdrop-blur rounded-xl p-5 border border-border/50 hover:border-brand-green/30 transition-colors">
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="w-10 h-10 rounded-lg bg-brand-green/20 flex items-center justify-center">
+                <Package className="w-5 h-5 text-brand-green" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">IO-Link Devices</p>
+                <p className="text-2xl font-bold text-foreground">{stats.total_devices}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card/50 backdrop-blur rounded-xl p-5 border border-border/50 hover:border-purple-500/30 transition-colors">
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <Database className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">IO-Link Parameters</p>
+                <p className="text-2xl font-bold text-foreground">{stats.total_parameters}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* EDS Stats */}
+          <div className="bg-card/50 backdrop-blur rounded-xl p-5 border border-border/50 hover:border-cyan-500/30 transition-colors">
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                <Network className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">EtherNet/IP Devices</p>
+                <p className="text-2xl font-bold text-foreground">{stats.unique_eds_devices || 0}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card/50 backdrop-blur rounded-xl p-5 border border-border/50 hover:border-orange-500/30 transition-colors">
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                <Settings className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">EDS Parameters</p>
+                <p className="text-2xl font-bold text-foreground">{stats.total_eds_parameters || 0}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-brand-green/5 rounded-full blur-3xl -z-0"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl -z-0"></div>
+    </div>
+
+    {/* Recent Devices */}
+    {devices.length > 0 && (
+      <Card className="bg-card border-border overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-brand-green/5 to-transparent">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-lg bg-brand-green/20 flex items-center justify-center">
+                <Clock className="w-4 h-4 text-brand-green" />
+              </div>
+              <CardTitle className="text-foreground">Recent Devices</CardTitle>
+            </div>
+            <button
+              onClick={() => onNavigate('devices')}
+              className="text-sm text-brand-green hover:text-brand-green/80 flex items-center space-x-1"
+            >
+              <span>View all</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="space-y-3">
+            {devices.slice(0, 5).map((device, index) => (
+              <motion.button
+                key={device.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="group flex items-center justify-between p-4 rounded-xl bg-secondary/30 hover:bg-secondary/60 border border-border/50 hover:border-brand-green/30 transition-all cursor-pointer w-full text-left"
+                onClick={() => onNavigate('devices', device)}
+                type="button"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-green/30 to-brand-green/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Package className="w-6 h-6 text-brand-green" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground group-hover:text-brand-green transition-colors">
+                      {device.product_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{device.manufacturer}</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-brand-green group-hover:translate-x-1 transition-all" />
+              </motion.button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )}
+
+    {/* Empty State */}
+    {devices.length === 0 && (
+      <Card className="bg-card border-border border-dashed">
+        <CardContent className="py-16">
+          <div className="text-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-brand-green/20 to-purple-500/20 flex items-center justify-center">
+              <Package className="w-10 h-10 text-brand-green" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">No devices yet</h3>
+            <p className="text-muted-foreground mb-6">
+              Upload your first IODD file to get started
+            </p>
+            <button
+              onClick={() => onNavigate('upload')}
+              className="px-6 py-3 bg-brand-green hover:bg-brand-green/90 text-white rounded-lg font-medium transition-colors"
+            >
+              Upload IODD File
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    )}
   </div>
 );
-
-const StatCard = ({ title, value, icon, color, change, subtitle }) => {
-  const colors = {
-    cyan: 'from-brand-green/20 to-brand-green/20 border-brand-green/50',
-    green: 'from-brand-green/20 to-brand-green/20 border-brand-green/50',
-    purple: 'from-secondary/20 to-secondary/20 border-secondary/50',
-    orange: 'from-warning/20 to-warning/20 border-warning/50',
-  };
-
-  return (
-    <Card className={`bg-gradient-to-br ${colors[color]}`}>
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-medium text-foreground">{title}</p>
-          {icon}
-        </div>
-        <div className="text-3xl font-bold text-foreground mb-1">{value}</div>
-        {change && <p className="text-sm text-success">{change} from last week</p>}
-        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
-      </CardContent>
-    </Card>
-  );
-};
 
 // ============================================================================
 // EDS Files List Page
@@ -467,8 +537,9 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
             </p>
           </div>
           {filteredEdsFiles.length > 0 && (
-            <label className="flex items-center space-x-2 text-foreground cursor-pointer">
+            <label htmlFor="select-all-eds-files" className="flex items-center space-x-2 text-foreground cursor-pointer">
               <input
+                id="select-all-eds-files"
                 type="checkbox"
                 checked={selectedEdsFiles.length === filteredEdsFiles.length && filteredEdsFiles.length > 0}
                 onChange={toggleSelectAll}
@@ -503,8 +574,10 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
       {/* Search and Filters */}
       <div className="flex items-center space-x-4">
         <div className="flex-1 relative">
+          <label htmlFor="eds-search" className="sr-only">Search EDS files</label>
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
+            id="eds-search"
             placeholder="Search EDS files..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -529,11 +602,13 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4 flex-1">
                   <input
+                    id={`eds-file-${eds.id}`}
                     type="checkbox"
                     checked={selectedEdsFiles.includes(eds.id)}
                     onChange={() => toggleEdsSelection(eds.id)}
                     className="rounded border-border bg-secondary text-brand-green"
                     onClick={(e) => e.stopPropagation()}
+                    aria-label={`Select ${eds.product_name || 'device'}`}
                   />
                   <div className="w-12 h-12 rounded-lg bg-secondary border border-border flex items-center justify-center overflow-hidden">
                     <img
@@ -749,8 +824,9 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, onUploadFolder, API
             </p>
           </div>
           {filteredDevices.length > 0 && (
-            <label className="flex items-center space-x-2 text-foreground cursor-pointer">
+            <label htmlFor="select-all-devices" className="flex items-center space-x-2 text-foreground cursor-pointer">
               <input
+                id="select-all-devices"
                 type="checkbox"
                 checked={selectedDevices.length === filteredDevices.length && filteredDevices.length > 0}
                 onChange={toggleSelectAll}
@@ -788,8 +864,10 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, onUploadFolder, API
             {/* Search and View Controls */}
             <div className="flex items-center space-x-2">
               <div className="relative flex-1">
+                <label htmlFor="device-search" className="sr-only">Search devices by name, manufacturer, or ID</label>
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 <Input
+                  id="device-search"
                   type="text"
                   placeholder="Search devices by name, manufacturer, or ID..."
                   value={searchQuery}
@@ -811,6 +889,8 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, onUploadFolder, API
                   size="sm"
                   onClick={() => setViewMode('list')}
                   className="px-2"
+                  aria-label="List view"
+                  aria-pressed={viewMode === 'list'}
                 >
                   <List className="w-4 h-4" />
                 </Button>
@@ -819,6 +899,8 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, onUploadFolder, API
                   size="sm"
                   onClick={() => setViewMode('grid')}
                   className="px-2"
+                  aria-label="Grid view"
+                  aria-pressed={viewMode === 'grid'}
                 >
                   <Grid3x3 className="w-4 h-4" />
                 </Button>
@@ -1066,6 +1148,14 @@ const DeviceListItem = ({ device, onClick, selected, onToggleSelect, API_BASE })
   return (
     <Card
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick(e);
+        }
+      }}
+      role="button"
+      tabIndex={0}
       className={`bg-card border-border hover:border-brand-green/50 transition-all cursor-pointer hover:shadow-lg hover:shadow-brand-green/10 ${selected ? 'ring-2 ring-brand-green' : ''}`}
     >
       <CardContent className="p-4">
@@ -1125,6 +1215,14 @@ const DeviceGridCard = ({ device, onClick, selected, onToggleSelect, API_BASE })
   return (
     <Card
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick(e);
+        }
+      }}
+      role="button"
+      tabIndex={0}
       className={`bg-card border-border hover:border-brand-green/50 transition-all cursor-pointer hover:shadow-lg hover:shadow-brand-green/10 ${selected ? 'ring-2 ring-brand-green' : ''}`}
     >
       <CardContent className="p-4">
@@ -1611,9 +1709,10 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
   const fetchProcessDataUiInfo = async () => {
     try {
       const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/processdata/ui-info`);
-      setProcessDataUiInfo(response.data);
+      setProcessDataUiInfo(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch process data UI info:', error);
+      setProcessDataUiInfo([]);
     }
   };
 
@@ -2198,10 +2297,14 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
       return (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-sm text-foreground cursor-pointer" onClick={() => setSelectedParameter(item)}>
+            <button
+              type="button"
+              className="text-sm text-foreground cursor-pointer text-left"
+              onClick={() => setSelectedParameter(item)}
+            >
               {param.name}
               {item.unit_code && <span className="ml-1 text-xs text-muted-foreground">({item.unit_code})</span>}
-            </Label>
+            </button>
             {isReadOnly && <Badge className="text-xs bg-info/20 text-info">Read Only</Badge>}
           </div>
           <Select
@@ -2234,11 +2337,17 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     if (param.data_type && param.data_type.toLowerCase().includes('bool')) {
       return (
         <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
-          <Label className="text-sm text-foreground cursor-pointer flex-1" onClick={() => setSelectedParameter(item)}>
+          <button
+            type="button"
+            className="text-sm text-foreground cursor-pointer flex-1 text-left"
+            onClick={() => setSelectedParameter(item)}
+          >
             {param.name}
             {isReadOnly && <Badge className="ml-2 text-xs bg-info/20 text-info">Read Only</Badge>}
-          </Label>
+          </button>
           <input
+            id={`param-bool-${variableId}`}
+            aria-label={param.name}
             type="checkbox"
             checked={value === '1' || value === 'true' || value === true}
             onChange={(e) => handleChange(e.target.checked ? '1' : '0')}
@@ -2258,12 +2367,18 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
       return (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-sm text-foreground cursor-pointer" onClick={() => setSelectedParameter(item)}>
+            <button
+              type="button"
+              className="text-sm text-foreground cursor-pointer text-left"
+              onClick={() => setSelectedParameter(item)}
+            >
               {param.name}
               {item.unit_code && <span className="ml-1 text-xs text-muted-foreground">({item.unit_code})</span>}
-            </Label>
+            </button>
             <div className="flex items-center gap-2">
               <Input
+                id={`param-num-${variableId}`}
+                aria-label={param.name}
                 type="number"
                 value={value}
                 onChange={(e) => handleChange(e.target.value)}
@@ -2302,13 +2417,19 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     return (
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-sm text-foreground cursor-pointer" onClick={() => setSelectedParameter(item)}>
+          <button
+            type="button"
+            className="text-sm text-foreground cursor-pointer text-left"
+            onClick={() => setSelectedParameter(item)}
+          >
             {param.name}
             {item.unit_code && <span className="ml-1 text-xs text-muted-foreground">({item.unit_code})</span>}
-          </Label>
+          </button>
           {isReadOnly && <Badge className="text-xs bg-info/20 text-info">Read Only</Badge>}
         </div>
         <Input
+          id={`param-text-${variableId}`}
+          aria-label={param.name}
           type="text"
           value={value}
           onChange={(e) => handleChange(e.target.value)}
@@ -2699,6 +2820,9 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
 
   // Helper function to get UI rendering metadata for a record item
   const getUiInfo = (recordItemName) => {
+    if (!Array.isArray(processDataUiInfo)) {
+      return undefined;
+    }
     return processDataUiInfo.find(ui => ui.record_item_name === recordItemName);
   };
 
@@ -5586,7 +5710,11 @@ const IODDManager = () => {
     total_devices: 0,
     total_parameters: 0,
     total_generated: 0,
-    adapters_by_platform: {}
+    adapters_by_platform: {},
+    total_eds_files: 0,
+    total_eds_parameters: 0,
+    total_eds_packages: 0,
+    unique_eds_devices: 0
   });
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);

@@ -1,0 +1,97 @@
+# =============================================================================
+# Prometheus Configuration for GreenStack
+# =============================================================================
+
+global:
+  scrape_interval: 15s  # Scrape targets every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  external_labels:
+    cluster: 'greenstack'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - greenstack-alertmanager:9093
+
+# Load alert rules
+rule_files:
+  - "/etc/prometheus/alerts.yml"
+
+# Scrape configurations
+scrape_configs:
+  # ============================================================================
+  # GreenStack API Server Metrics
+  # ============================================================================
+  - job_name: 'greenstack-api'
+    static_configs:
+      - targets: ['greenstack:8000']
+        labels:
+          service: 'api'
+          component: 'backend'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # ============================================================================
+  # Prometheus Self-Monitoring
+  # ============================================================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          component: 'monitoring'
+
+  # ============================================================================
+  # Node Exporter (System Metrics) - Optional
+  # ============================================================================
+  # - job_name: 'node-exporter'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+  #       labels:
+  #         service: 'node-exporter'
+  #         component: 'infrastructure'
+
+  # ============================================================================
+  # PostgreSQL Exporter - Optional
+  # ============================================================================
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+  #       labels:
+  #         service: 'postgres-exporter'
+  #         component: 'database'
+
+  # ============================================================================
+  # Redis Exporter - Optional
+  # ============================================================================
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+  #       labels:
+  #         service: 'redis-exporter'
+  #         component: 'cache'
+
+  # ============================================================================
+  # MQTT Broker Exporter - Optional
+  # ============================================================================
+  # - job_name: 'mosquitto'
+  #   static_configs:
+  #     - targets: ['mosquitto-exporter:9234']
+  #       labels:
+  #         service: 'mosquitto-exporter'
+  #         component: 'mqtt'
+
+  # ============================================================================
+  # InfluxDB Metrics - Optional
+  # ============================================================================
+  # - job_name: 'influxdb'
+  #   static_configs:
+  #     - targets: ['influxdb:8086']
+  #       labels:
+  #         service: 'influxdb'
+  #         component: 'timeseries'
+  #   metrics_path: '/metrics'

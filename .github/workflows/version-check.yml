@@ -1,0 +1,102 @@
+name: Version Consistency Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    name: Verify version consistency across project files
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract versions from all files
+        id: extract
+        run: |
+          # Extract version from pyproject.toml
+          BACKEND=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "Backend (pyproject.toml): $BACKEND"
+          echo "backend=$BACKEND" >> $GITHUB_OUTPUT
+
+          # Extract version from frontend/package.json
+          FRONTEND=$(grep '"version":' frontend/package.json | sed 's/.*"version": "\(.*\)".*/\1/')
+          echo "Frontend (package.json): $FRONTEND"
+          echo "frontend=$FRONTEND" >> $GITHUB_OUTPUT
+
+          # Extract version from src/config.py
+          CONFIG=$(grep "APP_VERSION = os.getenv" src/config.py | sed "s/.*'\\([0-9.]*\\)'.*/\\1/")
+          echo "Config (src/config.py): $CONFIG"
+          echo "config=$CONFIG" >> $GITHUB_OUTPUT
+
+          # Extract version from .env.example
+          ENV=$(grep '^APP_VERSION=' .env.example | cut -d'=' -f2)
+          echo "Environment (.env.example): $ENV"
+          echo "env=$ENV" >> $GITHUB_OUTPUT
+
+      - name: Verify all versions match
+        run: |
+          BACKEND="${{ steps.extract.outputs.backend }}"
+          FRONTEND="${{ steps.extract.outputs.frontend }}"
+          CONFIG="${{ steps.extract.outputs.config }}"
+          ENV="${{ steps.extract.outputs.env }}"
+
+          MISMATCH=false
+
+          echo "============================================"
+          echo "Version Consistency Report"
+          echo "============================================"
+          echo "pyproject.toml:      $BACKEND"
+          echo "package.json:        $FRONTEND"
+          echo "src/config.py:       $CONFIG"
+          echo ".env.example:        $ENV"
+          echo "============================================"
+
+          # Check if all versions match
+          if [ "$BACKEND" != "$FRONTEND" ]; then
+            echo "❌ ERROR: Backend and Frontend versions don't match!"
+            MISMATCH=true
+          fi
+
+          if [ "$BACKEND" != "$CONFIG" ]; then
+            echo "❌ ERROR: Backend and Config versions don't match!"
+            MISMATCH=true
+          fi
+
+          if [ "$BACKEND" != "$ENV" ]; then
+            echo "❌ ERROR: Backend and Environment versions don't match!"
+            MISMATCH=true
+          fi
+
+          if [ "$MISMATCH" = true ]; then
+            echo ""
+            echo "Version mismatch detected! All versions must be identical."
+            echo "Please update all version numbers to match."
+            echo ""
+            echo "Files to update:"
+            echo "  - pyproject.toml (line 7)"
+            echo "  - frontend/package.json (line 3)"
+            echo "  - src/config.py (line 25)"
+            echo "  - .env.example (line 23)"
+            exit 1
+          fi
+
+          echo "✅ All versions match: $BACKEND"
+          echo "Version consistency check passed!"
+
+      - name: Validate semantic versioning format
+        run: |
+          VERSION="${{ steps.extract.outputs.backend }}"
+
+          # Check if version follows semantic versioning (X.Y.Z)
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ ERROR: Version '$VERSION' does not follow semantic versioning (X.Y.Z)"
+            echo "Expected format: MAJOR.MINOR.PATCH (e.g., 2.0.1)"
+            exit 1
+          fi
+
+          echo "✅ Version format is valid: $VERSION"

@@ -69,7 +69,9 @@
       "Bash(done)",
       "Bash(powershell.exe -ExecutionPolicy Bypass -File \"F:\\github\\iodd-manager\\fix-all-colors.ps1\")",
       "Bash(git mv:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(git log:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []
