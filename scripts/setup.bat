@@ -46,20 +46,26 @@ call :check_redis_ready
 if %errorlevel% equ 0 (
     echo   Redis already running.
     set "REDIS_READY=1"
-) else (
-    call :ensure_docker_ready
-    if %errorlevel% equ 0 (
-        call :start_redis_with_docker
-        if %errorlevel% equ 0 (
-            set "REDIS_READY=1"
-        ) else (
-            echo   Warning: Unable to launch Redis container (see messages above).
-        )
-    ) else (
-        echo   Warning: Docker Desktop is not available. Redis will not be started automatically.
-    )
+    goto :after_redis_check
 )
-if "%REDIS_READY%"=="0" (
+
+call :ensure_docker_ready
+if %errorlevel% neq 0 (
+    echo   Warning: Docker Desktop is not available. Redis will not be started automatically.
+    goto :after_redis_check
+)
+
+call :start_redis_with_docker
+if %errorlevel% equ 0 (
+    set "REDIS_READY=1"
+) else (
+    echo   Warning: Unable to launch Redis container (see messages above).
+)
+
+:after_redis_check
+if "%REDIS_READY%"=="1" (
+    echo   Redis is ready.
+) else (
     echo   Continuing without Redis (caching/rate-limits will use in-memory mode).
 )
 echo.
