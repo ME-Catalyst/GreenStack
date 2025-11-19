@@ -261,12 +261,104 @@ class EDSUploadResponse(BaseModel):
 # API Application
 # ============================================================================
 
+# Define API tags for organized documentation
+tags_metadata = [
+    {
+        "name": "Health & Status",
+        "description": "System health checks and status monitoring endpoints",
+    },
+    {
+        "name": "IODD Management",
+        "description": "IO-Link Device Description (IODD) file management and parsing. "
+                      "Upload, query, and manage IODD device profiles.",
+    },
+    {
+        "name": "EDS Management",
+        "description": "EtherNet/IP Electronic Data Sheet (EDS) file management. "
+                      "Upload and manage EDS device configurations.",
+    },
+    {
+        "name": "Node-RED Flows",
+        "description": "Generate and export Node-RED flows from device profiles. "
+                      "Create monitoring and control flows for IO-Link devices.",
+    },
+    {
+        "name": "Code Generation",
+        "description": "Generate adapter code for various platforms (Node-RED, Python, PLC) "
+                      "from device profiles.",
+    },
+    {
+        "name": "Search & Discovery",
+        "description": "Search and discover devices in the catalog by vendor, product name, "
+                      "or parameters.",
+    },
+    {
+        "name": "Configuration Export",
+        "description": "Export device configurations in various formats (JSON, CSV, etc.)",
+    },
+    {
+        "name": "Services",
+        "description": "Manage external service integrations (Grafana, Node-RED, MQTT, etc.)",
+    },
+    {
+        "name": "Admin & Diagnostics",
+        "description": "Administrative functions and parser quality assurance tools",
+    },
+]
+
 app = FastAPI(
     title="GreenStack API",
-    description="Intelligent device management API supporting IO-Link (IODD) and EDS) configurations",
+    description="""
+# GreenStack - Intelligent Device Management API
+
+A comprehensive REST API for managing industrial device configurations,
+supporting IO-Link (IODD) and EtherNet/IP (EDS) specifications.
+
+## Features
+
+- **IODD/EDS Parsing**: Upload and parse device description files
+- **Code Generation**: Generate adapter code for Node-RED, Python, and PLCs
+- **Node-RED Integration**: Auto-generate monitoring and control flows
+- **Device Catalog**: Searchable database of device profiles and parameters
+- **Multi-format Export**: Export configurations as JSON, CSV, or custom formats
+- **Service Integration**: Built-in support for Grafana, MQTT, and container orchestration
+- **Quality Assurance**: Parser diagnostics and validation tools
+
+## Getting Started
+
+1. **Upload a device file**: `POST /api/upload` (IODD) or `POST /api/eds/upload` (EDS)
+2. **List devices**: `GET /api/devices`
+3. **Generate Node-RED flow**: `GET /api/flows/{device_id}/generate`
+4. **Export configuration**: `GET /api/config-export/{device_id}`
+
+## Authentication
+
+Currently, the API uses rate limiting for protection. Authentication can be configured
+via environment variables for production deployments.
+
+## Rate Limits
+
+- Default: 100 requests per minute per IP
+- Configurable via environment: `RATE_LIMIT`
+
+## Support
+
+- Documentation: `/docs` (Swagger UI) and `/redoc` (ReDoc)
+- Metrics: `/metrics` (Prometheus format)
+- Health: `/health`
+    """,
     version=config.APP_VERSION,
     docs_url="/docs" if config.ENABLE_DOCS else None,
     redoc_url="/redoc" if config.ENABLE_DOCS else None,
+    openapi_tags=tags_metadata,
+    contact={
+        "name": "GreenStack Team",
+        "url": "https://github.com/yourusername/greenstack",
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
+    },
 )
 
 # Validate production security (blocks startup if weak passwords detected)
@@ -433,6 +525,11 @@ app.include_router(theme_routes.router)
 from src.routes import pqa_routes
 
 app.include_router(pqa_routes.router)
+
+# Include Node-RED Flow Generation routes
+from src.routes import flow_routes
+
+app.include_router(flow_routes.router)
 
 # ============================================================================
 # API Endpoints

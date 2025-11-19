@@ -338,4 +338,17 @@ MIT
         )
 
 
-__all__ = ['AdapterGenerator', 'NodeREDGenerator']
+# Import flow generators
+from src.generation.nodered_flows import (
+    NodeREDFlowGenerator,
+    generate_monitoring_flow,
+    generate_control_flow
+)
+
+__all__ = [
+    'AdapterGenerator',
+    'NodeREDGenerator',
+    'NodeREDFlowGenerator',
+    'generate_monitoring_flow',
+    'generate_control_flow'
+]
