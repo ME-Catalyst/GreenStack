@@ -114,7 +114,7 @@ echo   Waiting for Docker daemon to be ready...
 for /l %%i in (1,1,60) do (
     timeout /t 2 >nul
     docker info >nul 2>&1
-    if !errorlevel! equ 0 (
+    if %errorlevel% equ 0 (
         echo   Docker is ready.
         exit /b 0
     )
@@ -123,16 +123,10 @@ echo   Docker daemon did not become ready in time.
 exit /b 1
 
 :start_redis_with_docker
-set "DOCKER_COMPOSE_CMD=docker compose"
-docker compose version >nul 2>&1
-if ERRORLEVEL 1 (
-    where docker-compose >nul 2>&1
-    if %errorlevel% equ 0 (
-        set "DOCKER_COMPOSE_CMD=docker-compose"
-    ) else (
-        echo   docker compose command not available.
-        exit /b 1
-    )
+call :detect_compose_cmd
+if errorlevel 1 (
+    echo   docker compose command not available.
+    exit /b 1
 )
 echo   Starting Redis container using %DOCKER_COMPOSE_CMD%...
 %DOCKER_COMPOSE_CMD% -f docker-compose.yml up -d redis
@@ -144,12 +138,26 @@ echo   Waiting for Redis service to become ready...
 for /l %%i in (1,1,30) do (
     timeout /t 1 >nul
     call :check_redis_ready
-    if !errorlevel! equ 0 (
+    if %errorlevel% equ 0 (
         echo   Redis container is online!
         exit /b 0
     )
 )
 echo   Redis container failed to respond in time.
+exit /b 1
+
+:detect_compose_cmd
+set "DOCKER_COMPOSE_CMD=docker compose"
+docker compose version >nul 2>&1
+if %errorlevel% equ 0 (
+    exit /b 0
+)
+where docker-compose >nul 2>&1
+if %errorlevel% equ 0 (
+    set "DOCKER_COMPOSE_CMD=docker-compose"
+    docker-compose version >nul 2>&1
+    exit /b %errorlevel%
+)
 exit /b 1
 
 :check_redis_ready
