@@ -215,7 +215,7 @@ Root:
 - `services/influx-ingestion/ingest.py` - Added circuit breakers + health checks
 - `requirements.txt` - Added OpenTelemetry dependencies
 - `.github/workflows/docker-publish.yml` - Enhanced CI/CD
-- `docs/CHANGELOG.md` - Comprehensive updates
+- `docs/reports/CHANGELOG.md` - Comprehensive updates
 
 ---
 

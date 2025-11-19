@@ -1277,7 +1277,7 @@ exit 0
 6. Verify no backdoors exist
 7. **Estimated Recovery Time:** 4-8 hours
 
-**Create: `docs/operations/DISASTER_RECOVERY.md`**
+**Create: `docs/guides/operations/DISASTER_RECOVERY.md`**
 ```markdown
 # GreenStack Disaster Recovery Procedures
 
@@ -1890,7 +1890,7 @@ locust -f tests/load/locustfile.py --host=https://greenstack.example.com \
 - **Estimated Capacity:** 500+ concurrent users
 - **Implementation Time:** 40 hours
 
-**Create: `docs/operations/SCALING_GUIDE.md`**
+**Create: `docs/guides/operations/SCALING_GUIDE.md`**
 ```markdown
 # GreenStack Scaling Guide
 
@@ -1921,7 +1921,7 @@ Watch these metrics to know when to scale:
 
 ### 6.1 Common Issues & Solutions
 
-**Create: `docs/operations/TROUBLESHOOTING.md`**
+**Create/Link: `docs/guides/TROUBLESHOOTING.md` (Operations Troubleshooting)**
 
 ```markdown
 # GreenStack Troubleshooting Guide

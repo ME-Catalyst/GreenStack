@@ -660,99 +660,99 @@
 - [ ] Verify search configuration
 - [ ] Check for proper social links
 
-### 9.3 User Documentation (docs/user/)
+### 9.3 User Documentation (frontend/src/content/docs/)
 
-#### docs/user/USER_MANUAL.md
+#### frontend/src/content/docs/user-guide/DeviceManagement.jsx
 - [ ] Review completeness of user manual
 - [ ] Check for accuracy of instructions
 - [ ] Verify screenshots are current
 - [ ] Check for missing features
 - [ ] Review organization and flow
 
-#### docs/user/CONFIGURATION.md
+#### frontend/src/content/docs/user-guide/Configuration.jsx
 - [ ] Review configuration documentation
 - [ ] Check all configuration options are documented
 - [ ] Verify examples are correct
 - [ ] Check for proper defaults documentation
 
-#### docs/user/GUI_DOCUMENTATION.md
+#### frontend/src/content/docs/user-guide/WebInterface.jsx
 - [ ] Review GUI documentation completeness
 - [ ] Check for current screenshots
 - [ ] Verify all UI elements are documented
 - [ ] Check for proper workflow documentation
 
-#### docs/user/USER_FEATURES.md
+#### frontend/src/content/docs/user-guide/Features.jsx
 - [ ] Review feature list completeness
 - [ ] Verify feature descriptions are accurate
 - [ ] Check for deprecated features
 
-#### docs/user/VISUAL_FEATURES.md
-- [ ] Review visual features documentation
+#### frontend/src/content/docs/components/ThemeSystem.jsx
+- [ ] Review visual/theming documentation
 - [ ] Check for current screenshots
-- [ ] Verify theming documentation
+- [ ] Verify brand/color guidance
 
-#### docs/user/NESTED_ZIP_IMPORT.md
+#### frontend/src/content/docs/user-guide/DeviceManagement.jsx (ZIP Import Section)
 - [ ] Review nested zip import documentation
 - [ ] Verify examples are correct
 - [ ] Check for edge case documentation
 
-#### docs/user/getting-started/
-- [ ] Review installation.md for all platforms
-- [ ] Check windows-installation.md accuracy
-- [ ] Verify docker.md instructions
-- [ ] Check quick-start.md completeness
+#### frontend/src/content/docs/getting-started/
+- [ ] Review Installation.jsx for all platforms
+- [ ] Check WindowsInstallation.jsx accuracy
+- [ ] Verify DockerSetup.jsx instructions
+- [ ] Check QuickStart.jsx completeness
 - [ ] Verify all steps are current
 
-#### docs/user/user-guide/
-- [ ] Review web-interface.md completeness
-- [ ] Check api.md documentation accuracy
-- [ ] Verify cli.md command documentation
-- [ ] Check adapters.md completeness
+#### frontend/src/content/docs/user-guide/ and docs/api/
+- [ ] Review WebInterface guide
+- [ ] Check API documentation accuracy
+- [ ] Verify CLI coverage (Docs pending)
+- [ ] Check adapters/integrations coverage (Docs pending)
 
-### 9.4 Developer Documentation (docs/developer/)
+### 9.4 Developer Documentation
 
-#### docs/developer/DEVELOPER_REFERENCE.md
+#### docs/guides/DEVELOPER_GUIDE.md
 - [ ] Review developer reference completeness
 - [ ] Check for architecture overview
 - [ ] Verify setup instructions
 - [ ] Check for contribution guidelines
 
-#### docs/developer/API_SPECIFICATION.md & API_ENDPOINTS.md
+#### docs/references/api/API_REFERENCE.md
 - [ ] Review API documentation completeness
 - [ ] Check all endpoints are documented
 - [ ] Verify request/response examples
 - [ ] Check for proper error documentation
 - [ ] Verify authentication documentation
 
-#### docs/developer/BEST_PRACTICES.md
+#### docs/guides/DEVELOPER_GUIDE.md (Best Practices)
 - [ ] Review best practices documentation
 - [ ] Check for coding standards
 - [ ] Verify security guidelines
 - [ ] Check for testing guidelines
 
-#### docs/developer/CONFIG_PAGE_DEVELOPER_GUIDE.md
+#### docs/references/COMPONENTS_INVENTORY.md
 - [ ] Review config page development guide
 - [ ] Verify examples are correct
 - [ ] Check for completeness
 
-#### docs/developer/ENHANCED_MENUS_SUMMARY.md
+#### docs/references/COMPONENTS_INVENTORY.md (Menu System)
 - [ ] Review menu system documentation
 - [ ] Check for current implementation details
 
-#### docs/developer/developer-guide/
+#### docs/guides/DEVELOPER_GUIDE.md (Detailed Sections)
 - [ ] Review setup.md completeness
 - [ ] Check testing.md accuracy
 - [ ] Verify code-quality.md guidelines
 - [ ] Check architecture.md completeness
 - [ ] Review contributing.md
 
-#### docs/developer/database/
+#### docs/references/DATABASE_SCHEMA.md
 - [ ] Review schema.md completeness
 - [ ] Check for ER diagrams (if any)
 - [ ] Verify migrations.md accuracy
 - [ ] Check for proper table documentation
 
-#### docs/developer/api/
+#### docs/references/api/API_DOCUMENTATION.md
 - [ ] Review overview.md
 - [ ] Check endpoints.md completeness
 - [ ] Verify errors.md accuracy
@@ -760,14 +760,14 @@
 
 ### 9.5 Architecture Documentation
 
-#### docs/architecture/ARCHITECTURE.md
+#### docs/references/ARCHITECTURE.md
 - [ ] Review architecture overview
 - [ ] Check for current diagrams
 - [ ] Verify component descriptions
 - [ ] Check for data flow documentation
 - [ ] Review technology stack documentation
 
-#### docs/architecture/FRONTEND_ARCHITECTURE.md
+#### docs/references/ARCHITECTURE.md (Frontend Architecture section)
 - [ ] Review frontend architecture documentation
 - [ ] Check component structure documentation
 - [ ] Verify state management documentation
@@ -775,15 +775,19 @@
 
 ### 9.6 Deployment Documentation
 
-#### docs/deployment/
-- [ ] Review docker.md completeness
-- [ ] Check production.md for best practices
+#### docs/guides/operations/DEPLOYMENT_RUNBOOK.md
+- [ ] Review docker deployment completeness
+- [ ] Check production guidance for best practices
+
+#### docs/guides/operations/MONITORING_SETUP_GUIDE.md
+- [ ] Review monitoring completeness
+- [ ] Check alerting coverage
 - [ ] Verify monitoring.md completeness
 - [ ] Check environment.md accuracy
 
 ### 9.7 Troubleshooting Documentation
 
-#### docs/troubleshooting/TROUBLESHOOTING.md
+#### docs/guides/TROUBLESHOOTING.md
 - [ ] Review common issues documentation
 - [ ] Check for solution accuracy
 - [ ] Verify FAQ completeness
@@ -791,7 +795,7 @@
 
 ### 9.8 Project Documentation
 
-#### docs/project/CLEANUP_SUMMARY.md
+#### docs/archive/CLEANUP_SUMMARY.md
 - [ ] Review cleanup summary accuracy
 - [ ] Check for current status
 
@@ -1109,7 +1113,7 @@
 - [ ] Check for proper tooltips/help text
 
 ### 14.4 Theme System
-- [ ] Review theme implementation (docs/THEME_SYSTEM.md)
+- [ ] Review theme implementation (docs/archive/THEME_SYSTEM.md)
 - [ ] Check for theme consistency across components
 - [ ] Verify dark mode support (if applicable)
 - [ ] Check for proper color variable usage
@@ -1257,7 +1261,7 @@
 - [ ] Check for proper secrets management in CI/CD
 
 ### 17.6 Monitoring and Observability
-- [ ] Review monitoring setup (docs/deployment/monitoring.md)
+- [ ] Review monitoring setup (`docs/guides/operations/MONITORING_SETUP_GUIDE.md`)
 - [ ] Check for proper metrics collection
 - [ ] Verify logging aggregation
 - [ ] Check for alerting configuration

@@ -104,7 +104,7 @@ Each color has:
 
 ## Support
 
-Full documentation: `/docs/THEME_SYSTEM.md`
+Full documentation: `/docs/archive/THEME_SYSTEM.md`
 
 ## What's Protected
 

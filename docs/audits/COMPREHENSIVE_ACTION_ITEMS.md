@@ -394,10 +394,10 @@ This document contains EVERY unresolved action item from the comprehensive 18-ph
 
 #### DOC-001: Create Deployment Runbook (8 hours)
 **Priority:** P0 - CRITICAL
-**Files:** NEW - `docs/operations/DEPLOYMENT_RUNBOOK.md`
+**Files:** NEW - `docs/guides/operations/DEPLOYMENT_RUNBOOK.md`
 
 **Subtasks:**
-1. Create `docs/operations/` directory
+1. Create `docs/guides/operations/` directory
 2. Create runbook with sections:
    - **Prerequisites** (server requirements, DNS, certificates)
    - **Pre-deployment checklist** (passwords generated, backups configured, monitoring ready)
@@ -456,7 +456,7 @@ This document contains EVERY unresolved action item from the comprehensive 18-ph
 
 #### DOC-003: Create Disaster Recovery Procedures (4 hours)
 **Priority:** P0 - CRITICAL
-**Files:** NEW - `docs/operations/DISASTER_RECOVERY.md`
+**Files:** NEW - `docs/guides/operations/DISASTER_RECOVERY.md`
 
 **Subtasks:**
 1. Create disaster recovery document with scenarios:
@@ -987,7 +987,7 @@ This document contains EVERY unresolved action item from the comprehensive 18-ph
 
 #### DOC-002: Create Comprehensive Troubleshooting Guide (8 hours)
 **Priority:** P0 - CRITICAL
-**Files:** NEW - `docs/operations/TROUBLESHOOTING.md`
+**Files:** NEW - `docs/guides/TROUBLESHOOTING.md`
 
 **Subtasks:**
 1. Create troubleshooting guide with sections:
@@ -1016,7 +1016,7 @@ This document contains EVERY unresolved action item from the comprehensive 18-ph
 
 #### PROD-008: Document Disaster Recovery Plan (8 hours)
 **Priority:** P0
-**Files:** Enhanced `docs/operations/DISASTER_RECOVERY.md`
+**Files:** Enhanced `docs/guides/operations/DISASTER_RECOVERY.md`
 
 **Subtasks:**
 1. Enhance disaster recovery document with:

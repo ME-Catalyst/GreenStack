@@ -141,58 +141,45 @@ This plan details a comprehensive transformation of Greenstack's documentation f
 - [ ] `THEME_QUICKSTART.md` - Quick theme guide
 
 **Architecture (2 files)**
-- [ ] `docs/architecture/ARCHITECTURE.md` - System architecture
-- [ ] `docs/architecture/FRONTEND_ARCHITECTURE.md` - Frontend architecture
+- [ ] `docs/references/ARCHITECTURE.md` - System architecture
+- [ ] `docs/references/ARCHITECTURE.md` (Frontend architecture) - Frontend architecture
 
-**User Documentation (18 files)**
-- [ ] `docs/user/USER_MANUAL.md` - Complete user manual
-- [ ] `docs/user/USER_FEATURES.md` - Feature list
-- [ ] `docs/user/VISUAL_FEATURES.md` - Visual features
-- [ ] `docs/user/GUI_DOCUMENTATION.md` - GUI documentation
-- [ ] `docs/user/CONFIGURATION.md` - Configuration reference
-- [ ] `docs/user/NESTED_ZIP_IMPORT.md` - ZIP import guide
-- [ ] `docs/user/getting-started/quick-start.md` - Quick start
-- [ ] `docs/user/getting-started/installation.md` - Installation
-- [ ] `docs/user/getting-started/windows-installation.md` - Windows setup
-- [ ] `docs/user/getting-started/docker.md` - Docker setup
-- [ ] `docs/user/user-guide/web-interface.md` - Web interface guide
-- [ ] `docs/user/user-guide/api.md` - API usage
-- [ ] `docs/user/user-guide/cli.md` - CLI usage
-- [ ] `docs/user/user-guide/adapters.md` - Adapter guide
+**User Documentation (in-app React content)**
+- [ ] `frontend/src/content/docs/getting-started/QuickStart.jsx` - Quick start
+- [ ] `frontend/src/content/docs/getting-started/Installation.jsx` - Installation
+- [ ] `frontend/src/content/docs/getting-started/WindowsInstallation.jsx` - Windows setup
+- [ ] `frontend/src/content/docs/getting-started/DockerSetup.jsx` - Docker setup
+- [ ] `frontend/src/content/docs/user-guide/WebInterface.jsx` - Web interface guide
+- [ ] `frontend/src/content/docs/user-guide/Configuration.jsx` - Configuration reference
+- [ ] `frontend/src/content/docs/user-guide/DeviceManagement.jsx` - Device management / user manual
+- [ ] `frontend/src/content/docs/user-guide/Features.jsx` - Feature overview
+- [ ] `frontend/src/content/docs/components/ThemeSystem.jsx` - Theming guide
+- [ ] `frontend/src/content/docs/troubleshooting/*.jsx` - Troubleshooting, FAQ, debugging
+- [ ] `frontend/src/content/docs/api/*.jsx` - API usage
 
-**Developer Documentation (12 files)**
-- [ ] `docs/developer/DEVELOPER_REFERENCE.md` - Developer reference
-- [ ] `docs/developer/API_SPECIFICATION.md` - API spec
-- [ ] `docs/developer/API_ENDPOINTS.md` - Endpoint reference
-- [ ] `docs/developer/BEST_PRACTICES.md` - Best practices
-- [ ] `docs/developer/CONFIG_PAGE_DEVELOPER_GUIDE.md` - Config page dev guide
-- [ ] `docs/developer/ENHANCED_MENUS_SUMMARY.md` - Menu system
-- [ ] `docs/developer/api/overview.md` - API overview
-- [ ] `docs/developer/api/endpoints.md` - Endpoint details
-- [ ] `docs/developer/api/authentication.md` - Auth guide
-- [ ] `docs/developer/api/errors.md` - Error handling
-- [ ] `docs/developer/database/schema.md` - Database schema
-- [ ] `docs/developer/database/migrations.md` - Migration guide
-- [ ] `docs/developer/developer-guide/setup.md` - Dev setup
-- [ ] `docs/developer/developer-guide/architecture.md` - Architecture guide
-- [ ] `docs/developer/developer-guide/testing.md` - Testing guide
-- [ ] `docs/developer/developer-guide/contributing.md` - Contributing
-- [ ] `docs/developer/developer-guide/code-quality.md` - Code quality
+**Developer Documentation (consolidated)**
+- [ ] `docs/guides/DEVELOPER_GUIDE.md` - Developer reference (setup, architecture, testing, contributing, code quality)
+- [ ] `docs/guides/CONTRIBUTING.md` - Contribution workflow
+- [ ] `docs/references/api/API_DOCUMENTATION.md` - API overview & authentication
+- [ ] `docs/references/api/API_REFERENCE.md` - Endpoint and error reference
+- [ ] `docs/references/DATABASE_SCHEMA.md` - Schema + migrations
+- [ ] `docs/references/COMPONENTS_INVENTORY.md` - Component system and menu implementation
+- [ ] `docs/archive/THEME_SYSTEM.md` - Historical theming system context
 
 **Deployment (4 files)**
-- [ ] `docs/deployment/production.md` - Production deployment
-- [ ] `docs/deployment/docker.md` - Docker deployment
-- [ ] `docs/deployment/monitoring.md` - Monitoring setup
-- [ ] `docs/deployment/environment.md` - Environment config
+- [ ] `docs/guides/operations/DEPLOYMENT_RUNBOOK.md` (Production) - Production deployment
+- [ ] `docs/guides/operations/DEPLOYMENT_RUNBOOK.md` (Docker) - Docker deployment
+- [ ] `docs/guides/operations/MONITORING_SETUP_GUIDE.md` - Monitoring setup
+- [ ] `docs/guides/operations/DEPLOYMENT_RUNBOOK.md` (Environment) - Environment config
 
 **Miscellaneous (7 files)**
-- [ ] `docs/INDEX.md` - Documentation index
-- [ ] `docs/THEME_SYSTEM.md` - Theme system docs
-- [ ] `docs/THEMING_OVERHAUL_PLAN.md` - Theme overhaul plan
-- [ ] `docs/IOT_PLATFORM_DEPLOYMENT.md` - IoT platform deployment
-- [ ] `docs/QUICK_START_P1_ENHANCEMENTS.md` - Quick start enhancements
-- [ ] `docs/troubleshooting/TROUBLESHOOTING.md` - Troubleshooting guide
-- [ ] `docs/project/CLEANUP_SUMMARY.md` - Cleanup summary
+- [ ] `docs/README.md` - Documentation index
+- [ ] `docs/archive/THEME_SYSTEM.md` - Theme system docs
+- [ ] `docs/archive/THEMING_OVERHAUL_PLAN.md` - Theme overhaul plan
+- [ ] `docs/archive/IOT_PLATFORM_DEPLOYMENT.md` - IoT platform deployment
+- [ ] `docs/archive/QUICK_START_P1_ENHANCEMENTS.md` - Quick start enhancements
+- [ ] `docs/guides/TROUBLESHOOTING.md` - Troubleshooting guide
+- [ ] `docs/archive/CLEANUP_SUMMARY.md` - Cleanup summary
 
 ---
 
@@ -947,34 +934,34 @@ After automated conversion, manually enhance each document with:
 ### 5.5 Sprint 5: Content Migration (Days 10-14)
 
 **Day 10: Getting Started Section**
-- [ ] Convert `docs/user/getting-started/quick-start.md`
-- [ ] Convert `docs/user/getting-started/installation.md`
-- [ ] Convert `docs/user/getting-started/windows-installation.md`
-- [ ] Convert `docs/user/getting-started/docker.md`
+- [ ] Convert `frontend/src/content/docs/getting-started/QuickStart.jsx`
+- [ ] Convert `frontend/src/content/docs/getting-started/Installation.jsx`
+- [ ] Convert `frontend/src/content/docs/getting-started/WindowsInstallation.jsx`
+- [ ] Convert `frontend/src/content/docs/getting-started/DockerSetup.jsx`
 - [ ] Add interactive elements and screenshots
 
 **Day 11: User Guide Section**
-- [ ] Convert `docs/user/USER_MANUAL.md`
-- [ ] Convert `docs/user/GUI_DOCUMENTATION.md`
-- [ ] Convert `docs/user/CONFIGURATION.md`
-- [ ] Convert `docs/user/user-guide/*.md` files
+- [ ] Convert `frontend/src/content/docs/user-guide/DeviceManagement.jsx`
+- [ ] Convert `frontend/src/content/docs/user-guide/WebInterface.jsx`
+- [ ] Convert `frontend/src/content/docs/user-guide/Configuration.jsx`
+- [ ] Convert `frontend/src/content/docs/user-guide/*.jsx` files
 - [ ] Add live configuration examples
 
 **Day 12: Developer Documentation**
-- [ ] Convert `docs/developer/DEVELOPER_REFERENCE.md`
-- [ ] Convert `docs/developer/API_SPECIFICATION.md`
-- [ ] Convert `docs/developer/developer-guide/*.md` files
-- [ ] Convert `docs/developer/database/*.md` files
+- [ ] Convert `docs/guides/DEVELOPER_GUIDE.md` (complete)
+- [ ] Convert `docs/references/api/API_REFERENCE.md`
+- [ ] Convert `docs/guides/DEVELOPER_GUIDE.md` sections (setup/architecture/testing)
+- [ ] Convert `docs/references/DATABASE_SCHEMA.md`
 - [ ] Add code examples and diagrams
 
 **Day 13: Architecture & Deployment**
 - [ ] Convert `docs/architecture/*.md` files
-- [ ] Convert `docs/deployment/*.md` files
+- [ ] Convert `docs/guides/operations/*.md` files
 - [ ] Create interactive architecture diagrams
 - [ ] Add deployment flowcharts
 
 **Day 14: Troubleshooting & Misc**
-- [ ] Convert `docs/troubleshooting/TROUBLESHOOTING.md`
+- [ ] Convert `docs/guides/TROUBLESHOOTING.md`
 - [ ] Convert theme documentation
 - [ ] Create FAQ from common issues
 - [ ] Add interactive debugging tools

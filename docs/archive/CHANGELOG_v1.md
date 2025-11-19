@@ -268,17 +268,17 @@ This release focuses on repository structure, documentation completeness, accura
 - Added detailed `DEVELOPER_REFERENCE.md` (architecture, API, frontend, database, IODD parsing, conventions, testing)
 - Added comprehensive `TROUBLESHOOTING.md` (installation, runtime, import, web interface, performance, database, API, Docker issues)
 - Added no-warranty disclaimer to README.md: "Provided 'as-is,' without warranty of any kind"
-- Added `docs/user/getting-started/windows-installation.md` - 600+ line comprehensive Windows guide with setup.bat documentation
-- Added `docs/INDEX.md` - Complete documentation navigation hub
+- Added `frontend/src/content/docs/getting-started/WindowsInstallation.jsx` - 600+ line comprehensive Windows guide with setup.bat documentation
+- Added `docs/README.md` - Complete documentation navigation hub
 - Added 13 professional Mermaid diagrams to `ARCHITECTURE.md` (system architecture, component diagrams, sequence diagrams, ERD, flowcharts)
 
 #### Repository Structure
 - Restructured `/docs` directory to recommended organization:
-  - `/docs/architecture/` - Contains ARCHITECTURE.md with Mermaid diagrams
-  - `/docs/user/` - Contains USER_MANUAL.md, CONFIGURATION.md, GUI_DOCUMENTATION.md, VISUAL_FEATURES.md, and user guides
-  - `/docs/developer/` - Contains DEVELOPER_REFERENCE.md, API_SPECIFICATION.md, BEST_PRACTICES.md, CONFIG_PAGE_DEVELOPER_GUIDE.md, ENHANCED_MENUS_SUMMARY.md
-  - `/docs/troubleshooting/` - Contains TROUBLESHOOTING.md
-  - `/docs/project/` - Contains CLEANUP_SUMMARY.md
+  - `/docs/guides/` - Developer, contributing, troubleshooting, and accessibility guides
+  - `/docs/guides/operations/` - Deployment runbooks, monitoring, and disaster recovery
+  - `/docs/references/` - Architecture, API, database schema, and component inventory
+  - `/docs/reports/` - Changelog, PQA summary, analysis/refactoring reports
+  - `/docs/archive/` - Historical plans and legacy guides
 
 ### Changed
 
@@ -325,7 +325,7 @@ This release focuses on repository structure, documentation completeness, accura
 
 This release completes the production-ready documentation set:
 - ✅ README.md - Concise project overview (144 lines)
-- ✅ docs/INDEX.md - Complete documentation navigation hub
+- ✅ docs/README.md - Complete documentation navigation hub
 - ✅ ARCHITECTURE.md - System structure with 13 Mermaid diagrams
 - ✅ USER_MANUAL.md - Installation and usage guide
 - ✅ DEVELOPER_REFERENCE.md - Code and API reference

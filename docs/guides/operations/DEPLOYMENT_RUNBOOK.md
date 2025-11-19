@@ -737,11 +737,10 @@ echo $INFLUXDB_TOKEN
 
 ## Additional Resources
 
-- **Troubleshooting Guide:** `docs/TROUBLESHOOTING.md`
-- **Disaster Recovery:** `docs/operations/DISASTER_RECOVERY.md`
-- **Backup & Restore:** `docs/operations/BACKUP_RESTORE.md`
-- **Monitoring Guide:** `docs/operations/MONITORING.md`
-- **Security Hardening:** `docs/operations/SECURITY_HARDENING.md`
+- **Troubleshooting Guide:** `docs/guides/TROUBLESHOOTING.md`
+- **Disaster Recovery & Backups:** `docs/guides/operations/DISASTER_RECOVERY.md`
+- **Monitoring Guide:** `docs/guides/operations/MONITORING_SETUP_GUIDE.md`
+- **Security Hardening Checklist:** `docs/audits/PHASE_11_CONFIGURATION_REVIEW_REPORT.md`
 - **API Documentation:** https://greenstack.example.com/docs
 
 ---

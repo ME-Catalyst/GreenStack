@@ -224,8 +224,8 @@ alembic/versions/024_add_pqa_system.py  # 220 lines - Database schema
 
 ### Documentation
 ```
-docs/PQA_ARCHITECTURE.md                 # 500+ lines - System design document
-docs/PQA_IMPLEMENTATION_COMPLETE.md      # This file - Implementation summary
+docs/references/PQA_ARCHITECTURE.md      # 500+ lines - System design document
+docs/reports/PQA_IMPLEMENTATION_COMPLETE.md  # This file - Implementation summary
 ```
 
 **Total Implementation**: ~4,500+ lines of production code

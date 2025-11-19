@@ -1798,7 +1798,7 @@ pre-commit autoupdate
 
 #### 12. Create Deployment Documentation (4 hours)
 
-**Create `docs/DEPLOYMENT.md`:**
+**Create `docs/guides/operations/DEPLOYMENT_RUNBOOK.md`:**
 
 ```markdown
 # GreenStack Deployment Guide

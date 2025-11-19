@@ -294,7 +294,7 @@ ls -la config/
 ls -la scripts/
 
 # 4. Document any manual infrastructure setup
-# Update: docs/operations/MANUAL_INFRASTRUCTURE.md
+# Update: Appendix B - Manual Infrastructure Checklist
 ```
 
 ---
@@ -332,7 +332,7 @@ ls -la scripts/
 Ensure these documents are accessible offline and in multiple locations:
 
 - [ ] This Disaster Recovery Plan (PDF + printed copy)
-- [ ] Deployment Runbook (`docs/operations/DEPLOYMENT_RUNBOOK.md`)
+- [ ] Deployment Runbook (`docs/guides/operations/DEPLOYMENT_RUNBOOK.md`)
 - [ ] Architecture diagrams
 - [ ] Network topology
 - [ ] Backup procedures (`scripts/backup.sh`)
@@ -889,7 +889,7 @@ sudo certbot certonly --standalone \
     --non-interactive
 
 # Configure nginx/reverse proxy with certificates
-# See: docs/operations/SSL_CONFIGURATION.md
+# See: Appendix C - SSL/TLS Configuration Checklist
 ```
 
 **Option B: Use Existing Certificates**
@@ -1640,7 +1640,7 @@ Review and update DR plan after each incident:
 ```bash
 # Update this document
 git checkout -b dr-plan-update-$(date +%Y%m%d)
-nano docs/operations/DISASTER_RECOVERY.md
+nano docs/guides/operations/DISASTER_RECOVERY.md
 
 # Document changes
 # - Update contact information
@@ -1650,7 +1650,7 @@ nano docs/operations/DISASTER_RECOVERY.md
 # - Add new tools/scripts
 
 # Commit changes
-git add docs/operations/DISASTER_RECOVERY.md
+git add docs/guides/operations/DISASTER_RECOVERY.md
 git commit -m "Update DR plan based on [INCIDENT-ID] post-mortem"
 git push origin dr-plan-update-$(date +%Y%m%d)
 
@@ -1736,7 +1736,7 @@ Print and carry this card for 24/7 access:
 ║ 4. Follow DR plan                      ║
 ║                                        ║
 ║ DR Plan Location:                      ║
-║ - Git: docs/operations/DISASTER_       ║
+║ - Git: docs/guides/operations/DISASTER_       ║
 ║        RECOVERY.md                     ║
 ║ - Wiki: [URL]                          ║
 ║ - USB: Encrypted backup drive          ║

@@ -331,21 +331,21 @@ Validation tool:
 ### Phase 6: Documentation
 
 #### 6.1 User Documentation
-**File:** `docs/user/THEMING_GUIDE.md`
+**File:** `frontend/src/content/docs/components/ThemeSystem.jsx`
 - How to change themes
 - Creating custom themes
 - Exporting/importing themes
 - Understanding color roles
 
 #### 6.2 Developer Documentation
-**File:** `docs/developer/THEMING_SYSTEM.md`
+**File:** `docs/archive/THEME_SYSTEM.md`
 - Color naming conventions
 - When to use each semantic color
 - Adding new themeable components
 - Theme system architecture
 
 #### 6.3 Brand Guidelines
-**File:** `docs/BRAND_GUIDELINES.md`
+**File:** `docs/archive/THEME_SYSTEM.md` (Brand guidelines section)
 - Official brand green (#3DB60F)
 - Usage requirements
 - Accessibility guidelines

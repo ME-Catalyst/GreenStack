@@ -470,7 +470,7 @@ alembic upgrade head
 
 ## Contributing
 
-See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for development workflow, code standards, and pull request process.
+See [CONTRIBUTING.md](docs/guides/CONTRIBUTING.md) for development workflow, code standards, and pull request process.
 
 ---
 

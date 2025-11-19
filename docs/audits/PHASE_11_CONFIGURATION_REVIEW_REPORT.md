@@ -726,7 +726,7 @@ SECRET_KEY=$(openssl rand -hex 32)
 1. **`scripts/generate-production-secrets.sh`** - Secret generation script
 2. **`config/mosquitto/passwd.example`** - Example password file
 3. **`docker-compose.production.yml`** - Production-specific override
-4. **`docs/DEPLOYMENT.md`** - Deployment guide with security checklist
+4. **`docs/guides/operations/DEPLOYMENT_RUNBOOK.md`** - Deployment guide with security checklist
 5. **`.env.production.example`** - Production-specific environment template
 6. **`docker/services/Dockerfile.secure`** - Secure service Dockerfile template
 
