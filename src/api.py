@@ -533,6 +533,14 @@ async def timeout_middleware(request: Request, call_next):
 # Initialize Greenstack
 manager = IODDManager()
 
+# Wrap storage with caching layer (if Redis available)
+try:
+    from src.cached_storage import create_cached_storage
+    manager.storage = create_cached_storage(manager.storage)
+    logger.info("Database caching enabled")
+except Exception as e:
+    logger.warning(f"Database caching not available: {e}")
+
 # Include EDS routes
 from src.routes import eds_routes
 
@@ -2592,6 +2600,45 @@ async def get_statistics():
         "total_eds_packages": total_eds_packages,
         "unique_eds_devices": unique_eds_devices
     }
+
+# ============================================================================
+# Cache Management Endpoints
+# ============================================================================
+
+@app.get("/api/cache/stats", tags=["Admin & Diagnostics"])
+async def get_cache_stats():
+    """Get cache statistics including hit/miss rates and memory usage"""
+    try:
+        stats = manager.storage.get_cache_stats()
+        return {
+            "cache": stats,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except AttributeError:
+        return {
+            "cache": {"enabled": False, "message": "Caching not enabled (Redis not available)"},
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+@app.post("/api/cache/clear", tags=["Admin & Diagnostics"])
+async def clear_cache(scope: Optional[str] = None):
+    """
+    Clear cache entries
+
+    Args:
+        scope: Optional scope ('devices', 'eds', 'assets', or omit for all)
+    """
+    try:
+        manager.storage.clear_cache(scope)
+        return {
+            "status": "success",
+            "message": f"Cache cleared{f' for scope: {scope}' if scope else ''}",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except AttributeError:
+        raise HTTPException(status_code=503, detail="Caching not enabled (Redis not available)")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}")
 
 # ============================================================================
 # Exception Handlers
