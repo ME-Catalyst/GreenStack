@@ -65,21 +65,38 @@ TOPICS = [
     ("devices/+/config/reported", 1),
 ]
 
+# Global health server reference
+_health_server = None
+
 def on_connect(client, userdata, flags, rc):
     """Callback when connected to MQTT broker"""
+    global _health_server
+
     if rc == 0:
         logger.info("Connected to MQTT broker successfully")
         for topic, qos in TOPICS:
             client.subscribe(topic, qos)
             logger.info(f"Subscribed to {topic} (QoS {qos})")
+
+        # Update health status
+        if _health_server:
+            _health_server.mqtt_connected = True
     else:
         logger.error(f"Failed to connect to MQTT broker. Return code: {rc}")
+        if _health_server:
+            _health_server.mqtt_connected = False
 
 def on_disconnect(client, userdata, rc):
     """Callback when disconnected from MQTT broker"""
+    global _health_server
+
     if rc != 0:
         logger.warning(f"Unexpected disconnect from MQTT broker. Return code: {rc}")
         logger.info("Attempting to reconnect...")
+
+    # Update health status
+    if _health_server:
+        _health_server.mqtt_connected = False
 
 def on_message(client, userdata, msg):
     """Callback when message received"""
@@ -247,12 +264,77 @@ def handle_config_reported(device_id: str, data: Dict[str, Any]):
     except Exception as e:
         logger.error(f"Error handling config reported for {device_id}: {e}", exc_info=True)
 
+# ============================================================================
+# Health Check HTTP Server
+# ============================================================================
+
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from threading import Thread
+
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    """Simple health check HTTP handler"""
+
+    def do_GET(self):
+        """Handle GET requests"""
+        if self.path == '/health':
+            # Check if MQTT client is connected
+            is_healthy = hasattr(self.server, 'mqtt_connected') and self.server.mqtt_connected
+
+            if is_healthy:
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                response = json.dumps({
+                    "status": "healthy",
+                    "service": "mqtt-bridge",
+                    "mqtt_connected": True,
+                    "redis_available": redis_client is not None
+                })
+                self.wfile.write(response.encode())
+            else:
+                self.send_response(503)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                response = json.dumps({
+                    "status": "unhealthy",
+                    "service": "mqtt-bridge",
+                    "mqtt_connected": False
+                })
+                self.wfile.write(response.encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, format, *args):
+        """Suppress access logs"""
+        pass
+
+
+def start_health_check_server(port=8080):
+    """Start health check HTTP server in background"""
+    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+    server.mqtt_connected = False
+
+    def run_server():
+        logger.info(f"Health check server listening on port {port}")
+        server.serve_forever()
+
+    thread = Thread(target=run_server, daemon=True)
+    thread.start()
+    return server
+
+
 def main():
     """Main entry point"""
+    global _health_server
+
     logger.info("Starting MQTT Bridge Service...")
     logger.info(f"MQTT Broker: {MQTT_BROKER}")
     logger.info(f"Redis URL: {REDIS_URL}")
     logger.info(f"API Base URL: {API_BASE_URL}")
+
+    # Start health check server
+    _health_server = start_health_check_server(8080)
 
     # Parse broker address
     broker_parts = MQTT_BROKER.split(':')

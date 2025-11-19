@@ -124,6 +124,63 @@ def on_message(client, userdata, msg):
     except Exception as e:
         logger.error(f"Error processing message from {msg.topic}: {e}", exc_info=True)
 
+# ============================================================================
+# Health Check HTTP Server
+# ============================================================================
+
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from threading import Thread
+
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    """Simple health check HTTP handler"""
+
+    def do_GET(self):
+        """Handle GET requests"""
+        if self.path == '/health':
+            is_healthy = write_api is not None
+
+            if is_healthy:
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                response = json.dumps({
+                    "status": "healthy",
+                    "service": "influx-ingestion",
+                    "influxdb_connected": True
+                })
+                self.wfile.write(response.encode())
+            else:
+                self.send_response(503)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                response = json.dumps({
+                    "status": "unhealthy",
+                    "service": "influx-ingestion",
+                    "influxdb_connected": False
+                })
+                self.wfile.write(response.encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, format, *args):
+        """Suppress access logs"""
+        pass
+
+
+def start_health_check_server(port=8080):
+    """Start health check HTTP server in background"""
+    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+
+    def run_server():
+        logger.info(f"Health check server listening on port {port}")
+        server.serve_forever()
+
+    thread = Thread(target=run_server, daemon=True)
+    thread.start()
+    return server
+
+
 def write_to_influxdb(device_id: str, data: Dict[str, Any]):
     """Write telemetry data to InfluxDB"""
     if not write_api:
@@ -209,6 +266,9 @@ def main():
     logger.info(f"InfluxDB URL: {INFLUXDB_URL}")
     logger.info(f"InfluxDB Org: {INFLUXDB_ORG}")
     logger.info(f"InfluxDB Bucket: {INFLUXDB_BUCKET}")
+
+    # Start health check server
+    start_health_check_server(8080)
 
     # Initialize InfluxDB
     if not init_influxdb():
