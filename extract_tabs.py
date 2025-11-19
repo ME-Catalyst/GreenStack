@@ -147,8 +147,8 @@ export const {tab_config['name']} = ({props_str}) => {{
     output_path = os.path.join(TABS_DIR, tab_config['file'])
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(component)
-    
-    print(f"  ✓ Created {output_path}")
+
+    print(f"  [OK] Created {output_path}")
     return output_path
 
 def main():
@@ -168,7 +168,7 @@ def main():
             filepath = generate_tab_component(tab)
             extracted_files.append(filepath)
         except Exception as e:
-            print(f"  ✗ Error extracting {tab['name']}: {e}")
+            print(f"  [ERROR] Error extracting {tab['name']}: {e}")
     
     print()
     print("=" * 60)
