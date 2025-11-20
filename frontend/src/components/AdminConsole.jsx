@@ -1,19 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Settings, Database, HardDrive, Activity, AlertTriangle, CheckCircle, CheckCircle2,
-  Download, Trash2, BarChart3, Server, Cpu, Clock, Package, FileText,
-  RefreshCw, Shield, Zap, TrendingUp, Users, Calendar, Info, BookOpen,
-  ExternalLink, Home, Rocket, Terminal, Github, Bug, Eye, Search, GitBranch,
-  Wifi, WifiOff, Play, StopCircle, RotateCw, Palette, AlertCircle, XCircle,
-  Target, BarChart, ArrowRight, ChevronDown, ChevronRight
+  Download, Trash2, BarChart3, Server, Cpu, Package, FileText,
+  RefreshCw, Shield, Zap, TrendingUp, Info, BookOpen,
+  ExternalLink, Home, Rocket, Terminal, Github, Bug, Search, GitBranch,
+  Wifi, WifiOff, Play, StopCircle, RotateCw, Palette, AlertCircle
 } from 'lucide-react';
 import axios from 'axios';
-import { Card, CardContent, CardHeader, CardTitle } from './ui';
-import { Button } from './ui';
-import { Badge } from './ui';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from './ui';
 import TicketsPage from './TicketsPage';
 import ThemeManager from './ThemeManager';
 import PQAConsole from './PQAConsole';
+
+const confirmAction = (message) =>
+  // eslint-disable-next-line no-alert
+  window.confirm(message);
+
+const promptAction = (message) =>
+  // eslint-disable-next-line no-alert
+  window.prompt(message);
 
 /**
  * Comprehensive Admin Console - System management hub
@@ -27,14 +32,8 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
   const [ioddDiagnostics, setIoddDiagnostics] = useState(null);
   const [vendorStats, setVendorStats] = useState(null);
   const [activeTab, setActiveTab] = useState('hub');
-  const [readme, setReadme] = useState('');
 
-  useEffect(() => {
-    loadData();
-    loadReadme();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [overviewRes, healthRes, systemRes, edsDiagRes, ioddDiagRes, vendorRes] = await Promise.all([
@@ -62,22 +61,14 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE, toast]);
 
-  const loadReadme = async () => {
-    try {
-      const response = await fetch('/README.md');
-      if (response.ok) {
-        const text = await response.text();
-        setReadme(text);
-      }
-    } catch (error) {
-      console.error('Failed to load README:', error);
-    }
-  };
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleVacuum = async () => {
-    if (!confirm('Vacuum database? This will optimize storage but may take a few moments.')) return;
+    if (!confirmAction('Vacuum database? This will optimize storage but may take a few moments.')) return;
 
     try {
       const response = await axios.post(`${API_BASE}/api/admin/database/vacuum`);
@@ -96,7 +87,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
   };
 
   const handleCleanFKViolations = async () => {
-    if (!confirm('Clean orphaned records? This will permanently delete records that reference non-existent parent data.')) return;
+    if (!confirmAction('Clean orphaned records? This will permanently delete records that reference non-existent parent data.')) return;
 
     try {
       const response = await axios.post(`${API_BASE}/api/admin/database/clean-fk-violations`);
@@ -158,7 +149,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
   };
 
   const handleDeleteIODD = async () => {
-    if (!confirm('⚠️ WARNING: This will delete ALL IODD devices and parameters!\n\nThis action cannot be undone. Are you absolutely sure?')) return;
+    if (!confirmAction('⚠️ WARNING: This will delete ALL IODD devices and parameters!\n\nThis action cannot be undone. Are you absolutely sure?')) return;
 
     try {
       const response = await axios.post(`${API_BASE}/api/admin/database/delete-iodd`);
@@ -177,7 +168,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
   };
 
   const handleDeleteEDS = async () => {
-    if (!confirm('⚠️ WARNING: This will delete ALL EDS files and parameters!\n\nThis action cannot be undone. Are you absolutely sure?')) return;
+    if (!confirmAction('⚠️ WARNING: This will delete ALL EDS files and parameters!\n\nThis action cannot be undone. Are you absolutely sure?')) return;
 
     try {
       const response = await axios.post(`${API_BASE}/api/admin/database/delete-eds`);
@@ -196,7 +187,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
   };
 
   const handleDeleteTickets = async () => {
-    if (!confirm('⚠️ WARNING: This will delete ALL tickets and attachments!\n\nThis action cannot be undone. Are you absolutely sure?')) return;
+    if (!confirmAction('⚠️ WARNING: This will delete ALL tickets and attachments!\n\nThis action cannot be undone. Are you absolutely sure?')) return;
 
     try {
       const response = await axios.post(`${API_BASE}/api/admin/database/delete-tickets`);
@@ -215,13 +206,13 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
   };
 
   const handleDeleteAll = async () => {
-    const firstConfirm = confirm('⚠️ DANGER: This will delete ALL data from the database!\n\nThis includes:\n- All IODD devices\n- All EDS files\n- All tickets\n- All parameters\n\nThis action cannot be undone. Continue?');
+    const firstConfirm = confirmAction('⚠️ DANGER: This will delete ALL data from the database!\n\nThis includes:\n- All IODD devices\n- All EDS files\n- All tickets\n- All parameters\n\nThis action cannot be undone. Continue?');
     if (!firstConfirm) return;
 
-    const secondConfirm = confirm('⚠️ FINAL WARNING: You are about to permanently delete everything!\n\nType "DELETE" in the next prompt to confirm.');
+    const secondConfirm = confirmAction('⚠️ FINAL WARNING: You are about to permanently delete everything!\n\nType "DELETE" in the next prompt to confirm.');
     if (!secondConfirm) return;
 
-    const userInput = prompt('Type DELETE (in capital letters) to confirm:');
+    const userInput = promptAction('Type DELETE (in capital letters) to confirm:');
     if (userInput !== 'DELETE') {
       toast({
         title: 'Cancelled',
@@ -248,7 +239,7 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
   };
 
   const handleDeleteTemp = async () => {
-    if (!confirm('Delete all temporary files and cached data?\n\nThis will clean up temp files but won\'t affect your database.')) return;
+    if (!confirmAction('Delete all temporary files and cached data?\n\nThis will clean up temp files but won&rsquo;t affect your database.')) return;
 
     try {
       const response = await axios.post(`${API_BASE}/api/admin/database/delete-temp`);
@@ -356,12 +347,18 @@ const AdminConsole = ({ API_BASE, toast, onNavigate }) => {
           handleDeleteTickets={handleDeleteTickets}
           handleDeleteTemp={handleDeleteTemp}
           handleDeleteAll={handleDeleteAll}
-          toast={toast}
         />
       )}
 
       {activeTab === 'diagnostics' && (
-        <PQAConsole API_BASE={API_BASE} toast={toast} />
+        <div className="space-y-6">
+          <DiagnosticsTab
+            edsDiagnostics={edsDiagnostics}
+            ioddDiagnostics={ioddDiagnostics}
+            vendorStats={vendorStats}
+          />
+          <PQAConsole API_BASE={API_BASE} toast={toast} />
+        </div>
       )}
 
       {activeTab === 'system' && (
@@ -384,7 +381,7 @@ const HubTab = ({ overview, onNavigate, API_BASE }) => {
 
   const fetchMqttStatus = async () => {
     try {
-      const response = await axios.get(`/api/mqtt/status`);
+      const response = await axios.get('/api/mqtt/status');
       setMqttStatus(response.data);
     } catch (error) {
       console.error('Failed to fetch MQTT status:', error);
@@ -614,7 +611,7 @@ const HubTab = ({ overview, onNavigate, API_BASE }) => {
                   )}
                   MQTT Broker
                 </span>
-                <Badge className={mqttStatus?.connected ? "bg-success/20 text-success border-success/30" : "bg-error/20 text-error border-error/30"}>
+                <Badge className={mqttStatus?.connected ? 'bg-success/20 text-success border-success/30' : 'bg-error/20 text-error border-error/30'}>
                   {mqttStatus?.connected ? 'Online' : 'Offline'}
                 </Badge>
               </CardTitle>
@@ -859,9 +856,8 @@ const HubTab = ({ overview, onNavigate, API_BASE }) => {
 /**
  * Database Tab
  */
-const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleCleanFKViolations, handleBackup, handleDownloadBackup, handleDeleteIODD, handleDeleteEDS, handleDeleteTickets, handleDeleteTemp, handleDeleteAll, toast }) => {
-  return (
-    <div className="space-y-6">
+const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleCleanFKViolations, handleBackup, handleDownloadBackup, handleDeleteIODD, handleDeleteEDS, handleDeleteTickets, handleDeleteTemp, handleDeleteAll }) => (
+  <div className="space-y-6">
       {/* Health Status */}
       <Card className="bg-card border-border">
         <CardHeader>
@@ -1065,7 +1061,7 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleCleanFKViolations
                 <span className="font-semibold">Create Backup</span>
               </div>
               <p className="text-xs opacity-80 text-left">
-                Save backup to server's backup directory
+                Save backup to server&rsquo;s backup directory
               </p>
             </Button>
 
@@ -1170,6 +1166,78 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleCleanFKViolations
           </div>
         </CardContent>
       </Card>
+  </div>
+);
+
+const getQualityColor = (score = 0) => {
+  if (score >= 90) return 'text-success';
+  if (score >= 70) return 'text-warning';
+  return 'text-error';
+};
+
+const getQualityBgColor = (score = 0) => {
+  if (score >= 90) return 'bg-success/20 border-success/50';
+  if (score >= 70) return 'bg-warning/20 border-warning/50';
+  return 'bg-error/20 border-error/50';
+};
+
+const DiagnosticsProgressBar = ({ value = 0, label }) => {
+  const normalized = Number.isFinite(value) ? value : Number(value) || 0;
+  const clamped = Math.max(0, Math.min(100, normalized));
+  const tone = clamped >= 90 ? 'success' : clamped >= 70 ? 'warning' : 'error';
+  const textClass = tone === 'success' ? 'text-success' : tone === 'warning' ? 'text-warning' : 'text-error';
+  const barClass = tone === 'success' ? 'bg-success' : tone === 'warning' ? 'bg-warning' : 'bg-error';
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-sm">
+        <span className="text-muted-foreground">{label}</span>
+        <span className={`font-medium ${textClass}`}>
+          {clamped.toFixed(1)}%
+        </span>
+      </div>
+      <div className="w-full bg-secondary/30 rounded-full h-2 overflow-hidden">
+        <div
+          className={`h-2 rounded-full transition-all ${barClass}`}
+          style={{ width: `${clamped}%` }}
+        />
+      </div>
+    </div>
+  );
+};
+
+const VendorDistribution = ({ label, items = [] }) => {
+  const topCount = items[0]?.count || 0;
+  return (
+    <div className="p-4 rounded-lg border border-border bg-secondary/20">
+      <h4 className="text-sm font-semibold text-muted-foreground mb-3">{label}</h4>
+      {items.length === 0 ? (
+        <p className="text-xs text-muted-foreground">No imports yet</p>
+      ) : (
+        <div className="space-y-3">
+          {items.slice(0, 5).map((vendor, idx) => {
+            const ratio = topCount ? (vendor.count / topCount) * 100 : 0;
+            const width = ratio === 0 ? 0 : Math.min(100, Math.max(5, ratio));
+            return (
+              <div key={`${label}-${vendor.vendor || 'unknown'}-${idx}`} className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-foreground font-medium">
+                    {idx + 1}. {vendor.vendor || 'Unknown Vendor'}
+                  </span>
+                  <Badge className="bg-muted text-foreground px-2 py-0 h-auto">
+                    {vendor.count}
+                  </Badge>
+                </div>
+                <div className="h-1.5 bg-secondary/40 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-brand-green/80"
+                    style={{ width: `${width}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
@@ -1177,38 +1245,8 @@ const DatabaseTab = ({ overview, dbHealth, handleVacuum, handleCleanFKViolations
 /**
  * Diagnostics Tab
  */
-const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
-  const getQualityColor = (score) => {
-    if (score >= 90) return 'text-success';
-    if (score >= 70) return 'text-warning';
-    return 'text-error';
-  };
-
-  const getQualityBgColor = (score) => {
-    if (score >= 90) return 'bg-success/20 border-success/50';
-    if (score >= 70) return 'bg-warning/20 border-warning/50';
-    return 'bg-error/20 border-error/50';
-  };
-
-  const ProgressBar = ({ value, label }) => (
-    <div className="space-y-1">
-      <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">{label}</span>
-        <span className={value >= 90 ? 'text-success' : value >= 70 ? 'text-warning' : 'text-error'}>
-          {value.toFixed(1)}%
-        </span>
-      </div>
-      <div className="w-full bg-secondary/30 rounded-full h-2">
-        <div
-          className={`h-2 rounded-full transition-all ${value >= 90 ? 'bg-success' : value >= 70 ? 'bg-warning' : 'bg-error'}`}
-          style={{ width: `${value}%` }}
-        />
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
+const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => (
+  <div className="space-y-6">
       {/* Quality Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* EDS Quality Score */}
@@ -1239,10 +1277,10 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
               {edsDiagnostics?.completeness && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-foreground">Data Completeness</h4>
-                  <ProgressBar value={edsDiagnostics.completeness.product_name_pct} label="Product Names" />
-                  <ProgressBar value={edsDiagnostics.completeness.vendor_name_pct} label="Vendor Names" />
-                  <ProgressBar value={edsDiagnostics.completeness.description_pct} label="Descriptions" />
-                  <ProgressBar value={edsDiagnostics.completeness.icon_pct} label="Icons" />
+                  <DiagnosticsProgressBar value={edsDiagnostics.completeness.product_name_pct} label="Product Names" />
+                  <DiagnosticsProgressBar value={edsDiagnostics.completeness.vendor_name_pct} label="Vendor Names" />
+                  <DiagnosticsProgressBar value={edsDiagnostics.completeness.description_pct} label="Descriptions" />
+                  <DiagnosticsProgressBar value={edsDiagnostics.completeness.icon_pct} label="Icons" />
                 </div>
               )}
             </div>
@@ -1277,9 +1315,9 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
               {ioddDiagnostics?.completeness && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-foreground">Data Completeness</h4>
-                  <ProgressBar value={ioddDiagnostics.completeness.product_name_pct} label="Product Names" />
-                  <ProgressBar value={ioddDiagnostics.completeness.manufacturer_pct} label="Manufacturers" />
-                  <ProgressBar value={ioddDiagnostics.completeness.vendor_id_pct} label="Vendor IDs" />
+                  <DiagnosticsProgressBar value={ioddDiagnostics.completeness.product_name_pct} label="Product Names" />
+                  <DiagnosticsProgressBar value={ioddDiagnostics.completeness.manufacturer_pct} label="Manufacturers" />
+                  <DiagnosticsProgressBar value={ioddDiagnostics.completeness.vendor_id_pct} label="Vendor IDs" />
                 </div>
               )}
             </div>
@@ -1427,6 +1465,23 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
         </Card>
       )}
 
+      {(vendorStats?.iodd?.length || vendorStats?.eds?.length) > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-brand-green" />
+              Vendor Coverage
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <VendorDistribution label="IO-Link Devices" items={vendorStats?.iodd || []} />
+              <VendorDistribution label="EDS Files" items={vendorStats?.eds || []} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Success Message when no issues */}
       {edsDiagnostics?.total_files_with_issues === 0 && ioddDiagnostics?.total_files_with_issues === 0 && (
         <Card className="bg-success/10 border-success/50">
@@ -1443,138 +1498,135 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => {
           </CardContent>
         </Card>
       )}
-    </div>
-  );
-};
+  </div>
+);
 
 /**
  * System Tab
  */
-const SystemTab = ({ systemInfo, overview }) => {
-  return (
-    <div className="space-y-6">
-      {/* Application Info */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground flex items-center gap-2">
-            <Cpu className="w-5 h-5 text-brand-green" />
-            Application Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Name</p>
-              <p className="text-foreground font-medium">{systemInfo?.application?.name}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Version</p>
-              <p className="text-foreground font-medium">{systemInfo?.application?.version}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Database Path</p>
-              <p className="text-foreground font-mono text-sm">{systemInfo?.application?.database_path}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Database Status</p>
-              <div className="flex items-center gap-2">
-                {systemInfo?.application?.database_exists ? (
-                  <>
-                    <CheckCircle className="w-4 h-4 text-success" />
-                    <span className="text-success">Connected</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle className="w-4 h-4 text-error" />
-                    <span className="text-error">Not Found</span>
-                  </>
-                )}
-              </div>
+const SystemTab = ({ systemInfo, overview }) => (
+  <div className="space-y-6">
+    {/* Application Info */}
+    <Card className="bg-card border-border">
+      <CardHeader>
+        <CardTitle className="text-foreground flex items-center gap-2">
+          <Cpu className="w-5 h-5 text-brand-green" />
+          Application Information
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Name</p>
+            <p className="text-foreground font-medium">{systemInfo?.application?.name}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Version</p>
+            <p className="text-foreground font-medium">{systemInfo?.application?.version}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Database Path</p>
+            <p className="text-foreground font-mono text-sm">{systemInfo?.application?.database_path}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Database Status</p>
+            <div className="flex items-center gap-2">
+              {systemInfo?.application?.database_exists ? (
+                <>
+                  <CheckCircle className="w-4 h-4 text-success" />
+                  <span className="text-success">Connected</span>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="w-4 h-4 text-error" />
+                  <span className="text-error">Not Found</span>
+                </>
+              )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </CardContent>
+    </Card>
 
-      {/* Platform Info */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground flex items-center gap-2">
-            <Server className="w-5 h-5 text-secondary" />
-            Platform Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Operating System</p>
-              <p className="text-foreground font-medium">{systemInfo?.platform?.system} {systemInfo?.platform?.release}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Architecture</p>
-              <p className="text-foreground font-medium">{systemInfo?.platform?.machine}</p>
-            </div>
-            <div className="md:col-span-2">
-              <p className="text-sm text-muted-foreground mb-1">Processor</p>
-              <p className="text-foreground font-medium text-sm">{systemInfo?.platform?.processor}</p>
-            </div>
+    {/* Platform Info */}
+    <Card className="bg-card border-border">
+      <CardHeader>
+        <CardTitle className="text-foreground flex items-center gap-2">
+          <Server className="w-5 h-5 text-secondary" />
+          Platform Information
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Operating System</p>
+            <p className="text-foreground font-medium">{systemInfo?.platform?.system} {systemInfo?.platform?.release}</p>
           </div>
-        </CardContent>
-      </Card>
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Architecture</p>
+            <p className="text-foreground font-medium">{systemInfo?.platform?.machine}</p>
+          </div>
+          <div className="md:col-span-2">
+            <p className="text-sm text-muted-foreground mb-1">Processor</p>
+            <p className="text-foreground font-medium text-sm">{systemInfo?.platform?.processor}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
 
-      {/* Python Environment */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground flex items-center gap-2">
-            <Terminal className="w-5 h-5 text-success" />
-            Python Environment
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Version</p>
-              <p className="text-foreground font-mono text-sm">{systemInfo?.python?.version?.split('\n')[0]}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Implementation</p>
-              <p className="text-foreground font-medium">{systemInfo?.python?.implementation}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Compiler</p>
-              <p className="text-foreground font-mono text-sm">{systemInfo?.python?.compiler}</p>
-            </div>
+    {/* Python Environment */}
+    <Card className="bg-card border-border">
+      <CardHeader>
+        <CardTitle className="text-foreground flex items-center gap-2">
+          <Terminal className="w-5 h-5 text-success" />
+          Python Environment
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Version</p>
+            <p className="text-foreground font-mono text-sm">{systemInfo?.python?.version?.split('\n')[0]}</p>
           </div>
-        </CardContent>
-      </Card>
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Implementation</p>
+            <p className="text-foreground font-medium">{systemInfo?.python?.implementation}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Compiler</p>
+            <p className="text-foreground font-mono text-sm">{systemInfo?.python?.compiler}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
 
-      {/* Storage Info */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground flex items-center gap-2">
-            <HardDrive className="w-5 h-5 text-warning" />
-            Storage Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-secondary/30 rounded-lg border border-border">
-              <p className="text-sm text-muted-foreground mb-1">Database</p>
-              <p className="text-2xl font-bold text-foreground">{overview?.storage?.database_size_mb} MB</p>
-            </div>
-            <div className="p-4 bg-secondary/30 rounded-lg border border-border">
-              <p className="text-sm text-muted-foreground mb-1">Attachments</p>
-              <p className="text-2xl font-bold text-foreground">{overview?.storage?.attachments_size_mb} MB</p>
-              <p className="text-xs text-muted-foreground mt-1">{overview?.storage?.attachment_count} files</p>
-            </div>
-            <div className="p-4 bg-secondary/30 rounded-lg border border-border">
-              <p className="text-sm text-muted-foreground mb-1">Total</p>
-              <p className="text-2xl font-bold text-brand-green">{overview?.storage?.total_size_mb} MB</p>
-            </div>
+    {/* Storage Info */}
+    <Card className="bg-card border-border">
+      <CardHeader>
+        <CardTitle className="text-foreground flex items-center gap-2">
+          <HardDrive className="w-5 h-5 text-warning" />
+          Storage Information
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-secondary/30 rounded-lg border border-border">
+            <p className="text-sm text-muted-foreground mb-1">Database</p>
+            <p className="text-2xl font-bold text-foreground">{overview?.storage?.database_size_mb} MB</p>
           </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
+          <div className="p-4 bg-secondary/30 rounded-lg border border-border">
+            <p className="text-sm text-muted-foreground mb-1">Attachments</p>
+            <p className="text-2xl font-bold text-foreground">{overview?.storage?.attachments_size_mb} MB</p>
+            <p className="text-xs text-muted-foreground mt-1">{overview?.storage?.attachment_count} files</p>
+          </div>
+          <div className="p-4 bg-secondary/30 rounded-lg border border-border">
+            <p className="text-sm text-muted-foreground mb-1">Total</p>
+            <p className="text-2xl font-bold text-brand-green">{overview?.storage?.total_size_mb} MB</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);
 
 export default AdminConsole;

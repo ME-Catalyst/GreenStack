@@ -1,22 +1,21 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Card, CardHeader, CardContent, CardTitle, CardDescription,
-  Button, Badge, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Button, Badge, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
   Tabs, TabsContent, TabsList, TabsTrigger,
-  Alert, AlertDescription,
-  Progress, Skeleton, ScrollArea, Separator,
+  Progress, Skeleton,
   Toaster, useToast,
 } from '@/components/ui';
 import {
-  Upload, Download, FileCode, Cpu, Settings, Trash2, Eye, Code2,
+  Upload, Download, FileCode, Cpu, Settings, Trash2, Code2,
   Activity, Database, Package, Zap, ChevronRight, Search, Filter,
-  BarChart3, Home, ChevronLeft, Star, X, MoreVertical, Calendar,
+  BarChart3, Home, ChevronLeft, Star, Calendar,
   Grid3x3, List, Image as ImageIcon, ArrowLeft, ExternalLink, Copy,
   AlertTriangle, Radio, ArrowRightLeft, FileText, Lock, Wrench, Monitor,
-  Wifi, Menu, ChevronDown, Info, Type, Hash, ToggleLeft, Command, RotateCcw,
-  AlertCircle, Network, Server, Gauge, Cable, Clock, Tag, Layers, GitBranch,
-  ArrowUpRight, ArrowDownRight, Users, HardDrive, CheckCircle, XCircle, AlertOctagon, FolderOpen, Bug,
+  Wifi, Menu, Info, Type, Command, RotateCcw,
+  AlertCircle, Network, Server, Cable, Clock, Layers, GitBranch,
+  CheckCircle, FolderOpen,
   Workflow, LineChart, Book, Palette, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,7 +26,6 @@ import 'yet-another-react-lightbox/styles.css';
 import EDSDetailsView from './components/EDSDetailsView';
 import TicketButton from './components/TicketButton';
 import TicketModal from './components/TicketModal';
-import TicketsPage from './components/TicketsPage';
 import SearchPage from './components/SearchPage';
 import ComparisonView from './components/ComparisonView';
 import AdminConsole from './components/AdminConsole';
@@ -37,29 +35,19 @@ import NodeRedManager from './components/NodeRedManager';
 import GrafanaManager from './components/GrafanaManager';
 import ServicesAdmin from './components/ServicesAdmin';
 import ThemeToggle from './components/ThemeToggle';
-import ThemeManager from './components/ThemeManager';
 import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import DocsViewer from './components/docs/DocsViewer';
 import EdsFilesListPage from './pages/EdsFilesListPage';
-import SettingsPage from './pages/SettingsPage';
 import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from './hooks/useKeyboardShortcuts';
-import { useDeviceData } from './hooks/useDeviceData';
-import { useDeviceExport } from './hooks/useDeviceExport';
 import { useTheme } from './contexts/ThemeContext';
-import { getUnitInfo, formatValueWithUnit } from './utils/iolinkUnits';
-import { ErrorsTab } from './components/device-details/tabs/ErrorsTab';
-import { EventsTab } from './components/device-details/tabs/EventsTab';
-import { AssetsTab } from './components/device-details/tabs/AssetsTab';
-import { MenuItemDisplay } from './components/device-details/MenuItemDisplay';
-import { InteractiveParameterControl } from './components/device-details/InteractiveParameterControl';
+import { getUnitInfo } from './utils/iolinkUnits';
 import {
   translateBitrate,
   decodeProfileCharacteristics,
   getWireColorInfo,
   formatCycleTime,
   getAccessRightInfo,
-  getDataTypeDisplay,
   decodeMSequence,
   getConnectionTypeInfo
 } from './utils/iolinkConstants';
@@ -75,12 +63,14 @@ const formatVersion = (version) => {
   return str.replace(/^[vV]/, '');
 };
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 
 // ============================================================================
 // Sidebar Component
 // ============================================================================
 
-const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect, onEdsSelect, recentDevices, recentEdsFiles }) => {
+const Sidebar = ({ activeView, setActiveView, devices, edsFiles }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -105,7 +95,7 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
             size="sm"
             onClick={() => setCollapsed(!collapsed)}
             className="text-muted-foreground hover:text-foreground"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-expanded={!collapsed}
           >
             <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -130,7 +120,7 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
           )}
           <NavItem
             icon={<Radio className="w-5 h-5" />}
-            label={`IO Link Devices`}
+            label="IO Link Devices"
             badge={devices.length}
             active={activeView === 'devices'}
             onClick={() => setActiveView('devices')}
@@ -138,7 +128,7 @@ const Sidebar = ({ activeView, setActiveView, devices, edsFiles, onDeviceSelect,
           />
           <NavItem
             icon={<FileText className="w-5 h-5" />}
-            label={`EDS Files`}
+            label="EDS Files"
             badge={edsFiles.length}
             active={activeView === 'eds-files'}
             onClick={() => setActiveView('eds-files')}
@@ -446,11 +436,6 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, onUploadFolder, API
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list', 'grid', 'table'
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    vendors: [],
-    hasImages: false,
-    ioddVersion: [],
-  });
   const [selectedDevices, setSelectedDevices] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -458,29 +443,15 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, onUploadFolder, API
   const [itemsPerPage, setItemsPerPage] = useState(24);
 
   const filteredDevices = useMemo(() => {
-    let result = devices;
-
-    // Search filter
-    if (searchQuery) {
-      result = result.filter(d =>
-        d.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.device_id.toString().includes(searchQuery)
-      );
+    if (!searchQuery) {
+      return devices;
     }
-
-    // Vendor filter
-    if (filters.vendors.length > 0) {
-      result = result.filter(d => filters.vendors.includes(d.manufacturer));
-    }
-
-    return result;
-  }, [devices, searchQuery, filters]);
-
-  const vendors = useMemo(() => {
-    const uniqueVendors = [...new Set(devices.map(d => d.manufacturer))];
-    return uniqueVendors.sort();
-  }, [devices]);
+    return devices.filter(d =>
+      d.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.device_id.toString().includes(searchQuery)
+    );
+  }, [devices, searchQuery]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredDevices.length / itemsPerPage);
@@ -494,7 +465,7 @@ const DeviceListPage = ({ devices, onDeviceSelect, onUpload, onUploadFolder, API
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filters]);
+  }, [searchQuery]);
 
   const toggleDeviceSelection = (deviceId) => {
     setSelectedDevices(prev =>
@@ -1012,112 +983,138 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
   const [testConfigurations, setTestConfigurations] = useState(null);
   const [customDatatypes, setCustomDatatypes] = useState([]);
 
-  useEffect(() => {
-    if (device) {
-      fetchAssets();
-      fetchParameters();
-      fetchErrors();
-      fetchEvents();
-      // fetchProcessData(); // Lazy loaded when Process Data tab is opened
-      fetchDocumentInfo();
-      fetchDeviceFeatures();
-      fetchCommunicationProfile();
-      fetchUiMenus();
-      fetchLanguages();
-      // Fetch Phase 1-5 data
-      fetchProcessDataUiInfo();
-      fetchDeviceVariants();
-      fetchProcessDataConditions();
-      fetchMenuButtons();
-      fetchWiringConfigurations();
-      fetchTestConfigurations();
-      fetchCustomDatatypes();
-    }
-  }, [device]);
+  const deviceId = device?.id;
 
-  const fetchAssets = async () => {
+  useEffect(() => {
+    if (!device) return;
+    fetchAssets();
+    fetchParameters();
+    fetchErrors();
+    fetchEvents();
+    fetchDocumentInfo();
+    fetchDeviceFeatures();
+    fetchCommunicationProfile();
+    fetchUiMenus();
+    fetchLanguages();
+    fetchProcessDataUiInfo();
+    fetchDeviceVariants();
+    fetchProcessDataConditions();
+    fetchMenuButtons();
+    fetchWiringConfigurations();
+    fetchTestConfigurations();
+    fetchCustomDatatypes();
+  }, [
+    device,
+    fetchAssets,
+    fetchParameters,
+    fetchErrors,
+    fetchEvents,
+    fetchDocumentInfo,
+    fetchDeviceFeatures,
+    fetchCommunicationProfile,
+    fetchUiMenus,
+    fetchLanguages,
+    fetchProcessDataUiInfo,
+    fetchDeviceVariants,
+    fetchProcessDataConditions,
+    fetchMenuButtons,
+    fetchWiringConfigurations,
+    fetchTestConfigurations,
+    fetchCustomDatatypes,
+  ]);
+
+  const fetchAssets = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/assets`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/assets`);
       setAssets(response.data);
     } catch (error) {
       console.error('Failed to fetch assets:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchLanguages = async () => {
+  const fetchLanguages = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/languages`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/languages`);
       setAvailableLanguages(response.data.languages || []);
       setTextData(response.data.text_data || {});
     } catch (error) {
       console.error('Failed to fetch languages:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
   // Phase 1-5 fetch functions
-  const fetchProcessDataUiInfo = async () => {
+  const fetchProcessDataUiInfo = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/processdata/ui-info`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/processdata/ui-info`);
       setProcessDataUiInfo(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch process data UI info:', error);
       setProcessDataUiInfo([]);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchDeviceVariants = async () => {
+  const fetchDeviceVariants = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/variants`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/variants`);
       setDeviceVariants(response.data);
     } catch (error) {
       console.error('Failed to fetch device variants:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchProcessDataConditions = async () => {
+  const fetchProcessDataConditions = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/processdata/conditions`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/processdata/conditions`);
       setProcessDataConditions(response.data);
     } catch (error) {
       console.error('Failed to fetch process data conditions:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchMenuButtons = async () => {
+  const fetchMenuButtons = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/menu-buttons`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/menu-buttons`);
       setMenuButtons(response.data);
     } catch (error) {
       console.error('Failed to fetch menu buttons:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchWiringConfigurations = async () => {
+  const fetchWiringConfigurations = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/wiring`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/wiring`);
       setWiringConfigurations(response.data);
     } catch (error) {
       console.error('Failed to fetch wiring configurations:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchTestConfigurations = async () => {
+  const fetchTestConfigurations = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/test-config`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/test-config`);
       setTestConfigurations(response.data);
     } catch (error) {
       console.error('Failed to fetch test configurations:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchCustomDatatypes = async () => {
+  const fetchCustomDatatypes = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/custom-datatypes`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/custom-datatypes`);
       setCustomDatatypes(response.data);
     } catch (error) {
       console.error('Failed to fetch custom datatypes:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
   // Export functions
   const exportToCSV = (data, filename) => {
@@ -1186,14 +1183,15 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     });
   };
 
-  const fetchParameters = async () => {
+  const fetchParameters = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/parameters`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/parameters`);
       setParameters(response.data);
     } catch (error) {
       console.error('Failed to fetch parameters:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
   const fetchXml = async () => {
     if (xmlContent) return; // Already loaded
@@ -1213,77 +1211,84 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     }
   };
 
-  const fetchErrors = async () => {
+  const fetchErrors = useCallback(async () => {
+    if (!deviceId) return;
     setLoadingErrors(true);
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/errors`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/errors`);
       setErrors(response.data);
     } catch (error) {
       console.error('Failed to fetch errors:', error);
     } finally {
       setLoadingErrors(false);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
+    if (!deviceId) return;
     setLoadingEvents(true);
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/events`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/events`);
       setEvents(response.data);
     } catch (error) {
       console.error('Failed to fetch events:', error);
     } finally {
       setLoadingEvents(false);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchProcessData = async () => {
+  const fetchProcessData = useCallback(async () => {
+    if (!deviceId) return;
     setLoadingProcessData(true);
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/processdata`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/processdata`);
       setProcessData(response.data);
     } catch (error) {
       console.error('Failed to fetch process data:', error);
     } finally {
       setLoadingProcessData(false);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchDocumentInfo = async () => {
+  const fetchDocumentInfo = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/documentinfo`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/documentinfo`);
       setDocumentInfo(response.data);
     } catch (error) {
       console.error('Failed to fetch document info:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchDeviceFeatures = async () => {
+  const fetchDeviceFeatures = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/features`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/features`);
       setDeviceFeatures(response.data);
     } catch (error) {
       console.error('Failed to fetch device features:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchCommunicationProfile = async () => {
+  const fetchCommunicationProfile = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/communication`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/communication`);
       setCommunicationProfile(response.data);
     } catch (error) {
       console.error('Failed to fetch communication profile:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
-  const fetchUiMenus = async () => {
+  const fetchUiMenus = useCallback(async () => {
+    if (!deviceId) return;
     try {
-      const response = await axios.get(`${API_BASE}/api/iodd/${device.id}/menus`);
+      const response = await axios.get(`${API_BASE}/api/iodd/${deviceId}/menus`);
       setUiMenus(response.data);
     } catch (error) {
       console.error('Failed to fetch UI menus:', error);
     }
-  };
+  }, [API_BASE, deviceId]);
 
   const fetchConfigSchema = async () => {
     try {
@@ -1436,10 +1441,10 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     if (configSchema && Object.keys(parameterValues).length === 0) {
       initializeParameterValues(configSchema);
     }
-  }, [configSchema]);
+  }, [configSchema, parameterValues]);
 
   // Comprehensive Menu Item Display Component - Shows ALL menu items
-  const MenuItemDisplay = ({ item, index }) => {
+  const MenuItemDisplay = ({ item }) => {
     // Handle Button Items
     if (item.button_value) {
       return (
@@ -1556,7 +1561,6 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     if (item.variable_id) {
       const param = item.parameter;
       const variableId = item.variable_id;
-      const value = parameterValues[variableId] || (param?.default_value) || '';
       const isReadOnly = item.access_right_restriction === 'ro';
 
       // If we have full parameter details, show interactive control
@@ -1796,300 +1800,6 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     );
   };
 
-  // MenuSection Component - Shows a collapsible menu with parameter details
-  const MenuSection = ({ menu, isEven }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
-
-    // Separate items by type
-    const variableItems = menu.items.filter(item => item.variable_id && item.parameter);
-    const subMenuItems = menu.items.filter(item => item.menu_ref);
-    const buttonItems = menu.items.filter(item => item.button_value);
-
-    return (
-      <div className={`rounded-lg border ${isEven ? 'bg-gradient-to-br from-secondary/5 to-secondary/5 border-secondary/30' : 'bg-gradient-to-br from-brand-green/5 to-brand-green/5 border-brand-green/30'}`}>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors rounded-t-lg"
-        >
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isEven ? 'bg-secondary/20' : 'bg-brand-green/20'}`}>
-              <Menu className={`w-4 h-4 ${isEven ? 'text-secondary' : 'text-brand-green'}`} />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground">{menu.name}</h3>
-            <Badge className={`${isEven ? 'bg-secondary/20 text-foreground-secondary border-secondary/50' : 'bg-brand-green/20 text-brand-green border-brand-green/50'}`}>
-              {menu.items.length} items
-            </Badge>
-          </div>
-          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-        </button>
-
-        {isExpanded && (
-          <div className="p-4 space-y-3 border-t border-border">
-            {variableItems.map((item, idx) => (
-              <ParameterItem key={idx} item={item} />
-            ))}
-
-            {subMenuItems.map((item, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
-                <div className="flex items-center gap-2">
-                  <ChevronRight className="w-4 h-4 text-secondary" />
-                  <span className="text-sm text-foreground">Submenu:</span>
-                  <Badge className="bg-secondary/20 text-foreground-secondary border-secondary/50 font-mono">
-                    {item.menu_ref}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-
-            {buttonItems.map((item, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-warning/10 border border-warning/30">
-                <div className="flex items-center gap-2">
-                  <Command className="w-4 h-4 text-warning" />
-                  <span className="text-sm text-foreground">Action Button:</span>
-                  <Badge className="bg-warning/20 text-warning border-warning/50">
-                    Value: {item.button_value}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-
-            {menu.items.length === 0 && (
-              <div className="text-center py-4 text-muted-foreground text-sm">No items in this menu</div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // ParameterItem Component - Shows detailed parameter information
-  const ParameterItem = ({ item }) => {
-    const [showDetails, setShowDetails] = useState(false);
-    const param = item.parameter;
-
-    const getTypeIcon = (dataType) => {
-      if (!dataType) return <Hash className="w-4 h-4" />;
-      const type = dataType.toLowerCase();
-      if (type.includes('string')) return <Type className="w-4 h-4 text-brand-green" />;
-      if (type.includes('bool')) return <ToggleLeft className="w-4 h-4 text-brand-green" />;
-      if (type.includes('int') || type.includes('float')) return <Hash className="w-4 h-4 text-brand-green" />;
-      return <Database className="w-4 h-4 text-muted-foreground" />;
-    };
-
-    const getAccessColor = (rights) => {
-      if (rights === 'ro') return 'bg-info/20 text-info border-info/50';
-      if (rights === 'wo') return 'bg-warning/20 text-warning border-warning/50';
-      return 'bg-success/20 text-success border-success/50';
-    };
-
-    if (!param) {
-      return (
-        <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-          <div className="flex items-center gap-2">
-            <Badge className="bg-brand-green/20 text-foreground-secondary border-brand-green/50 font-mono text-xs">
-              {item.variable_id || item.record_item_ref}
-            </Badge>
-            <span className="text-xs text-muted-foreground">No parameter definition found</span>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="rounded-lg bg-secondary/50 border border-border overflow-hidden">
-        <button
-          onClick={() => setShowDetails(!showDetails)}
-          className="w-full p-3 hover:bg-white/5 transition-colors"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1">
-              {getTypeIcon(param.data_type)}
-              <div className="flex flex-col items-start gap-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-foreground">{param.name}</span>
-                  {param.dynamic && (
-                    <Badge className="bg-warning/20 text-warning border-warning/50 text-xs px-1.5 py-0" title="Parameter value changes dynamically">
-                      Dynamic
-                    </Badge>
-                  )}
-                  {param.excluded_from_data_storage && (
-                    <Badge className="bg-warning/20 text-warning border-warning/50 text-xs px-1.5 py-0" title="Excluded from data storage">
-                      No Storage
-                    </Badge>
-                  )}
-                  {param.modifies_other_variables && (
-                    <Badge className="bg-secondary/20 text-foreground-secondary border-secondary/50 text-xs px-1.5 py-0" title="Modifying this parameter affects other variables">
-                      Affects Others
-                    </Badge>
-                  )}
-                </div>
-                <span className="text-xs text-muted-foreground font-mono">{item.variable_id}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {param.default_value && (
-                <span className="text-xs text-muted-foreground px-2 py-1 rounded bg-muted">
-                  Default: <span className="text-foreground-secondary font-mono">{param.default_value}</span>
-                </span>
-              )}
-              {item.access_right_restriction && (
-                <Badge className={`text-xs ${getAccessColor(item.access_right_restriction)}`}>
-                  {item.access_right_restriction}
-                </Badge>
-              )}
-              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showDetails ? 'rotate-180' : ''}`} />
-            </div>
-          </div>
-        </button>
-
-        {showDetails && (
-          <div className="p-4 border-t border-border bg-card/50 space-y-3">
-            {param.description && (
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Description</p>
-                <p className="text-sm text-foreground">{param.description}</p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="p-2 rounded bg-secondary border border-border">
-                <p className="text-xs text-muted-foreground mb-1">Data Type</p>
-                <p className="text-xs font-mono text-foreground" title={param.data_type}>
-                  {getDataTypeDisplay(param.data_type)}
-                </p>
-              </div>
-              {param.bit_length && (
-                <div className="p-2 rounded bg-secondary border border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Bit Length</p>
-                  <p className="text-xs font-mono text-foreground">{param.bit_length} bits</p>
-                </div>
-              )}
-              {item.display_format && (
-                <div className="p-2 rounded bg-secondary border border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Display Format</p>
-                  <p className="text-xs font-mono text-foreground">{item.display_format}</p>
-                </div>
-              )}
-              {item.unit_code && (() => {
-                const unitInfo = getUnitInfo(parseInt(item.unit_code));
-                return (
-                  <div className="p-2 rounded bg-secondary border border-border">
-                    <p className="text-xs text-muted-foreground mb-1">Unit</p>
-                    <p className="text-xs font-mono text-foreground" title={`${unitInfo.name} (Code: ${item.unit_code})`}>
-                      {unitInfo.symbol || item.unit_code}
-                    </p>
-                  </div>
-                );
-              })()}
-              {param.value_range_name && (
-                <div className="p-2 rounded bg-secondary border border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Range Name</p>
-                  <p className="text-xs font-mono text-foreground">{param.value_range_name}</p>
-                </div>
-              )}
-            </div>
-
-            {(param.min_value !== null || param.max_value !== null) && (
-              <div className="p-3 rounded-lg bg-brand-green/10 border border-brand-green/30">
-                <p className="text-xs text-brand-green font-semibold mb-2">Value Range</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-foreground font-mono">{param.min_value !== null ? param.min_value : '−∞'}</span>
-                  <span className="text-muted-foreground">to</span>
-                  <span className="text-sm text-foreground font-mono">{param.max_value !== null ? param.max_value : '+∞'}</span>
-                </div>
-              </div>
-            )}
-
-            {param.enumeration_values && Object.keys(param.enumeration_values).length > 0 && (
-              <div className="p-3 rounded-lg bg-success/10 border border-success/30">
-                <p className="text-xs text-success font-semibold mb-2">Enumeration Values</p>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(param.enumeration_values).map(([value, name]) => (
-                    <div key={value} className="px-2 py-1 rounded bg-secondary border border-border text-xs">
-                      <span className="text-brand-green font-mono">{value}</span>
-                      <span className="text-muted-foreground mx-1">→</span>
-                      <span className="text-foreground">{name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
-              <p className="text-xs text-secondary font-semibold mb-2 flex items-center gap-1">
-                <Eye className="w-3 h-3" />
-                Config Form Preview
-              </p>
-              <ParameterPreview param={param} item={item} />
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // ParameterPreview Component - Shows what the config control would look like
-  const ParameterPreview = ({ param, item }) => {
-    if (param.enumeration_values && Object.keys(param.enumeration_values).length > 0) {
-      return (
-        <div className="space-y-2">
-          <Label className="text-xs text-foreground">{param.name}</Label>
-          <Select disabled value={param.default_value || ''}>
-            <SelectTrigger className="bg-secondary border-border text-foreground">
-              <SelectValue placeholder="Select value..." />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(param.enumeration_values).map(([value, name]) => (
-                <SelectItem key={value} value={value}>{name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      );
-    } else if (param.data_type && param.data_type.toLowerCase().includes('bool')) {
-      return (
-        <div className="flex items-center gap-2 p-2 rounded bg-secondary">
-          <input
-            type="checkbox"
-            disabled
-            checked={param.default_value === '1' || param.default_value === 'true'}
-            className="w-4 h-4"
-          />
-          <Label className="text-sm text-foreground">{param.name}</Label>
-        </div>
-      );
-    } else if (param.min_value !== null || param.max_value !== null) {
-      return (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs text-foreground">{param.name}</Label>
-            <span className="text-xs text-muted-foreground">{param.default_value || '0'}</span>
-          </div>
-          <input
-            type="range"
-            min={param.min_value || 0}
-            max={param.max_value || 100}
-            value={param.default_value || 0}
-            disabled
-            className="w-full"
-          />
-        </div>
-      );
-    } else {
-      return (
-        <div className="space-y-2">
-          <Label className="text-xs text-foreground">{param.name}</Label>
-          <Input
-            disabled
-            value={param.default_value || ''}
-            placeholder={`Enter ${param.name.toLowerCase()}...`}
-            className="bg-secondary border-border text-foreground"
-          />
-        </div>
-      );
-    }
-  };
-
   const normalizeAssetName = (fileName) => {
     if (!fileName) return '';
     const parts = fileName.split(/[/\\]/);
@@ -2163,28 +1873,26 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
       .slice(0, 6);
   }, [parameters]);
 
-  const filteredParameters = useMemo(() => {
-    return parameters.filter(p => {
-      // Text search filter
-      if (paramSearchQuery) {
-        const matchesSearch = p.name.toLowerCase().includes(paramSearchQuery.toLowerCase()) ||
-                            p.index.toString().includes(paramSearchQuery);
-        if (!matchesSearch) return false;
-      }
+  const filteredParameters = useMemo(() => parameters.filter((p) => {
+    // Text search filter
+    if (paramSearchQuery) {
+      const matchesSearch = p.name.toLowerCase().includes(paramSearchQuery.toLowerCase()) ||
+                          p.index.toString().includes(paramSearchQuery);
+      if (!matchesSearch) return false;
+    }
 
-      // Access rights filter
-      if (paramAccessFilter !== 'all') {
-        if (p.access_rights !== paramAccessFilter) return false;
-      }
+    // Access rights filter
+    if (paramAccessFilter !== 'all') {
+      if (p.access_rights !== paramAccessFilter) return false;
+    }
 
-      // Data type filter
-      if (paramDataTypeFilter !== 'all') {
-        if (!p.data_type || !p.data_type.toLowerCase().includes(paramDataTypeFilter.toLowerCase())) return false;
-      }
+    // Data type filter
+    if (paramDataTypeFilter !== 'all') {
+      if (!p.data_type || !p.data_type.toLowerCase().includes(paramDataTypeFilter.toLowerCase())) return false;
+    }
 
-      return true;
-    });
-  }, [parameters, paramSearchQuery, paramAccessFilter, paramDataTypeFilter]);
+    return true;
+  }), [parameters, paramSearchQuery, paramAccessFilter, paramDataTypeFilter]);
 
   const filteredErrors = useMemo(() => {
     if (!errorSearchQuery) return errors;
@@ -2243,38 +1951,6 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
   };
 
   // Helper function to apply gradient/offset scaling to a value
-  const applyScaling = (rawValue, uiInfo) => {
-    if (!uiInfo || (uiInfo.gradient === null && uiInfo.offset === null)) {
-      return rawValue;
-    }
-
-    const gradient = uiInfo.gradient !== null ? uiInfo.gradient : 1;
-    const offset = uiInfo.offset !== null ? uiInfo.offset : 0;
-
-    return (rawValue * gradient) + offset;
-  };
-
-  // Helper function to format display value with unit
-  const formatDisplayValue = (rawValue, uiInfo) => {
-    if (!uiInfo) return rawValue;
-
-    const scaledValue = applyScaling(rawValue, uiInfo);
-    const displayFormat = uiInfo.display_format || '';
-    const unitCode = uiInfo.unit_code || '';
-
-    // Apply display format if specified (e.g., "%.2f" for 2 decimal places)
-    let formattedValue = scaledValue;
-    if (displayFormat) {
-      const decimalMatch = displayFormat.match(/%\.(\d+)f/);
-      if (decimalMatch) {
-        const decimals = parseInt(decimalMatch[1]);
-        formattedValue = scaledValue.toFixed(decimals);
-      }
-    }
-
-    return unitCode ? `${formattedValue} ${unitCode}` : formattedValue;
-  };
-
   const displayPreview = useMemo(() => {
     if (!Array.isArray(processData) || processData.length === 0) {
       return null;
@@ -2322,6 +1998,241 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
       .filter(Boolean);
   }, [deviceFeatures]);
 
+
+  const renderProcessDataConditions = () => {
+    if (!processDataConditions || processDataConditions.length === 0) {
+      return null;
+    }
+    return (
+      <div className="mb-6">
+        <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border border-blue-500/30 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-blue-400 mb-3 flex items-center gap-2">
+            <Workflow className="w-5 h-5" />
+            Conditional Process Data Structures
+          </h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Process data structures that change based on device operating mode or configuration
+          </p>
+          <div className="space-y-3">
+            {processDataConditions.map((condition, idx) => (
+              <div
+                key={idx}
+                className="p-3 rounded-lg bg-background/50 border border-border"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/50 text-xs">
+                      Condition {idx + 1}
+                    </Badge>
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    {condition.variable_id && (
+                      <div>
+                        <span className="text-xs text-muted-foreground">Variable: </span>
+                        <code className="text-xs bg-muted px-2 py-0.5 rounded text-brand-green">
+                          {condition.variable_id}
+                        </code>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                      {condition.value_filter && (
+                        <div>
+                          <span className="text-muted-foreground">Filter: </span>
+                          <code className="text-foreground font-mono">{condition.value_filter}</code>
+                        </div>
+                      )}
+                      {condition.max_value !== null && (
+                        <div>
+                          <span className="text-muted-foreground">Max Value: </span>
+                          <code className="text-foreground font-mono">{condition.max_value}</code>
+                        </div>
+                      )}
+                      {condition.min_value !== null && (
+                        <div>
+                          <span className="text-muted-foreground">Min Value: </span>
+                          <code className="text-foreground font-mono">{condition.min_value}</code>
+                        </div>
+                      )}
+                    </div>
+                    {condition.structure_overview && (
+                      <div className="mt-1 text-xs text-muted-foreground/80">
+                        {condition.structure_overview}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {condition.structure && condition.structure.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {condition.structure.map((structure, sidx) => (
+                      <div
+                        key={`${idx}-${sidx}`}
+                        className="p-3 rounded-md border border-border bg-background/30 text-xs"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="font-semibold text-foreground">{structure.name}</div>
+                          <div className="text-muted-foreground font-mono">
+                            {structure.bit_length} bits
+                          </div>
+                        </div>
+                        <div className="text-muted-foreground">
+                          {structure.description || 'No description provided'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderProcessDataSection = (direction) => {
+    const items = processData.filter(pd => pd.direction === direction);
+    if (items.length === 0) {
+      return null;
+    }
+    const isInput = direction === 'input';
+    return (
+      <div>
+        <h3 className={`text-lg font-semibold ${isInput ? 'text-brand-green' : 'text-secondary'} mb-3 flex items-center gap-2`}>
+          <div className={`w-2 h-2 rounded-full ${isInput ? 'bg-brand-green' : 'bg-secondary'} animate-pulse`} />
+          {isInput ? 'Process Data Inputs' : 'Process Data Outputs'} ({items.length})
+        </h3>
+        <div className="space-y-3">
+          {items.map((pd) => renderProcessDataCard(pd, direction, getUiInfo))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDisplayPreview = () => {
+    if (!displayPreview) {
+      return null;
+    }
+    return (
+      <div className="mt-6">
+        <Card className="bg-card/80 border-border hover:border-brand-green/40 transition-all">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-foreground text-xl flex items-center gap-2">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-green/20 to-brand-green/5 flex items-center justify-center">
+                  <Monitor className="w-5 h-5 text-brand-green" />
+                </div>
+                Display Layout Preview
+              </CardTitle>
+              <Badge className="bg-brand-green/20 text-brand-green border-brand-green/40">
+                CANEO Visualization
+              </Badge>
+            </div>
+            <CardDescription className="text-muted-foreground mt-2">
+              Mapping of process-data fields to the four-digit display and LED ring
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-slate-900/40 to-slate-800/30 border border-border">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Layers className="w-3 h-3" />
+                  Digits & Text Segments
+                </p>
+                {displayPreview.digitItems.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {displayPreview.digitItems.map((digit, idx) => (
+                      <div key={`digit-${idx}`} className="p-3 rounded-lg border border-slate-700 bg-slate-900/60 text-white">
+                        <p className="text-sm font-semibold">{digit.name || `Digit ${digit.subindex}`}</p>
+                        <p className="text-[11px] text-white/70 font-mono">
+                          Bits {formatBitRange(digit)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No digit fields detected in process data outputs.
+                  </p>
+                )}
+              </div>
+              <div className="space-y-4">
+                {displayPreview.ledColorItems.length > 0 && (
+                  <div className="p-4 rounded-xl bg-background/60 border border-border">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Palette className="w-3 h-3" />
+                      LED Color Channels
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {displayPreview.ledColorItems.map((item, idx) => (
+                        <div key={`led-color-${idx}`} className="flex items-center gap-3">
+                          <div
+                            className="w-10 h-10 rounded-full border border-border"
+                            style={{ backgroundColor: resolveColorHex(item.name || '') }}
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{item.name}</p>
+                            <p className="text-[11px] text-muted-foreground font-mono">
+                              Bits {formatBitRange(item)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {displayPreview.miscItems.length > 0 && (
+                  <div className="p-4 rounded-xl bg-background/60 border border-border">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <List className="w-3 h-3" />
+                      Auxiliary Fields
+                    </p>
+                    <div className="space-y-2">
+                      {displayPreview.miscItems.map((item, idx) => (
+                        <div key={`misc-${idx}`} className="flex items-center justify-between text-xs">
+                          <span className="text-foreground font-medium">{item.name}</span>
+                          <span className="font-mono text-muted-foreground">{formatBitRange(item)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  const renderProcessDataContent = () => {
+    if (loadingProcessData) {
+      return (
+        <div className="space-y-3">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-24 bg-secondary" />
+          ))}
+        </div>
+      );
+    }
+
+    if (processData.length === 0) {
+      return (
+        <div className="text-center py-8 text-muted-foreground">
+          No process data defined for this device
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {renderProcessDataConditions()}
+        {renderProcessDataSection('input')}
+        {renderProcessDataSection('output')}
+        {renderDisplayPreview()}
+      </div>
+    );
+  };
+
   const renderProcessDataTab = () => (
     <div className="space-y-6">
       <Card className="bg-card/80 backdrop-blur-sm border-border">
@@ -2364,198 +2275,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-        {loadingProcessData ? (
-          <div className="space-y-3">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-24 bg-secondary" />
-            ))}
-          </div>
-        ) : processData.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No process data defined for this device
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Process Data Conditions */}
-            {processDataConditions && processDataConditions.length > 0 && (
-              <div className="mb-6">
-                <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border border-blue-500/30 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-blue-400 mb-3 flex items-center gap-2">
-                    <Workflow className="w-5 h-5" />
-                    Conditional Process Data Structures
-                  </h3>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Process data structures that change based on device operating mode or configuration
-                  </p>
-                  <div className="space-y-3">
-                    {processDataConditions.map((condition, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 rounded-lg bg-background/50 border border-border"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="mt-1">
-                            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/50 text-xs">
-                              Condition {idx + 1}
-                            </Badge>
-                          </div>
-                          <div className="flex-1">
-                            {condition.variable_id && (
-                              <div className="mb-2">
-                                <span className="text-xs text-muted-foreground">Variable: </span>
-                                <code className="text-xs bg-muted px-2 py-0.5 rounded text-brand-green">
-                                  {condition.variable_id}
-                                </code>
-                              </div>
-                            )}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-                              {condition.value_filter && (
-                                <div>
-                                  <span className="text-muted-foreground">Filter: </span>
-                                  <code className="text-foreground font-mono">{condition.value_filter}</code>
-                                </div>
-                              )}
-                              {condition.max_value !== null && (
-                                <div>
-                                  <span className="text-muted-foreground">Max Value: </span>
-                                  <code className="text-foreground font-mono">{condition.max_value}</code>
-                                </div>
-                              )}
-                              {condition.min_value !== null && (
-                                <div>
-                                  <span className="text-muted-foreground">Min Value: </span>
-                                  <code className="text-foreground font-mono">{condition.min_value}</code>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Process Data Inputs */}
-            {processData.filter(pd => pd.direction === 'input').length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-brand-green mb-3 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
-                  Process Data Inputs ({processData.filter(pd => pd.direction === 'input').length})
-                </h3>
-                <div className="space-y-3">
-                  {processData.filter(pd => pd.direction === 'input').map((pd) => renderProcessDataCard(pd, 'input'))}
-                </div>
-              </div>
-            )}
-
-            {/* Process Data Outputs */}
-            {processData.filter(pd => pd.direction === 'output').length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-secondary mb-3 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-                  Process Data Outputs ({processData.filter(pd => pd.direction === 'output').length})
-                </h3>
-                <div className="space-y-3">
-                  {processData.filter(pd => pd.direction === 'output').map((pd) => renderProcessDataCard(pd, 'output'))}
-                </div>
-              </div>
-            )}
-
-            {displayPreview && (
-              <div className="mt-6">
-                <Card className="bg-card/80 border-border hover:border-brand-green/40 transition-all">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-foreground text-xl flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-green/20 to-brand-green/5 flex items-center justify-center">
-                          <Monitor className="w-5 h-5 text-brand-green" />
-                        </div>
-                        Display Layout Preview
-                      </CardTitle>
-                      <Badge className="bg-brand-green/20 text-brand-green border-brand-green/40">
-                        CANEO Visualization
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-muted-foreground mt-2">
-                      Mapping of process-data fields to the four-digit display and LED ring
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-slate-900/40 to-slate-800/30 border border-border">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                          <Layers className="w-3 h-3" />
-                          Digits & Text Segments
-                        </p>
-                        {displayPreview.digitItems.length > 0 ? (
-                          <div className="grid grid-cols-2 gap-3">
-                            {displayPreview.digitItems.map((digit, idx) => (
-                              <div key={`digit-${idx}`} className="p-3 rounded-lg border border-slate-700 bg-slate-900/60 text-white">
-                                <p className="text-sm font-semibold">{digit.name || `Digit ${digit.subindex}`}</p>
-                                <p className="text-[11px] text-white/70 font-mono">
-                                  Bits {formatBitRange(digit)}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground">
-                            No digit fields detected in process data outputs.
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-4">
-                        {displayPreview.ledColorItems.length > 0 && (
-                          <div className="p-4 rounded-xl bg-background/60 border border-border">
-                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                              <Palette className="w-3 h-3" />
-                              LED Color Channels
-                            </p>
-                            <div className="grid grid-cols-2 gap-3">
-                              {displayPreview.ledColorItems.map((item, idx) => (
-                                <div key={`led-color-${idx}`} className="flex items-center gap-3">
-                                  <div
-                                    className="w-10 h-10 rounded-full border border-border"
-                                    style={{ backgroundColor: resolveColorHex(item.name || '') }}
-                                  />
-                                  <div>
-                                    <p className="text-sm font-medium text-foreground">{item.name}</p>
-                                    <p className="text-[11px] text-muted-foreground font-mono">
-                                      Bits {formatBitRange(item)}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {displayPreview.miscItems.length > 0 && (
-                          <div className="p-4 rounded-xl bg-background/60 border border-border">
-                            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                              <List className="w-3 h-3" />
-                              Auxiliary Fields
-                            </p>
-                            <div className="space-y-2">
-                              {displayPreview.miscItems.map((item, idx) => (
-                                <div key={`misc-${idx}`} className="flex items-center justify-between text-xs">
-                                  <span className="text-foreground font-medium">{item.name}</span>
-                                  <span className="font-mono text-muted-foreground">{formatBitRange(item)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </div>
-        </CardContent>
+        <CardContent>{renderProcessDataContent()}</CardContent>
       </Card>
     </div>
   );
@@ -2567,13 +2287,6 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     || imageAssets[0];
 
   // Find the manufacturer logo
-  const logoImage = imageAssets.find(a => a.image_purpose === 'logo');
-
-  // Find thumbnail (icon)
-  const thumbnailImage = imageAssets.find(a => a.image_purpose === 'icon');
-
-  // Find connection diagram
-  const connectionImage = imageAssets.find(a => a.image_purpose === 'connection');
 
   return (
     <div className="relative">
@@ -4771,7 +4484,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                                 </div>
                               ) : (
                                 menu.items.map((item, idx) => (
-                                  <MenuItemDisplay key={idx} item={item} index={idx} />
+                                  <MenuItemDisplay key={idx} item={item} />
                                 ))
                               )}
                               </div>
@@ -5165,6 +4878,12 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
 // ============================================================================
 
 const IODDManager = () => {
+  const { toast } = useToast();
+  const { toggleTheme } = useTheme();
+  const fileInputRef = useRef(null);
+  const folderInputRef = useRef(null);
+  const edsFileInputRef = useRef(null);
+  const edsFolderInputRef = useRef(null);
   const [activeView, setActiveView] = useState('devices');
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
@@ -5182,251 +4901,60 @@ const IODDManager = () => {
   });
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [recentDevices, setRecentDevices] = useState([]);
-  const [recentEdsFiles, setRecentEdsFiles] = useState([]);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
-  const { toast } = useToast();
-  const { toggleTheme } = useTheme();
-  const fileInputRef = React.useRef();
-  const folderInputRef = React.useRef();
-  const edsFileInputRef = React.useRef();
-  const edsFolderInputRef = React.useRef();
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const fetchDevices = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/api/iodd`);
+      setDevices(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error('Failed to fetch devices:', error);
+      toast({
+        title: 'Failed to load devices',
+        description: error.response?.data?.error || error.message || 'Unable to load devices',
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
 
-  // Keyboard shortcuts
-  useKeyboardShortcuts([
-    {
-      ...KEYBOARD_SHORTCUTS.GOTO_OVERVIEW,
-      callback: () => setActiveView('overview'),
-    },
-    {
-      ...KEYBOARD_SHORTCUTS.GOTO_DEVICES,
-      callback: () => setActiveView('devices'),
-    },
-    {
-      ...KEYBOARD_SHORTCUTS.GOTO_SEARCH,
-      callback: () => setActiveView('search'),
-    },
-    {
-      ...KEYBOARD_SHORTCUTS.GOTO_COMPARE,
-      callback: () => setActiveView('compare'),
-    },
-    {
-      ...KEYBOARD_SHORTCUTS.GOTO_ANALYTICS,
-      callback: () => setActiveView('analytics'),
-    },
-    {
-      ...KEYBOARD_SHORTCUTS.UPLOAD_FILE,
-      callback: () => fileInputRef.current?.click(),
-    },
-    {
-      ...KEYBOARD_SHORTCUTS.TOGGLE_THEME,
-      callback: toggleTheme,
-    },
-    {
-      ...KEYBOARD_SHORTCUTS.REFRESH,
-      callback: () => {
-        fetchDevices();
-        fetchEdsFiles();
-        fetchStats();
-      },
-    },
-    {
-      ...KEYBOARD_SHORTCUTS.SHOW_HELP,
-      callback: () => setShowKeyboardHelp(true),
-    },
-  ]);
+  const fetchEdsFiles = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/api/eds`);
+      setEdsFiles(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error('Failed to fetch EDS files:', error);
+      toast({
+        title: 'Failed to load EDS files',
+        description: error.response?.data?.error || error.message || 'Unable to load EDS files',
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/api/stats`);
+      const data = response.data || {};
+      setStats({
+        total_devices: data.total_devices ?? 0,
+        total_parameters: data.total_parameters ?? 0,
+        total_generated: data.total_generated_adapters ?? data.total_generated ?? 0,
+        adapters_by_platform: data.adapters_by_platform ?? {},
+        total_eds_files: data.total_eds_files ?? 0,
+        total_eds_parameters: data.total_eds_parameters ?? 0,
+        total_eds_packages: data.total_eds_packages ?? 0,
+        unique_eds_devices: data.unique_eds_devices ?? 0,
+      });
+    } catch (error) {
+      console.error('Failed to fetch system stats:', error);
+    }
+  }, []);
 
   useEffect(() => {
     fetchDevices();
-    fetchEdsFiles();
     fetchStats();
-    loadRecentDevicesFromStorage();
-    loadRecentEdsFilesFromStorage();
-  }, []);
-
-  const loadRecentDevicesFromStorage = () => {
-    try {
-      const stored = localStorage.getItem('recentDevices');
-      if (stored) {
-        const recentIds = JSON.parse(stored);
-        // recentIds is array of {id, lastViewed} objects
-        // We'll populate full device objects after fetchDevices completes
-        return recentIds;
-      }
-    } catch (error) {
-      console.error('Failed to load recent devices from localStorage:', error);
-    }
-    return [];
-  };
-
-  const updateRecentDevicesFromStorage = (allDevices) => {
-    try {
-      const stored = localStorage.getItem('recentDevices');
-      if (!stored) {
-        setRecentDevices([]);
-        return;
-      }
-
-      const recentIds = JSON.parse(stored);
-      // Map stored IDs to actual device objects
-      const recentDeviceObjects = recentIds
-        .map(item => allDevices.find(d => d.id === item.id))
-        .filter(d => d !== undefined); // Filter out devices that no longer exist
-
-      setRecentDevices(recentDeviceObjects);
-
-      // Update localStorage to remove any deleted devices
-      if (recentDeviceObjects.length !== recentIds.length) {
-        const updatedIds = recentDeviceObjects.map(d => ({
-          id: d.id,
-          lastViewed: recentIds.find(item => item.id === d.id)?.lastViewed || new Date().toISOString()
-        }));
-        localStorage.setItem('recentDevices', JSON.stringify(updatedIds));
-      }
-    } catch (error) {
-      console.error('Failed to update recent devices:', error);
-    }
-  };
-
-  const addToRecentDevices = (device) => {
-    try {
-      // Get current recent device IDs from localStorage
-      const stored = localStorage.getItem('recentDevices');
-      let recentIds = stored ? JSON.parse(stored) : [];
-
-      // Remove device if already in list
-      recentIds = recentIds.filter(item => item.id !== device.id);
-
-      // Add device to front of list
-      recentIds.unshift({
-        id: device.id,
-        lastViewed: new Date().toISOString()
-      });
-
-      // Keep only the 5 most recent
-      recentIds = recentIds.slice(0, 5);
-
-      // Save to localStorage
-      localStorage.setItem('recentDevices', JSON.stringify(recentIds));
-
-      // Update state with full device objects
-      const recentDeviceObjects = recentIds
-        .map(item => devices.find(d => d.id === item.id))
-        .filter(d => d !== undefined);
-
-      setRecentDevices(recentDeviceObjects);
-    } catch (error) {
-      console.error('Failed to update recent devices:', error);
-    }
-  };
-
-  const fetchDevices = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/api/iodd`);
-      setDevices(response.data);
-      // Update recent devices with full device objects after fetch
-      updateRecentDevicesFromStorage(response.data);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch devices',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // EDS Files functions
-  const loadRecentEdsFilesFromStorage = () => {
-    try {
-      const stored = localStorage.getItem('recentEdsFiles');
-      if (stored) {
-        const recentIds = JSON.parse(stored);
-        return recentIds;
-      }
-    } catch (error) {
-      console.error('Failed to load recent EDS files from localStorage:', error);
-    }
-    return [];
-  };
-
-  const updateRecentEdsFilesFromStorage = (allEdsFiles) => {
-    try {
-      const stored = localStorage.getItem('recentEdsFiles');
-      if (!stored) {
-        setRecentEdsFiles([]);
-        return;
-      }
-
-      const recentIds = JSON.parse(stored);
-      const recentEdsObjects = recentIds
-        .map(item => allEdsFiles.find(e => e.id === item.id))
-        .filter(e => e !== undefined);
-
-      setRecentEdsFiles(recentEdsObjects);
-
-      if (recentEdsObjects.length !== recentIds.length) {
-        const updatedIds = recentEdsObjects.map(e => ({
-          id: e.id,
-          lastViewed: recentIds.find(item => item.id === e.id)?.lastViewed || new Date().toISOString()
-        }));
-        localStorage.setItem('recentEdsFiles', JSON.stringify(updatedIds));
-      }
-    } catch (error) {
-      console.error('Failed to update recent EDS files:', error);
-    }
-  };
-
-  const addToRecentEdsFiles = (eds) => {
-    try {
-      const stored = localStorage.getItem('recentEdsFiles');
-      let recentIds = stored ? JSON.parse(stored) : [];
-
-      recentIds = recentIds.filter(item => item.id !== eds.id);
-
-      recentIds.unshift({
-        id: eds.id,
-        lastViewed: new Date().toISOString()
-      });
-
-      recentIds = recentIds.slice(0, 5);
-
-      localStorage.setItem('recentEdsFiles', JSON.stringify(recentIds));
-
-      const recentEdsObjects = recentIds
-        .map(item => edsFiles.find(e => e.id === item.id))
-        .filter(e => e !== undefined);
-
-      setRecentEdsFiles(recentEdsObjects);
-    } catch (error) {
-      console.error('Failed to update recent EDS files:', error);
-    }
-  };
-
-  const fetchEdsFiles = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/api/eds/grouped/by-device`);
-      setEdsFiles(response.data);
-      updateRecentEdsFilesFromStorage(response.data);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch EDS files',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/api/stats`);
-      setStats(response.data);
-    } catch (error) {
-      console.error('Failed to fetch stats:', error);
-    }
-  };
-
+    fetchEdsFiles();
+  }, [fetchDevices, fetchStats, fetchEdsFiles]);
   const handleFileUpload = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -5720,7 +5248,6 @@ const IODDManager = () => {
   const handleDeviceSelect = (device) => {
     setSelectedDevice(device);
     setActiveView('device-details');
-    addToRecentDevices(device);
   };
 
   const handleBackToDevices = () => {
@@ -5745,12 +5272,10 @@ const IODDManager = () => {
 
       setSelectedEds(fullEdsData);
       setActiveView('eds-details');
-      addToRecentEdsFiles(eds);
     } catch (error) {
       console.error('Failed to fetch EDS details:', error);
       setSelectedEds(eds); // Fallback to summary data
       setActiveView('eds-details');
-      addToRecentEdsFiles(eds);
     }
   };
 
@@ -5865,27 +5390,80 @@ const IODDManager = () => {
     if (device) {
       setSelectedDevice(device);
       setActiveView('device-details');
-      addToRecentDevices(device);
     }
   };
 
-  const handleUploadClick = () => {
+  const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const handleFolderUploadClick = () => {
+  const handleFolderUploadClick = useCallback(() => {
     folderInputRef.current?.click();
-  };
+  }, []);
 
-  const handleEdsUploadClick = () => {
+  const handleEdsUploadClick = useCallback(() => {
     edsFileInputRef.current?.click();
-  };
+  }, []);
 
-  const handleEdsFolderUploadClick = () => {
+  const handleEdsFolderUploadClick = useCallback(() => {
     edsFolderInputRef.current?.click();
-  };
+  }, []);
 
-  const sidebarWidth = 'w-64';
+  const shortcutBindings = useMemo(() => [
+    {
+      ...KEYBOARD_SHORTCUTS.GOTO_OVERVIEW,
+      callback: () => setActiveView('overview'),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.GOTO_DEVICES,
+      callback: () => setActiveView('devices'),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.GOTO_SEARCH,
+      callback: () => setActiveView('search'),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.GOTO_COMPARE,
+      callback: () => setActiveView('compare'),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.GOTO_ANALYTICS,
+      callback: () => setActiveView('analytics'),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.UPLOAD_FILE,
+      callback: handleUploadClick,
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.REFRESH,
+      callback: () => {
+        fetchDevices();
+        fetchEdsFiles();
+        fetchStats();
+      },
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.TOGGLE_THEME,
+      callback: () => {
+        if (typeof toggleTheme === 'function') {
+          toggleTheme();
+        }
+      },
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.SHOW_HELP,
+      callback: () => setShowKeyboardHelp(true),
+    },
+  ], [
+    fetchDevices,
+    fetchEdsFiles,
+    fetchStats,
+    handleUploadClick,
+    setActiveView,
+    toggleTheme,
+  ]);
+
+  useKeyboardShortcuts(shortcutBindings, true);
 
   return (
     <div className="min-h-screen bg-background">
@@ -5896,10 +5474,6 @@ const IODDManager = () => {
           setActiveView={setActiveView}
           devices={devices}
           edsFiles={edsFiles}
-          onDeviceSelect={handleDeviceSelect}
-          onEdsSelect={handleEdsSelect}
-          recentDevices={recentDevices}
-          recentEdsFiles={recentEdsFiles}
         />
       )}
 
@@ -6190,7 +5764,6 @@ const IODDManager = () => {
         ref={folderInputRef}
         type="file"
         webkitdirectory=""
-        directory=""
         multiple
         className="hidden"
         onChange={(e) => {
@@ -6237,7 +5810,6 @@ const IODDManager = () => {
         ref={edsFolderInputRef}
         type="file"
         webkitdirectory=""
-        directory=""
         multiple
         className="hidden"
         onChange={(e) => {
@@ -6297,9 +5869,7 @@ const processDataColorClasses = [
     'from-slate-500/40 to-slate-500/10 text-slate-50',
   ];
 
-  const getSegmentColorClass = (index) => {
-    return `bg-gradient-to-br ${processDataColorClasses[index % processDataColorClasses.length]}`;
-  };
+  const getSegmentColorClass = (index) => `bg-gradient-to-br ${processDataColorClasses[index % processDataColorClasses.length]}`;
 
   const buildProcessDataSegments = (pd) => {
     if (!pd.record_items || pd.record_items.length === 0) {
@@ -6349,7 +5919,7 @@ const processDataColorClasses = [
     },
   };
 
-  const renderProcessDataCard = (pd, toneKey = 'input') => {
+const renderProcessDataCard = (pd, toneKey = 'input', getUiInfoResolver) => {
     const tone = processDataToneConfig[toneKey] || processDataToneConfig.input;
     const segments = buildProcessDataSegments(pd);
 
@@ -6410,7 +5980,7 @@ const processDataColorClasses = [
             bit_offset: 0,
             data_type: pd.data_type,
           }]).map((item, index) => {
-            const uiInfo = getUiInfo(item.name);
+            const uiInfo = getUiInfoResolver ? getUiInfoResolver(item.name) : undefined;
             return (
               <div
                 key={item.subindex ?? index}

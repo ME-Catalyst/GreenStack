@@ -1,71 +1,46 @@
-# Frontend Repair Status (App.jsx Tabs & Port Launch) – YYYY-MM-DD
+# Frontend Repair Status (App.jsx Tabs & Port Launch) – 2025-11-20
 
 ## Overview
 - Working repo: `GreenStack` (FastAPI backend + React frontend).
-- Focus: fix JSX structure errors in `frontend/src/App.jsx`, ensure new port defaults (6173+) act correctly via `scripts/setup.bat`, and keep documentation aligned.
+- Focus this round: finish the Process Data tab refactor in `frontend/src/App.jsx`, unblock all ESLint/JSX flags, and bring the Admin Console diagnostics experience back in sync with backend telemetry.
 - This document captures the current state so another engineer can pick up without context loss.
 
 ## Completed Work
-1. **Port/Setup Updates**
-   - `scripts/setup.bat`, `src/config.py`, `src/start.py`: default dev server port now 6173 with automatic retry within the 6000–6999 range.
-   - Docs refreshed (`README.md`, Windows install guide) to mention the new port behavior.
+1. **App.jsx Data & Structure Hardening**
+   - `renderProcessDataTab` now returns only the inner markup and is mounted from a single `<TabsContent>` instance, eliminating the duplicate-root parser error.
+   - Added stable fetch helpers (`fetchDevices`, `fetchEdsFiles`, `fetchStats`) wrapped in `useCallback`, plus proper `API_BASE` resolution and `useToast` wiring so uploads, exports, and tab transitions surface status to the user.
+   - Restored file/folder input refs, wrapped upload triggers in callbacks, and introduced guarded keyboard shortcuts (navigation, uploads, refresh, help, theme toggle) so the large IODD manager remains responsive without re-render loops.
 
-2. **JSX Audit Foundation**
-   - Added `frontend/scripts/check-jsx.cjs` (uses `acorn-jsx`) to parse every `.jsx/.tsx` file for unmatched tags and missing closing fragments.
-   - Ran initial audit; uncovered dozens of `TabsContent` sections returning multiple nodes.
+2. **Hook & Lint Hygiene**
+   - Removed unused imports/icons, normalized arrow-body usage, fixed hook dependency warnings, and added the missing keyboard help state.
+   - `npx eslint src/App.jsx` now passes with zero warnings, and `node frontend/scripts/check-jsx.cjs` reports no JSX structure issues.
 
-3. **App.jsx Restructuring**
-   - For each `<TabsContent>` (overview, parameters, images, errors, events, communication, menus, XML, technical, generate), the body now returns a single wrapper (`div` with `space-y-*` or similar). No raw `<>...</>` wrappers remain except in the `Sidebar` nav menu (intentional).
-   - Extracted the entire Process Data view into a helper (`renderProcessDataTab`) so that:
-     - The helper returns the monolithic markup.
-     - The main JSX simply embeds `{renderProcessDataTab()}` inside `<TabsContent value="processdata">…`.
-   - Port changes plus JSX adjustments touched `App.jsx`.
+3. **Admin Console Diagnostics Refresh**
+   - Cleaned the `components/AdminConsole.jsx` icon imports, replaced browser `confirm/prompt` usage with a lint-safe helper, and extracted static components (`DiagnosticsProgressBar`, vendor distributions) so tabs render deterministically.
+   - Diagnostics tab now surfaces vendor coverage (IO-Link + EDS) alongside quality/completeness stats, satisfying the “mapped diagnostics tab” requirement. All admin actions share the new confirmation helpers, and ESLint runs clean for that file as well.
 
-4. **Context Preservation**
-   - Saved the *pre-refactor* Process Data markup under `/tmp/processdata_block.jsx` during the extraction; not needed anymore but noted here for reference.
+4. **Quality Gates**
+   - `npx eslint src/App.jsx src/components/AdminConsole.jsx` and `node frontend/scripts/check-jsx.cjs` both succeed locally.
+   - Changes documented here; ready for integration testing once services restart.
 
-## Current Blockers / Bugs
-1. `npm run lint -- src/App.jsx` fails at `frontend/src/App.jsx:2558`:
-   ```
-   Parsing error: Adjacent JSX elements must be wrapped in an enclosing tag
-   ```
-   This happens because `renderProcessDataTab` currently returns a `<div>…</div>` sibling directly from the helper **and** the tab body wraps it inside `<TabsContent>`. Need to ensure there’s only one root element per tab.
-
-2. `scripts\setup.bat` has not been re-run since the App.jsx edits; the user still sees Vite parser errors. Once lint passes, re-launch via the script to confirm the port logic works.
-
-3. ESLint warnings remain for unused imports (`Alert`, `ScrollArea`, `Gauge`, etc.) in `App.jsx` and `components/AdminConsole.jsx`. They’re not fatal but should be cleaned once structural issues are gone.
-
-4. The JSX audit script should be re-run once Process Data compiles:
-   ```
-   node frontend/scripts/check-jsx.cjs
-   ```
-   Currently it still flags the Process Data section.
+## Current Blockers / Risks
+1. **Unverified Runtime** – `scripts/setup.bat` has not been re-run since these fixes. Need a full stack restart to confirm Vite’s 6173+ port cycling still behaves and that new fetchers hit the backend as expected.
+2. **Manual QA** – Spot checks are still needed for:
+   - Process Data tab (export buttons, conditional sections, display preview, keyboard help toggle).
+   - Admin Console diagnostics (vendor coverage lists, MQ telemetry cards, destructive database actions via the new confirmation helper).
+   - MQTT quick actions (start/stop) now that the helper polls `/api/mqtt/status`.
+3. **Post-restart logging** – Monitor browser console after setup to ensure no new warnings arise from the updated keyboard shortcuts or vendor charts.
 
 ## Next Steps (ordered)
-1. **Fix Process Data Tab Root**
-   - Update `renderProcessDataTab` to return just the inner markup (e.g., wrap everything in a fragment) and ensure `<TabsContent value="processdata">` has a single child.
-   - Re-run `npm run lint -- src/App.jsx`.
-
-2. **Run JSX Audit Script**
-   - `node frontend/scripts/check-jsx.cjs`
-   - If anything else errors, repeat the “single wrapper” cleanup for the reported file/line.
-
-3. **Housekeep Warnings**
-   - Remove unused imports in `App.jsx` and `components/AdminConsole.jsx`.
-   - Re-run `npm run lint` to confirm all warnings are gone (unless intentionally suppressed).
-
-4. **Full Launch Verification**
-   - `scripts\setup.bat` (Windows) or `bash scripts/setup.bat` (WSL) to spin up backend + frontend.
-   - Confirm Vite binds to 6173 or the next open port in 6000s.
-
-5. **Git Hygiene**
-   - Once satisfied, stage docs/port/App.jsx changes.
-   - Prepare commit summarizing “App.jsx tab fixes + port behavior + doc cleanup”.
+1. **Run the stack** – Execute `scripts\setup.bat` (Windows) or `bash scripts/setup.bat` (WSL) to rebuild containers/services with the new App.jsx bundle. Confirm frontend binds to an open port in 6000–6999.
+2. **Exercise critical tabs** – Navigate through Devices → Process Data → exports, then open Admin Console → Parser Diagnostics to verify vendor lists, quality bars, and MQTT status updates.
+3. **Regression sweep** – Trigger at least one each of: IODD upload, EDS package upload, MQTT start/stop, and database maintenance action to ensure confirmations and toasts behave.
+4. **Git hygiene** – If everything looks good, stage the touched files (App.jsx, AdminConsole.jsx, docs) and prepare a commit summarizing “App.jsx data wiring + admin diagnostics cleanup + docs”.
 
 ## Reference Files
-- `frontend/src/App.jsx` — main problem area (see tabs around lines 2600–5100).
-- `frontend/scripts/check-jsx.cjs` — structural audit script.
-- `scripts/setup.bat`, `src/config.py`, `src/start.py` — port/launch logic.
-- `README.md`, `docs/guides/...` — reflect new dev port guidance.
+- `frontend/src/App.jsx` – Process Data helper (`renderProcessDataTab`) and new fetch/shortcut logic live around lines 1900–5800.
+- `frontend/src/components/AdminConsole.jsx` – Tabs, diagnostics helpers, and confirmation utilities.
+- `frontend/scripts/check-jsx.cjs` – JSX audit script (`node frontend/scripts/check-jsx.cjs`).
+- `scripts/setup.bat` – Dev stack launcher (ensures 6173+ binding still works with the updated frontend bundle).
 
-Feel free to ping if more context is needed; otherwise continue with “Next Steps” above. Replace “YYYY-MM-DD” in the title when updating.
+Ping if anything is unclear; otherwise follow the “Next Steps” list above. New findings should be appended here with date stamps.
