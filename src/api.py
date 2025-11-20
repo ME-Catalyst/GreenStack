@@ -48,6 +48,7 @@ from src import config
 from src.config import validate_production_security
 from src.models import DeviceProfile
 from src.greenstack import IODDManager
+from src.utils.pqa_orchestrator import UnifiedPQAOrchestrator, FileType
 
 # ============================================================================
 # API Models
@@ -681,6 +682,38 @@ async def root():
 # IODD Management Endpoints
 # -----------------------------------------------------------------------------
 
+def queue_iodd_pqa_analysis(device_id: int):
+    """Queue PQA analysis for an IODD device in background"""
+    try:
+        import sqlite3
+
+        # Fetch XML content from iodd_assets
+        conn = sqlite3.connect("greenstack.db")
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT file_content FROM iodd_assets
+            WHERE device_id = ? AND file_type = 'xml'
+            LIMIT 1
+        """, (device_id,))
+
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            logger.warning(f"No XML content found for IODD device {device_id}, skipping PQA analysis")
+            return
+
+        xml_content = row[0]
+        if isinstance(xml_content, bytes):
+            xml_content = xml_content.decode('utf-8')
+
+        # Run PQA analysis
+        orchestrator = UnifiedPQAOrchestrator()
+        orchestrator.run_full_analysis(device_id, FileType.IODD, xml_content)
+        logger.info(f"Completed PQA analysis for IODD device {device_id}")
+    except Exception as e:
+        logger.error(f"PQA analysis failed for IODD {device_id}: {e}")
+
 @app.post("/api/iodd/upload",
           response_model=Union[UploadResponse, MultiUploadResponse],
           tags=["IODD Management"])
@@ -785,6 +818,10 @@ async def upload_iodd(
                     parameters_count=len(device.get('parameters', []))
                 ))
 
+                # Queue PQA analysis for each device
+                background_tasks.add_task(queue_iodd_pqa_analysis, device_id)
+                logger.info(f"Queued PQA analysis for IODD device {device_id}")
+
             return MultiUploadResponse(
                 devices=devices,
                 total_count=len(devices)
@@ -793,6 +830,10 @@ async def upload_iodd(
             # Single device imported
             device_id = result
             device = manager.storage.get_device(device_id)
+
+            # Queue PQA analysis
+            background_tasks.add_task(queue_iodd_pqa_analysis, device_id)
+            logger.info(f"Queued PQA analysis for IODD device {device_id}")
 
             return UploadResponse(
                 device_id=device_id,

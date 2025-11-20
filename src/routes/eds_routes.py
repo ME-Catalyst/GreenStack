@@ -13,13 +13,14 @@ import tempfile
 import zipfile
 from datetime import datetime
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
 from src.database import get_db_path
 from src.parsers.eds_diagnostics import Severity
 from src.parsers.eds_package_parser import EDSPackageParser
 from src.parsers.eds_parser import parse_eds_file
+from src.utils.pqa_orchestrator import UnifiedPQAOrchestrator, FileType
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -28,8 +29,35 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/eds", tags=["EDS Files"])
 
 
+def queue_eds_pqa_analysis(eds_id: int):
+    """Queue PQA analysis for an EDS file in background"""
+    try:
+        # Fetch EDS content from eds_files table
+        conn = sqlite3.connect(get_db_path())
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT eds_content FROM eds_files WHERE id = ? LIMIT 1
+        """, (eds_id,))
+
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row or not row[0]:
+            logger.warning(f"No EDS content found for EDS file {eds_id}, skipping PQA analysis")
+            return
+
+        eds_content = row[0]
+
+        # Run PQA analysis
+        orchestrator = UnifiedPQAOrchestrator()
+        orchestrator.run_full_analysis(eds_id, FileType.EDS, eds_content)
+        logger.info(f"Completed PQA analysis for EDS file {eds_id}")
+    except Exception as e:
+        logger.error(f"PQA analysis failed for EDS {eds_id}: {e}")
+
+
 @router.post("/upload")
-async def upload_eds_file(file: UploadFile = File(...)):
+async def upload_eds_file(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     """
     Upload and parse an EDS file
 
@@ -369,6 +397,10 @@ async def upload_eds_file(file: UploadFile = File(...)):
 
         conn.commit()
         conn.close()
+
+        # Queue PQA analysis in background
+        background_tasks.add_task(queue_eds_pqa_analysis, eds_id)
+        logger.info(f"Queued PQA analysis for EDS file {eds_id}")
 
         return {
             "eds_id": eds_id,
@@ -1068,7 +1100,7 @@ async def bulk_delete_eds_files(request: dict):
 
 
 @router.post("/upload-package")
-async def upload_eds_package(file: UploadFile = File(...)):
+async def upload_eds_package(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     """
     Upload and parse an EDS package ZIP file containing multiple versions/variants
 
@@ -1166,6 +1198,7 @@ async def upload_eds_package(file: UploadFile = File(...)):
         # Insert all EDS files from package
         imported_count = 0
         skipped_count = 0
+        imported_eds_ids = []  # Track IDs for PQA analysis
 
         for idx, eds_info in enumerate(package_data['eds_files']):
             try:
@@ -1366,6 +1399,7 @@ async def upload_eds_package(file: UploadFile = File(...)):
                         ))
 
                 imported_count += 1
+                imported_eds_ids.append(eds_id)  # Track for PQA analysis
 
             except Exception as e:
                 logger.error(f"Error importing EDS from package: {e}")
@@ -1394,6 +1428,11 @@ async def upload_eds_package(file: UploadFile = File(...)):
                 logger.info(f"Cleaned up temp file: {tmp_path}")
             except Exception as cleanup_error:
                 logger.warning(f"Failed to clean up temp file {tmp_path}: {cleanup_error}")
+
+        # Queue PQA analysis for all imported EDS files
+        for eds_id in imported_eds_ids:
+            background_tasks.add_task(queue_eds_pqa_analysis, eds_id)
+            logger.info(f"Queued PQA analysis for EDS file {eds_id}")
 
         return {
             "package_id": package_id,
