@@ -110,15 +110,27 @@ class UnifiedPQAOrchestrator:
             logger.info(f"Saved quality metrics with ID {metric_id}")
 
             # Step 5: Check if ticket generation needed
-            if self._should_generate_ticket(metrics):
-                ticket_id = self._generate_quality_ticket(
-                    file_id,
-                    metric_id,
-                    metrics,
-                    diff_items,
-                    file_type
-                )
-                logger.info(f"Generated ticket ID {ticket_id}")
+            logger.info(f"Checking if ticket should be generated for {file_type.value} {file_id}")
+            logger.info(f"Metrics: score={metrics.overall_score:.2f}%, critical_loss={metrics.critical_data_loss}")
+
+            should_generate = self._should_generate_ticket(metrics)
+            logger.info(f"_should_generate_ticket returned: {should_generate}")
+
+            if should_generate:
+                logger.info(f"Attempting to generate ticket for {file_type.value} {file_id}")
+                try:
+                    ticket_id = self._generate_quality_ticket(
+                        file_id,
+                        metric_id,
+                        metrics,
+                        diff_items,
+                        file_type
+                    )
+                    logger.info(f"Successfully generated ticket ID {ticket_id}")
+                except Exception as ticket_err:
+                    logger.error(f"Failed to generate ticket: {ticket_err}", exc_info=True)
+            else:
+                logger.info(f"Ticket generation not needed for {file_type.value} {file_id}")
 
             return metrics, diff_items
 
@@ -350,11 +362,13 @@ class UnifiedPQAOrchestrator:
                                 diff_items: Union[List[DiffItem], List[EDSDiffItem]],
                                 file_type: FileType) -> int:
         """Generate quality issue ticket"""
+        logger.info(f"_generate_quality_ticket called for {file_type.value} {file_id}, metric_id={metric_id}")
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
         try:
             # Get device/file name
+            logger.info(f"Fetching device name for {file_type.value} {file_id}")
             if file_type == FileType.IODD:
                 cursor.execute("SELECT product_name FROM devices WHERE id = ?", (file_id,))
             else:
@@ -403,13 +417,24 @@ class UnifiedPQAOrchestrator:
             else:
                 severity = 'medium'
 
+            # Generate ticket number (format: TICKET-0001)
+            cursor.execute("SELECT COUNT(*) FROM tickets")
+            ticket_count = cursor.fetchone()[0]
+            ticket_number = f"TICKET-{str(ticket_count + 1).zfill(4)}"
+
+            # Determine device_type
+            device_type = file_type.value  # 'IODD' or 'EDS'
+
             # Insert ticket
+            logger.info(f"Inserting ticket {ticket_number} for {device_name} with severity {severity}")
             cursor.execute("""
                 INSERT INTO tickets (
-                    title, description, status, priority, category,
+                    ticket_number, device_type, title, description, status, priority, category,
                     device_id, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
+                ticket_number,
+                device_type,
                 f"Parser Quality Issue: {device_name} - Score {metrics.overall_score:.0f}%",
                 description,
                 'open',
@@ -421,8 +446,10 @@ class UnifiedPQAOrchestrator:
             ))
 
             ticket_id = cursor.lastrowid
+            logger.info(f"Ticket inserted with ID {ticket_id}")
 
             # Update metric to mark ticket generated
+            logger.info(f"Updating metric {metric_id} to mark ticket_generated=1")
             cursor.execute("""
                 UPDATE pqa_quality_metrics
                 SET ticket_generated = 1
@@ -430,6 +457,7 @@ class UnifiedPQAOrchestrator:
             """, (metric_id,))
 
             conn.commit()
+            logger.info(f"Successfully committed ticket {ticket_id} and updated metric {metric_id}")
             return ticket_id
 
         finally:
