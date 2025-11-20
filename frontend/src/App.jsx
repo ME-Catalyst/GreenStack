@@ -4919,7 +4919,8 @@ const IODDManager = () => {
 
   const fetchEdsFiles = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_BASE}/api/eds`);
+      // Use grouped endpoint to show only latest revision per device with revision count
+      const response = await axios.get(`${API_BASE}/api/eds/grouped/by-device`);
       setEdsFiles(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch EDS files:', error);

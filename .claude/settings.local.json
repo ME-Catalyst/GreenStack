@@ -76,7 +76,11 @@
       "Bash(/tmp/ingester_section.py)",
       "Bash(/tmp/manager_cli_section.py)",
       "Bash(echo:*)",
-      "Bash(FINAL_EXTRACTION_SUMMARY.md)"
+      "Bash(FINAL_EXTRACTION_SUMMARY.md)",
+      "Bash(if exist node_modules rmdir /s /q node_modules)",
+      "Bash(if exist package-lock.json del package-lock.json)",
+      "Bash(scripts/setup.bat)",
+      "Bash(npm cache clean:*)"
     ],
     "deny": [],
     "ask": []

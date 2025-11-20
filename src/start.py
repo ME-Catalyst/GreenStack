@@ -251,6 +251,15 @@ class IODDManagerLauncher:
     
     def run(self, args):
         """Main startup sequence"""
+        # Ensure UTF-8 encoding for Windows console
+        if sys.platform == 'win32':
+            try:
+                sys.stdout.reconfigure(encoding='utf-8')
+            except AttributeError:
+                # Python < 3.7 fallback
+                import codecs
+                sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+
         print("""
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
