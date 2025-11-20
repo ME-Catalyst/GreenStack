@@ -588,7 +588,7 @@ async def get_dashboard_summary():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/dashboard/trends", response_model=Dict[str, Any])
+@router.get("/dashboard/trends")
 async def get_quality_trends(days: int = Query(30, ge=1, le=365)):
     """Get quality score trends over time"""
     try:
@@ -627,7 +627,7 @@ async def get_quality_trends(days: int = Query(30, ge=1, le=365)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/dashboard/failures", response_model=Dict[str, Any])
+@router.get("/dashboard/failures")
 async def get_quality_failures(limit: int = Query(20, ge=1, le=100)):
     """Get list of quality analysis failures"""
     try:
