@@ -16,6 +16,12 @@ import time
 import webbrowser
 from pathlib import Path
 
+# Force UTF-8 encoding for Windows console BEFORE any print statements
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 from src import config
 
 # Configure logging
@@ -251,15 +257,6 @@ class IODDManagerLauncher:
     
     def run(self, args):
         """Main startup sequence"""
-        # Ensure UTF-8 encoding for Windows console
-        if sys.platform == 'win32':
-            try:
-                sys.stdout.reconfigure(encoding='utf-8')
-            except AttributeError:
-                # Python < 3.7 fallback
-                import codecs
-                sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
-
         print("""
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
