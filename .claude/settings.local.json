@@ -82,7 +82,10 @@
       "Bash(scripts/setup.bat)",
       "Bash(npm cache clean:*)",
       "Bash(alembic current:*)",
-      "Bash(alembic history:*)"
+      "Bash(alembic history:*)",
+      "Bash(scriptssetup.bat)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(del check_xsd.py extract_xsd.py)"
     ],
     "deny": [],
     "ask": []

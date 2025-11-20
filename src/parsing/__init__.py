@@ -838,8 +838,55 @@ class IODDParser:
 
     def _get_standard_error_name(self, code: int, additional_code: int) -> str:
         """Get standard IO-Link error name"""
-        # Standard IO-Link error codes
+        # Standard IO-Link error codes (based on IO-Link Interface Specification v1.1)
+        # Error codes are in format 0x80XX where XX is the additional_code
         error_map = {
+            # General errors (0x8000-0x800F)
+            (0, 0): "Device Application Error",
+            (0, 1): "Device Not Accessible",
+            (0, 2): "Device Response Error",
+            (0, 3): "Device Access Denied",
+
+            # Parameter service errors (0x8010-0x802F)
+            (0, 16): "Parameter Access Denied",
+            (0, 17): "Index Not Available",
+            (0, 18): "Subindex Not Available",
+            (0, 19): "Access Denied - Object Locked",
+            (0, 20): "Access Denied - Read Only",
+            (0, 21): "Access Denied - Write Only",
+            (0, 22): "Parameter Error - Invalid Data",
+            (0, 23): "Parameter Error - Invalid Data Size",
+
+            # Communication errors (0x8020-0x802F)
+            (0, 32): "Communication Error",
+            (0, 33): "Checksum Mismatch",
+            (0, 34): "Invalid Message",
+            (0, 35): "Message Type Not Supported",
+
+            # Device state errors (0x8030-0x803F)
+            (0, 48): "Parameter Value Out of Range",
+            (0, 49): "Parameter Length Error",
+            (0, 50): "Parameter Value Below Minimum",
+            (0, 51): "Parameter Value Above Maximum",
+            (0, 52): "Function Temporarily Unavailable",
+            (0, 53): "Function Not Available",
+            (0, 54): "Resource Unavailable",
+
+            # Device errors (0x8040-0x804F)
+            (0, 64): "Device Malfunction",
+            (0, 65): "Inconsistent Parameter Set",
+            (0, 66): "Sensor Failure",
+            (0, 67): "Actuator Failure",
+            (0, 68): "Communication Failure",
+            (0, 69): "Device Not Ready",
+
+            # Application specific (0x8050-0x80FF)
+            (0, 80): "Out of Memory",
+            (0, 81): "Invalid Configuration",
+            (0, 82): "Backup/Restore Error",
+            (0, 96): "Application Specific Error",
+
+            # Legacy mappings for old code=128 format
             (128, 0): "Application Error",
             (128, 17): "Parameter Error - Invalid Index",
             (128, 18): "Parameter Error - Invalid Length",
@@ -854,11 +901,57 @@ class IODDParser:
             (128, 65): "Device Error - Sensor Error",
             (128, 130): "System Command Error"
         }
-        return error_map.get((code, additional_code), f"Error {code}/{additional_code}")
+        return error_map.get((code, additional_code), f"Error {hex(0x8000 + additional_code)} ({code}/{additional_code})")
 
     def _get_standard_error_description(self, code: int, additional_code: int) -> str:
         """Get standard IO-Link error description"""
         desc_map = {
+            # General errors (0x8000-0x800F)
+            (0, 0): "General device application error occurred",
+            (0, 1): "Device cannot be accessed or is not responding",
+            (0, 2): "Invalid or unexpected device response received",
+            (0, 3): "Access to the device or resource is denied",
+
+            # Parameter service errors (0x8010-0x802F)
+            (0, 16): "Access to parameter denied due to insufficient rights",
+            (0, 17): "The requested parameter index does not exist",
+            (0, 18): "The requested parameter subindex does not exist",
+            (0, 19): "Object is currently locked and cannot be accessed",
+            (0, 20): "Attempted to write to a read-only parameter",
+            (0, 21): "Attempted to read from a write-only parameter",
+            (0, 22): "Parameter data is invalid or malformed",
+            (0, 23): "Parameter data size does not match expected length",
+
+            # Communication errors (0x8020-0x802F)
+            (0, 32): "General communication error occurred",
+            (0, 33): "Data checksum validation failed",
+            (0, 34): "Received message format is invalid",
+            (0, 35): "Message type is not supported by the device",
+
+            # Device state errors (0x8030-0x803F)
+            (0, 48): "Parameter value is outside the valid range",
+            (0, 49): "Parameter length is incorrect",
+            (0, 50): "Parameter value is below the minimum allowed",
+            (0, 51): "Parameter value is above the maximum allowed",
+            (0, 52): "Requested function is temporarily unavailable",
+            (0, 53): "Requested function is not supported by this device",
+            (0, 54): "Required resource is not available",
+
+            # Device errors (0x8040-0x804F)
+            (0, 64): "Device malfunction detected - check device status",
+            (0, 65): "Parameter set contains inconsistent or conflicting values",
+            (0, 66): "Sensor hardware failure detected",
+            (0, 67): "Actuator hardware failure detected",
+            (0, 68): "Communication with peripheral failed",
+            (0, 69): "Device is not ready for operation",
+
+            # Application specific (0x8050-0x80FF)
+            (0, 80): "Device out of memory - operation cannot complete",
+            (0, 81): "Configuration is invalid or corrupted",
+            (0, 82): "Error during backup or restore operation",
+            (0, 96): "Application-specific error - see device documentation",
+
+            # Legacy mappings for old code=128 format
             (128, 0): "General application error",
             (128, 17): "Invalid parameter index accessed",
             (128, 18): "Invalid parameter length",
@@ -877,21 +970,120 @@ class IODDParser:
 
     def _get_standard_event_name(self, code: int) -> str:
         """Get standard IO-Link event name"""
+        # Standard IO-Link event codes (IO-Link Interface Specification v1.1)
         event_map = {
-            20480: "Device Status Event",
+            # Notification events (0x4xxx series / 16384-20479)
+            16384: "Notification - Device Started",
+            16385: "Notification - Configuration Changed",
+            16640: "Notification - Device Restarted",
+            16896: "Notification - Temperature Warning",
+            16912: "Temperature Over-run",
+            17152: "Notification - Maintenance Required",
+
+            # Device status events (0x5xxx series / 20480-24575)
+            20480: "Device Hardware Fault",
             20481: "Process Data Changed",
+            20496: "Supply Voltage Warning",
+            20497: "Supply Voltage Error",
+            20753: "Primary Supply Voltage Under-run",
+            20754: "Primary Supply Voltage Over-run",
+            20755: "Secondary Supply Voltage Under-run",
+            20756: "Secondary Supply Voltage Over-run",
+            21504: "Device Temperature Warning",
+            21505: "Device Temperature Error",
+
+            # Application events (0x6xxx series / 24576-28671)
+            24576: "Device Software Fault",
+            24577: "Configuration Error",
+            24578: "Firmware Update Required",
+            24579: "Parameter Error",
+            24832: "Application Notification",
+            25088: "Safety Function Triggered",
+            25344: "Calibration Required",
             25376: "Warning Event",
-            25377: "Error Event"
+            25377: "Error Event",
+
+            # Process events (0x7xxx series / 28672-32767)
+            28672: "Process Alarm",
+            28673: "Process Warning",
+            28928: "Measurement Out of Range",
+            28929: "Sensor Failure",
+            29184: "Actuator Failure",
+            29440: "Communication Failure",
+            30480: "Short Circuit",
+            30496: "Overload Detected",
+
+            # Diagnostic events (0x8xxx series / 32768-36863)
+            32768: "Diagnostic Event",
+            32769: "Self-Test Failed",
+            33024: "Memory Error",
+            33280: "Watchdog Timeout",
+            33536: "System Error",
+
+            # Custom/Vendor events (0x9xxx series / 36864-40959)
+            35904: "Vendor Event 1",
+            35905: "Vendor Event 2",
+            35906: "Vendor Event 3",
+            36864: "Custom Event",
         }
-        return event_map.get(code, f"Event {code}")
+        return event_map.get(code, f"Event {hex(code)} ({code})")
 
     def _get_standard_event_description(self, code: int) -> str:
         """Get standard IO-Link event description"""
         desc_map = {
-            20480: "Device status has changed",
-            20481: "Process data configuration changed",
-            25376: "Device warning condition",
-            25377: "Device error condition"
+            # Notification events (0x4xxx series / 16384-20479)
+            16384: "Device has started and is ready for operation",
+            16385: "Device configuration has been changed",
+            16640: "Device has been restarted",
+            16896: "Device temperature is approaching warning threshold",
+            16912: "Device temperature has exceeded the warning threshold - clear source of heat",
+            17152: "Device requires maintenance - check maintenance schedule",
+
+            # Device status events (0x5xxx series / 20480-24575)
+            20480: "Device hardware fault detected - device exchange may be required",
+            20481: "Process data configuration has changed",
+            20496: "Supply voltage is approaching warning threshold",
+            20497: "Supply voltage error detected",
+            20753: "Primary supply voltage is below minimum threshold - check tolerance",
+            20754: "Primary supply voltage is above maximum threshold - check tolerance",
+            20755: "Secondary supply voltage is below minimum threshold",
+            20756: "Secondary supply voltage is above maximum threshold",
+            21504: "Device temperature warning - check cooling",
+            21505: "Device temperature error - immediate action required",
+
+            # Application events (0x6xxx series / 24576-28671)
+            24576: "Device software fault detected - check firmware revision",
+            24577: "Configuration error detected - verify device settings",
+            24578: "Firmware update is available or required",
+            24579: "Parameter configuration error detected",
+            24832: "Application-specific notification",
+            25088: "Safety function has been triggered",
+            25344: "Device calibration is required",
+            25376: "General device warning condition",
+            25377: "General device error condition",
+
+            # Process events (0x7xxx series / 28672-32767)
+            28672: "Process alarm condition detected",
+            28673: "Process warning condition detected",
+            28928: "Measurement value is out of valid range",
+            28929: "Sensor failure detected - check sensor connection",
+            29184: "Actuator failure detected - check actuator operation",
+            29440: "Communication failure with peripheral device",
+            30480: "Short circuit detected - check wiring and connections",
+            30496: "Overload condition detected - reduce load",
+
+            # Diagnostic events (0x8xxx series / 32768-36863)
+            32768: "Diagnostic event occurred - check device status",
+            32769: "Device self-test has failed",
+            33024: "Memory error detected - device may need replacement",
+            33280: "Watchdog timeout occurred - check device operation",
+            33536: "System error detected",
+
+            # Custom/Vendor events (0x9xxx series / 36864-40959)
+            35904: "Vendor-specific event 1 - see device documentation",
+            35905: "Vendor-specific event 2 - see device documentation",
+            35906: "Vendor-specific event 3 - see device documentation",
+            36864: "Custom event - see device documentation",
         }
         return desc_map.get(code, "")
 
