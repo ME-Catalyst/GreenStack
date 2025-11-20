@@ -38,14 +38,15 @@ const InfluxManager = ({ API_BASE, toast }) => {
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch(`http://localhost:8086/ping`);
+      const response = await fetch(`http://localhost:8086/ping`, { mode: 'no-cors' });
       setStatus({
-        connected: response.ok,
+        connected: response.ok || response.type === 'opaque',
         version: response.headers.get('X-Influxdb-Version') || 'Unknown',
         uptime: 'Running'
       });
     } catch (error) {
-      setStatus({ connected: false, error: error.message });
+      // Silently handle connection errors when InfluxDB is not running
+      setStatus({ connected: false, error: 'InfluxDB not available' });
     }
   };
 

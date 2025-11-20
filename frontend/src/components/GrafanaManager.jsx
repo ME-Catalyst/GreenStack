@@ -25,14 +25,15 @@ const GrafanaManager = ({ API_BASE, toast }) => {
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/health');
+      const response = await fetch('http://localhost:3001/api/health', { mode: 'no-cors' });
       setStatus({
-        connected: response.ok,
+        connected: response.ok || response.type === 'opaque',
         version: '10.2.x',
         uptime: 'Running'
       });
     } catch (error) {
-      setStatus({ connected: false, error: error.message });
+      // Silently handle connection errors when Grafana is not running
+      setStatus({ connected: false, error: 'Grafana not available' });
     }
   };
 
