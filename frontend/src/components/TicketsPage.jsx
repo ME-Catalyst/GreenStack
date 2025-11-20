@@ -276,6 +276,8 @@ const TicketsPage = ({ API_BASE, toast }) => {
       getPriorityColor={getPriorityColor}
       getStatusColor={getStatusColor}
       getStatusIcon={getStatusIcon}
+      API_BASE={API_BASE}
+      toast={toast}
     />;
   }
 
@@ -558,7 +560,9 @@ const TicketDetailView = ({
   submittingComment,
   getPriorityColor,
   getStatusColor,
-  getStatusIcon
+  getStatusIcon,
+  API_BASE,
+  toast
 }) => {
   const StatusIcon = getStatusIcon(ticket.status);
 

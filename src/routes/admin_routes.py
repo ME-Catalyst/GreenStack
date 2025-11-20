@@ -774,6 +774,15 @@ async def delete_all_iodd_devices():
         param_count = _count_rows(cursor, tables, "parameters")
         asset_count = _count_rows(cursor, tables, "iodd_assets")
 
+        # Delete PQA tickets for IODD devices
+        if "tickets" in tables:
+            cursor.execute("""
+                DELETE FROM tickets
+                WHERE category = 'parser_quality' AND device_type = 'IODD'
+            """)
+            ticket_count = cursor.rowcount
+            logger.info(f"Deleted {ticket_count} PQA tickets for IODD devices")
+
         # Delete ALL IODD-related data in correct order (respecting foreign keys)
         # Child tables first, parent tables last
         for table in [
@@ -828,6 +837,15 @@ async def delete_all_eds_files():
         file_count = _count_rows(cursor, tables, "eds_files")
         param_count = _count_rows(cursor, tables, "eds_parameters")
         package_count = _count_rows(cursor, tables, "eds_packages")
+
+        # Delete PQA tickets for EDS files
+        if "tickets" in tables:
+            cursor.execute("""
+                DELETE FROM tickets
+                WHERE category = 'parser_quality' AND device_type = 'EDS'
+            """)
+            ticket_count = cursor.rowcount
+            logger.info(f"Deleted {ticket_count} PQA tickets for EDS files")
 
         # Delete related data first (cascading) - child to parent
         for table in [

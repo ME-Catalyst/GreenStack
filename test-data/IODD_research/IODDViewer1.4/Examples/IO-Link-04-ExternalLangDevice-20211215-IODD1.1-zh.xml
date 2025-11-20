@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ExternalTextDocument xmlns="http://www.io-link.com/IODD/2010/10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.io-link.com/IODD/2010/10 IODD-Primitives1.1.xsd ">
+  <DocumentInfo version="V1.00.000" releaseDate="2021-12-15" copyright="Copyright IO-Link Community 2021"/>
+  <Language xml:lang="zh">
+    <Text id="T_VendorText" value="USE - Universal, Smart, Easy"/>
+    <Text id="T_VendorUrl" value="www.io-link.com"/>
+    <Text id="T_DeviceName" value="内部语言设备"/>
+    <Text id="T_DeviceFamily" value="IODD指南样本"/>
+    <Text id="TN_ProductName" value="Internal Language Device"/>
+    <Text id="TD_ProductDescr" value="具有多种语言支持的基本设备。"/>
+    <Text id="TN_PI_PDin" value="过程数据 输入"/>
+    <Text id="TN_PO_PDout" value="过程数据 输出"/>
+    <Text id="TD_STD_SystemCommand_ApplicationReset" value="技术特定应用程序的参数设置为默认值。 标识参数保持不变。 如果在主站端口配置中激活，将执行主站数据存储的上传。"/>
+    <Text id="TD_STD_SystemCommand_BackToBox" value="设备的参数设置为出厂默认值，并且在下一个电源关闭之前，将禁止通信。 注意：直接从主端口上卸下设备！"/>
+    <Text id="TN_V_CP_FunctionTag" value="功能标签"/>
+    <Text id="TD_V_CP_FunctionTag" value="使用功能特定信息标记设备的可能性。"/>
+    <Text id="TN_V_CP_LocationTag" value="位置标签"/>
+    <Text id="TD_V_CP_LocationTag" value="使用位置特定信息标记设备的可能性。"/>
+    <Text id="TN_V_X_ExampleParameter" value="样本参数"/>
+    <Text id="TD_V_X_ExampleParameter" value="只是一个例子。"/>
+    <Text id="TN_M_CP_Param_GeneralSettings" value="常规设置"/>
+    <Text id="TN_M_CP_Diag_DeviceStatusInfo" value="设备状态信息"/>
+    <Text id="TN_M_CP_Diag_ServiceFunctions" value="服务功能"/>
+  </Language>
+  <Stamp crc="3353443833">
+    <Checker name="IODD-Checker V1.1.7" version="V1.1.7.0"/>
+  </Stamp>
+</ExternalTextDocument>

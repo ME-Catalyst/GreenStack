@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExternalTextDocument xmlns="http://www.io-link.com/IODD/2009/11" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.io-link.com/IODD/2009/11 IODD-Primitives1.0.1.xsd">
+	<DocumentInfo version="V1.0.1" releaseDate="2021-01-21" copyright="IO-Link Community"/>
+	<Language xml:lang="de">
+		<Text id="STD_TI_Reserved" value="Reserviert"/>
+		<!-- Variables -->
+		<Text id="STD_TI_DirectParameters1" value="Direkte Parameter - Seite 1"/>
+		<Text id="STD_TI_MasterCycleTime" value="Master Zykluszeit"/>
+		<Text id="STD_TI_MinCycleTime" value="Minimale Zykluszeit"/>
+		<Text id="STD_TI_FrameCapability" value="Nachrichtenfähigkeit"/>
+		<Text id="STD_TI_IOLinkRevisionID" value="IO-Link Revisions-ID"/>
+		<Text id="STD_TI_ProcessDataIn" value="Prozessdatenlänge Eingang"/>
+		<Text id="STD_TI_ProcessDataOut" value="Prozessdatenlänge Ausgang"/>
+		<Text id="STD_TI_VendorID1" value="Hersteller-ID 1"/>
+		<Text id="STD_TI_VendorID2" value="Hersteller-ID 2"/>
+		<Text id="STD_TI_DeviceID1" value="Geräte-ID 1"/>
+		<Text id="STD_TI_DeviceID2" value="Geräte-ID 2"/>
+		<Text id="STD_TI_DeviceID3" value="Geräte-ID 3"/>
+		<Text id="STD_TI_DirectParameters2" value="Direkte Parameter - Seite 2"/>
+		<Text id="STD_TI_DeviceSpecific_1" value="Gerätespezifischer Parameter 1"/>
+		<Text id="STD_TI_DeviceSpecific_2" value="Gerätespezifischer Parameter 2"/>
+		<Text id="STD_TI_DeviceSpecific_3" value="Gerätespezifischer Parameter 3"/>
+		<Text id="STD_TI_DeviceSpecific_4" value="Gerätespezifischer Parameter 4"/>
+		<Text id="STD_TI_DeviceSpecific_5" value="Gerätespezifischer Parameter 5"/>
+		<Text id="STD_TI_DeviceSpecific_6" value="Gerätespezifischer Parameter 6"/>
+		<Text id="STD_TI_DeviceSpecific_7" value="Gerätespezifischer Parameter 7"/>
+		<Text id="STD_TI_DeviceSpecific_8" value="Gerätespezifischer Parameter 8"/>
+		<Text id="STD_TI_DeviceSpecific_9" value="Gerätespezifischer Parameter 9"/>
+		<Text id="STD_TI_DeviceSpecific_10" value="Gerätespezifischer Parameter 10"/>
+		<Text id="STD_TI_DeviceSpecific_11" value="Gerätespezifischer Parameter 11"/>
+		<Text id="STD_TI_DeviceSpecific_12" value="Gerätespezifischer Parameter 12"/>
+		<Text id="STD_TI_OffsetTime" value="Offsetzeit"/>
+		<Text id="STD_TI_SystemCommand" value="Systembefehl"/>
+		<Text id="STD_TI_SystemCommand_DeviceReset" value="Gerät rücksetzen"/>
+		<Text id="STD_TI_SystemCommand_ApplicationReset" value="Anwendung rücksetzen"/>
+		<Text id="STD_TI_SystemCommand_RestoreFactorySetting" value="Werkseinstellung setzen"/>
+		<Text id="STD_TI_SystemCommand_BackToBox" value="Back-to-box"/>
+		<Text id="STD_TI_VendorName" value="Herstellername"/>
+		<Text id="STD_TI_VendorText" value="Herstellertext"/>
+		<Text id="STD_TI_ProductName" value="Produktname"/>
+		<Text id="STD_TI_ProductID" value="Produkt-ID"/>
+		<Text id="STD_TI_ProductText" value="Produkttext"/>
+		<Text id="STD_TI_SerialNumber" value="Seriennummer"/>
+		<Text id="STD_TI_HardwareRevision" value="Hardwarerevision"/>
+		<Text id="STD_TI_FirmwareRevision" value="Firmwarerevision"/>
+		<Text id="STD_TI_ApplicationSpecificName" value="Anwendungsspezifisches Kennzeichen"/>
+		<Text id="STD_TI_ErrorCount" value="Fehlerzähler"/>
+		<Text id="STD_TI_LastEvent" value="Letztes Ereignis"/>
+		<Text id="STD_TI_LastEvent_Qualifier" value="Ereigniskennzeichnung"/>
+		<Text id="STD_TI_LastEvent_Code" value="Ereigniscode"/>
+		<Text id="STD_TI_ProcessDataInput" value="PD-Eingang"/>
+		<Text id="STD_TI_ProcessDataOutput" value="PD-Ausgang"/>
+	</Language>
+	<Stamp crc="2259437920"><Checker name="IODD-Checker V1.0.12" version="V1.0.12.0"/></Stamp>
+</ExternalTextDocument>

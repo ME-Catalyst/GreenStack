@@ -49,6 +49,7 @@ from src.config import validate_production_security
 from src.models import DeviceProfile
 from src.greenstack import IODDManager
 from src.utils.pqa_orchestrator import UnifiedPQAOrchestrator, FileType
+from src.utils.pqa_scheduler import init_pqa_scheduler, shutdown_pqa_scheduler
 
 # ============================================================================
 # API Models
@@ -383,6 +384,36 @@ via environment variables for production deployments.
 validate_production_security()
 
 # ============================================================================
+# Application Lifecycle Events
+# ============================================================================
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on application startup"""
+    logger.info("Application startup: Initializing services...")
+
+    # Initialize PQA scheduler (runs startup analysis + daily scheduler)
+    try:
+        init_pqa_scheduler(db_path="greenstack.db", enabled=True)
+        logger.info("PQA scheduler initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize PQA scheduler: {e}", exc_info=True)
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup services on application shutdown"""
+    logger.info("Application shutdown: Cleaning up services...")
+
+    # Shutdown PQA scheduler
+    try:
+        shutdown_pqa_scheduler()
+        logger.info("PQA scheduler stopped successfully")
+    except Exception as e:
+        logger.error(f"Failed to stop PQA scheduler: {e}", exc_info=True)
+
+
+# ============================================================================
 # Distributed Tracing (OpenTelemetry)
 # ============================================================================
 
@@ -653,6 +684,11 @@ app.include_router(theme_routes.router)
 from src.routes import pqa_routes
 
 app.include_router(pqa_routes.router)
+
+# Include Statistics routes
+from src.routes import stats_routes
+
+app.include_router(stats_routes.router, prefix="/api/stats", tags=["Statistics"])
 
 # Include IODD-specific routes
 from src.routes import iodd_routes

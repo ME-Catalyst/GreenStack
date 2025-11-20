@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IODDProfileDefinitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.io-link.com/IODD/2010/10" xsi:schemaLocation="http://www.io-link.com/IODD/2010/10 IOL-ProfileDefinition1.1.xsd">
+  <DocumentInfo version="V1.2.1" releaseDate="2025-05-08" copyright="Copyright 2025, IO-Link Community"/>
+  <SupportedProfiles profileCharacteristic="48, 49" profileClassName="BLOB Transfer and FW Update" profilePrefixes="BT, FU" reservedIndexRange="49, 50, 17341..17343" reservedSystemCommands="80..83" requiredProfile="16384">
+    <ProfileVariant id="PR_BT" profileId="48" name="BLOB transfer"/>
+    <ProfileVariant id="PR_FU" profileId="49" name="FW Update"/>
+  </SupportedProfiles>
+  <VariableCollection checkElement="atLeast">
+    <StdVariableRef id="V_SystemCommand" profileConstraints="PR_FU" checkElement="atLeast">
+      <!-- BM_UNLOCK_S -->
+      <SingleValue value="80">
+        <Name textId="TN_FU_SystemCommand_BM_UNLOCK_S"/>
+      </SingleValue>
+      <!-- BM_UNLOCK_F -->
+      <SingleValue value="81">
+        <Name textId="TN_FU_SystemCommand_BM_UNLOCK_F"/>
+      </SingleValue>
+      <!-- BM_UNLOCK_T -->
+      <SingleValue value="82">
+        <Name textId="TN_FU_SystemCommand_BM_UNLOCK_T"/>
+      </SingleValue>
+      <!-- BM_ACTIVATE -->
+      <SingleValue value="83" checkElement="maxOccurs 0"/>
+    </StdVariableRef>
+    <Variable id="V_BT_BLOBID" index="49" accessRights="ro" profileConstraints="PR_BT">
+      <Datatype xsi:type="IntegerT" bitLength="16">
+        <SingleValue value="#tbd -8191..-4096 #" checkElement="minOccurs 0">
+          <Name textId="TN_SV_BT_BLOBID_" checkAttributes="startsWith textId"/>
+        </SingleValue>
+        <SingleValue value="0">
+          <Name textId="TN_SV_BT_BLOBID_idle"/>
+        </SingleValue>
+        <SingleValue value="#tbd 4096..8191 #" checkElement="minOccurs 0">
+          <Name textId="TN_SV_BT_BLOBID_" checkAttributes="startsWith textId"/>
+        </SingleValue>
+      </Datatype>
+      <Name textId="TN_V_BT_BLOBID"/>
+    </Variable>
+    <Variable id="V_FU_FW_Password" index="17341" accessRights="wo" profileConstraints="PR_FU" checkElement="minOccurs 0">
+      <Datatype xsi:type="StringT" encoding="UTF-8" fixedLength="#tbd 1..64 #"/>
+      <Name textId="TN_V_FU_FW_Password"/>
+    </Variable>
+    <Variable id="V_FU_HW_ID_Key" index="17342" accessRights="ro" profileConstraints="PR_FU" checkAttributes="option defaultValue">
+      <Datatype xsi:type="StringT" encoding="UTF-8" fixedLength="#tbd 1..64 #"/>
+      <Name textId="TN_V_FU_HW_ID_Key"/>
+      <Description textId="TD_V_FU_HW_ID_Key"/>
+    </Variable>
+    <Variable id="V_FU_BootmodeStatus" index="17343" accessRights="ro" dynamic="true" profileConstraints="PR_FU">
+      <Datatype xsi:type="UIntegerT" bitLength="8">
+        <SingleValue value="0">
+          <Name textId="TN_SV_FU_BootmodeStatus_inactive"/>
+        </SingleValue>
+        <SingleValue value="1">
+          <Name textId="TN_SV_FU_BootmodeStatus_active"/>
+        </SingleValue>
+      </Datatype>
+      <Name textId="TN_V_FU_BootmodeStatus"/>
+    </Variable>
+  </VariableCollection>
+  <UserInterface checkElement="atLeast">
+    <MenuCollection checkElement="atLeast">
+      <Menu id="M_OR_Ident" checkElement="atLeast" contextConstraints="IdentificationMenu">
+        <VariableRef variableId="V_FU_HW_ID_Key" profileConstraints="PR_FU"/>
+      </Menu>
+      <Menu id="M_MSR_Ident" checkElement="atLeast" contextConstraints="IdentificationMenu">
+        <VariableRef variableId="V_FU_HW_ID_Key" profileConstraints="PR_FU"/>
+      </Menu>
+    </MenuCollection>
+    <ObserverRoleMenuSet checkElement="atLeast">
+      <IdentificationMenu menuId="M_OR_Ident"/>
+    </ObserverRoleMenuSet>
+    <MaintenanceRoleMenuSet checkElement="atLeast">
+      <IdentificationMenu menuId="M_MSR_Ident"/>
+    </MaintenanceRoleMenuSet>
+    <SpecialistRoleMenuSet checkElement="atLeast">
+      <IdentificationMenu menuId="M_MSR_Ident"/>
+    </SpecialistRoleMenuSet>
+  </UserInterface>
+  <ExternalTextCollection>
+    <PrimaryLanguage xml:lang="en">
+      <Text id="TN_V_BT_BLOBID" value="ID of the BLOB that is currently transferred"/>
+      <Text id="TN_SV_BT_BLOBID_" value="#tbd#" checkAttributes="startsWith id" checkElement="minOccurs 0"/>
+      <Text id="TN_SV_BT_BLOBID_idle" value="Idle, no BLOB transfer active"/>
+      <Text id="TN_V_FU_FW_Password" value="Firmware Password"/>
+      <Text id="TN_V_FU_HW_ID_Key" value="Hardware Identification Key"/>
+      <Text id="TD_V_FU_HW_ID_Key" value="Identifies the hardware for compatibility check with the firmware to be installed."/>
+      <Text id="TN_V_FU_BootmodeStatus" value="Bootmode Status"/>
+      <Text id="TN_SV_FU_BootmodeStatus_inactive" value="Bootloader is inactive"/>
+      <Text id="TN_SV_FU_BootmodeStatus_active" value="Bootloader is active"/>
+      <Text id="TN_FU_SystemCommand_BM_UNLOCK_S" value="Start unlocking sequence"/>
+      <Text id="TN_FU_SystemCommand_BM_UNLOCK_F" value="Unlocking command 1"/>
+      <Text id="TN_FU_SystemCommand_BM_UNLOCK_T" value="Unlocking command 2"/>
+    </PrimaryLanguage>
+  </ExternalTextCollection>
+</IODDProfileDefinitions>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.io-link.com/IODD/2010/10" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:iodd="http://www.io-link.com/IODD/2010/10" targetNamespace="http://www.io-link.com/IODD/2010/10" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.1">
+  <xsd:include schemaLocation="IODD-Primitives1.1.xsd"/>
+  <xsd:include schemaLocation="IODD-Communication1.1.xsd"/>
+  <xsd:complexType name="IOLinkWirelessCommNetworkProfileT">
+    <xsd:complexContent>
+      <xsd:extension base="CommNetworkProfileT">
+        <xsd:sequence>
+          <xsd:element name="TransportLayers" type="IOLinkWirelessTransportLayersT"/>
+          <xsd:element name="Test" type="IOLinkTestT"/>
+        </xsd:sequence>
+        <xsd:attribute name="iolinkWirelessRevision" type="VersionT" use="required"/>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:complexType name="IOLinkWirelessTransportLayersT">
+    <xsd:sequence>
+      <xsd:element name="PhysicalLayer" type="IOLinkWirelessPhysicalLayerT"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="IOLinkWirelessPhysicalLayerT">
+    <xsd:sequence>
+      <xsd:element name="Connection" type="ConnectionT" maxOccurs="unbounded"/>
+    </xsd:sequence>
+    <xsd:attribute name="WMinCycleTimeOut" use="required">
+      <xsd:simpleType>
+        <xsd:union>
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:unsignedInt">
+              <xsd:minInclusive value="0"/>
+              <xsd:maxInclusive value="0"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:unsignedInt">
+              <xsd:minInclusive value="5000"/>
+              <xsd:maxInclusive value="315000"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:union>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="WMinCycleTimeIn" use="required">
+      <xsd:simpleType>
+        <xsd:union>
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:unsignedInt">
+              <xsd:minInclusive value="0"/>
+              <xsd:maxInclusive value="0"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:unsignedInt">
+              <xsd:minInclusive value="5000"/>
+              <xsd:maxInclusive value="315000"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:union>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="maxTxPower" use="required">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:integer">
+          <xsd:minInclusive value="-20"/>
+          <xsd:maxInclusive value="10"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="defaultSlotType" use="required">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="SSLOT"/>
+          <xsd:enumeration value="DSLOT"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="isABridge" type="xsd:boolean" default="false"/>
+    <xsd:attribute name="isLowPowerDevice" type="xsd:boolean" default="false"/>
+  </xsd:complexType>
+</xsd:schema>

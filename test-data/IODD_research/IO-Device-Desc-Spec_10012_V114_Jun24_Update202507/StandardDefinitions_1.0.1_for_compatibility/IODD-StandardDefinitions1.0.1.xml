@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IODDStandardDefinitions xmlns="http://www.io-link.com/IODD/2009/11" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.io-link.com/IODD/2009/11 IODD-StandardDefinitions1.0.1.xsd">
+	<DocumentInfo version="V1.0.1" releaseDate="2021-01-21" copyright="IO-Link Community"/>
+	<VariableCollection>
+		<Variable id="V_DirectParameters_1" index="0" accessRights="ro" mandatory="true">
+			<Datatype xsi:type="RecordT" bitLength="128">
+				<RecordItem subindex="1" bitOffset="120">
+					<!-- Master Command -->
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_Reserved"/>
+				</RecordItem>
+				<RecordItem subindex="2" bitOffset="112">
+					<!-- Bit 7-6: Time Base, Bit 5-0: Multiplier -->
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_MasterCycleTime"/>
+				</RecordItem>
+				<RecordItem subindex="3" bitOffset="104">
+					<!-- Bit 7-6: Time Base, Bit 5-0: Multiplier -->
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_MinCycleTime"/>
+				</RecordItem>
+				<RecordItem subindex="4" bitOffset="96">
+					<!-- Bit 7: PHY1, Bit 6-2: Reserved, Bit 1: Type1, Bit 0: SPDU -->
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_FrameCapability"/>
+				</RecordItem>
+				<RecordItem subindex="5" bitOffset="88">
+					<!-- Bit 7-4: MajorRev, Bit 3-0: MinorRev -->
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_IOLinkRevisionID"/>
+				</RecordItem>
+				<RecordItem subindex="6" bitOffset="80">
+					<!-- Bit 7: Byte, Bit 6: SIO, Bit 5: Reserved, Bit 4-0: Length -->
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_ProcessDataIn"/>
+				</RecordItem>
+				<RecordItem subindex="7" bitOffset="72">
+					<!-- Bit 7: Byte, Bit 6-5: Reserved, Bit 4-0: Length -->
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_ProcessDataOut"/>
+				</RecordItem>
+				<RecordItem subindex="8" bitOffset="64">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_VendorID1"/>
+				</RecordItem>
+				<RecordItem subindex="9" bitOffset="56">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_VendorID2"/>
+				</RecordItem>
+				<RecordItem subindex="10" bitOffset="48">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceID1"/>
+				</RecordItem>
+				<RecordItem subindex="11" bitOffset="40">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceID2"/>
+				</RecordItem>
+				<RecordItem subindex="12" bitOffset="32">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceID3"/>
+				</RecordItem>
+				<RecordItem subindex="13" bitOffset="24">
+					<!-- Function ID 1 -->
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_Reserved"/>
+				</RecordItem>
+				<RecordItem subindex="14" bitOffset="16">
+					<!-- Function ID 2 -->
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_Reserved"/>
+				</RecordItem>
+				<RecordItem subindex="15" bitOffset="8">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_Reserved"/>
+				</RecordItem>
+				<RecordItem subindex="16" bitOffset="0">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_Reserved"/>
+				</RecordItem>
+			</Datatype>
+			<RecordItemInfo defaultValue="16" subindex="5"/>
+			<Name textId="STD_TI_DirectParameters1"/>
+		</Variable>
+		<Variable id="V_DirectParameters_2" index="1" accessRights="rw">
+			<Datatype xsi:type="RecordT" bitLength="128">
+				<RecordItem subindex="1" bitOffset="120">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_1"/>
+				</RecordItem>
+				<RecordItem subindex="2" bitOffset="112">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_2"/>
+				</RecordItem>
+				<RecordItem subindex="3" bitOffset="104">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_3"/>
+				</RecordItem>
+				<RecordItem subindex="4" bitOffset="96">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_4"/>
+				</RecordItem>
+				<RecordItem subindex="5" bitOffset="88">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_5"/>
+				</RecordItem>
+				<RecordItem subindex="6" bitOffset="80">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_6"/>
+				</RecordItem>
+				<RecordItem subindex="7" bitOffset="72">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_7"/>
+				</RecordItem>
+				<RecordItem subindex="8" bitOffset="64">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_8"/>
+				</RecordItem>
+				<RecordItem subindex="9" bitOffset="56">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_9"/>
+				</RecordItem>
+				<RecordItem subindex="10" bitOffset="48">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_10"/>
+				</RecordItem>
+				<RecordItem subindex="11" bitOffset="40">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_11"/>
+				</RecordItem>
+				<RecordItem subindex="12" bitOffset="32">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_DeviceSpecific_12"/>
+				</RecordItem>
+				<RecordItem subindex="13" bitOffset="24">
+					<!-- Bit 7-6: Time Base, Bit 5-0: Multiplier -->
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_OffsetTime"/>
+				</RecordItem>
+				<RecordItem subindex="14" bitOffset="16">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_Reserved"/>
+				</RecordItem>
+				<RecordItem subindex="15" bitOffset="8">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_Reserved"/>
+				</RecordItem>
+				<RecordItem subindex="16" bitOffset="0">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_Reserved"/>
+				</RecordItem>
+			</Datatype>
+			<Name textId="STD_TI_DirectParameters2"/>
+		</Variable>
+		<Variable id="V_SystemCommand" index="2" accessRights="wo">
+			<Datatype xsi:type="UIntegerT" bitLength="8">
+				<ValueRange lowerValue="0" upperValue="63">
+					<Name textId="STD_TI_Reserved"/>
+				</ValueRange>
+				<!-- 64-127 Reserved for profiles -->
+				<SingleValue value="128">
+					<Name textId="STD_TI_SystemCommand_DeviceReset"/>
+				</SingleValue>
+				<SingleValue value="129">
+					<Name textId="STD_TI_SystemCommand_ApplicationReset"/>
+				</SingleValue>
+				<SingleValue value="130">
+					<Name textId="STD_TI_SystemCommand_RestoreFactorySetting"/>
+				</SingleValue>
+				<SingleValue value="131">
+					<Name textId="STD_TI_SystemCommand_BackToBox"/>
+				</SingleValue>
+				<!-- 132-159 = reserved -->
+				<ValueRange lowerValue="132" upperValue="159">
+					<Name textId="STD_TI_Reserved"/>
+				</ValueRange>
+				<!-- 160-255 = vendor specific -->
+			</Datatype>
+			<Name textId="STD_TI_SystemCommand"/>
+		</Variable>
+		<Variable id="V_VendorName" index="16" accessRights="ro" mandatory="true">
+			<Datatype xsi:type="StringT" fixedLength="64" encoding="UTF-8"/>
+			<Name textId="STD_TI_VendorName"/>
+		</Variable>
+		<Variable id="V_VendorText" index="17" accessRights="ro">
+			<Datatype xsi:type="StringT" fixedLength="64" encoding="UTF-8"/>
+			<Name textId="STD_TI_VendorText"/>
+		</Variable>
+		<Variable id="V_ProductName" index="18" accessRights="ro" mandatory="true">
+			<Datatype xsi:type="StringT" fixedLength="64" encoding="UTF-8"/>
+			<Name textId="STD_TI_ProductName"/>
+		</Variable>
+		<Variable id="V_ProductID" index="19" accessRights="ro">
+			<Datatype xsi:type="StringT" fixedLength="64" encoding="UTF-8"/>
+			<Name textId="STD_TI_ProductID"/>
+		</Variable>
+		<Variable id="V_ProductText" index="20" accessRights="ro">
+			<Datatype xsi:type="StringT" fixedLength="64" encoding="UTF-8"/>
+			<Name textId="STD_TI_ProductText"/>
+		</Variable>
+		<Variable id="V_SerialNumber" index="21" accessRights="ro">
+			<Datatype xsi:type="StringT" fixedLength="16" encoding="UTF-8"/>
+			<Name textId="STD_TI_SerialNumber"/>
+		</Variable>
+		<Variable id="V_HardwareRevision" index="22" accessRights="ro">
+			<Datatype xsi:type="StringT" fixedLength="64" encoding="UTF-8"/>
+			<Name textId="STD_TI_HardwareRevision"/>
+		</Variable>
+		<Variable id="V_FirmwareRevision" index="23" accessRights="ro">
+			<Datatype xsi:type="StringT" fixedLength="64" encoding="UTF-8"/>
+			<Name textId="STD_TI_FirmwareRevision"/>
+		</Variable>
+		<Variable id="V_ApplicationSpecificName" index="24" accessRights="rw">
+			<Datatype xsi:type="StringT" fixedLength="64" encoding="UTF-8"/>
+			<Name textId="STD_TI_ApplicationSpecificName"/>
+		</Variable>
+		<Variable id="V_ErrorCount" index="32" accessRights="ro" dynamic="true">
+			<Datatype xsi:type="UIntegerT" bitLength="16"/>
+			<Name textId="STD_TI_ErrorCount"/>
+		</Variable>
+		<Variable id="V_LastEvent" index="33" accessRights="ro" dynamic="true">
+			<Datatype xsi:type="RecordT" bitLength="24" subindexAccessSupported="false">
+				<RecordItem subindex="1" bitOffset="16">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="8"/>
+					<Name textId="STD_TI_LastEvent_Qualifier"/>
+				</RecordItem>
+				<RecordItem subindex="2" bitOffset="0">
+					<SimpleDatatype xsi:type="UIntegerT" bitLength="16"/>
+					<Name textId="STD_TI_LastEvent_Code"/>
+				</RecordItem>
+			</Datatype>
+			<Name textId="STD_TI_LastEvent"/>
+		</Variable>
+		<Variable id="V_ProcessDataIn" index="40" accessRights="ro" dynamic="true">
+			<Datatype xsi:type="ProcessDataInUnionT"/>
+			<Name textId="STD_TI_ProcessDataInput"/>
+		</Variable>
+		<Variable id="V_ProcessDataOut" index="41" accessRights="ro" dynamic="true">
+			<Datatype xsi:type="ProcessDataOutUnionT"/>
+			<Name textId="STD_TI_ProcessDataOutput"/>
+		</Variable>
+	</VariableCollection>
+	<ExternalTextCollection>
+		<PrimaryLanguage xml:lang="en">
+			<Text id="STD_TI_Reserved" value="Reserved"/>
+			<!-- Variables -->
+			<Text id="STD_TI_DirectParameters1" value="Direct Parameters - Page 1"/>
+			<Text id="STD_TI_MasterCycleTime" value="Master Cycle Time"/>
+			<Text id="STD_TI_MinCycleTime" value="Min Cycle Time"/>
+			<Text id="STD_TI_FrameCapability" value="Frame Capability"/>
+			<Text id="STD_TI_IOLinkRevisionID" value="IO-Link Revision ID"/>
+			<Text id="STD_TI_ProcessDataIn" value="Process Data Input Length"/>
+			<Text id="STD_TI_ProcessDataOut" value="Process Data Output Length"/>
+			<Text id="STD_TI_VendorID1" value="Vendor ID 1"/>
+			<Text id="STD_TI_VendorID2" value="Vendor ID 2"/>
+			<Text id="STD_TI_DeviceID1" value="Device ID 1"/>
+			<Text id="STD_TI_DeviceID2" value="Device ID 2"/>
+			<Text id="STD_TI_DeviceID3" value="Device ID 3"/>
+			<Text id="STD_TI_DirectParameters2" value="Direct Parameters - Page 2"/>
+			<Text id="STD_TI_DeviceSpecific_1" value="Device-specific Parameter 1"/>
+			<Text id="STD_TI_DeviceSpecific_2" value="Device-specific Parameter 2"/>
+			<Text id="STD_TI_DeviceSpecific_3" value="Device-specific Parameter 3"/>
+			<Text id="STD_TI_DeviceSpecific_4" value="Device-specific Parameter 4"/>
+			<Text id="STD_TI_DeviceSpecific_5" value="Device-specific Parameter 5"/>
+			<Text id="STD_TI_DeviceSpecific_6" value="Device-specific Parameter 6"/>
+			<Text id="STD_TI_DeviceSpecific_7" value="Device-specific Parameter 7"/>
+			<Text id="STD_TI_DeviceSpecific_8" value="Device-specific Parameter 8"/>
+			<Text id="STD_TI_DeviceSpecific_9" value="Device-specific Parameter 9"/>
+			<Text id="STD_TI_DeviceSpecific_10" value="Device-specific Parameter 10"/>
+			<Text id="STD_TI_DeviceSpecific_11" value="Device-specific Parameter 11"/>
+			<Text id="STD_TI_DeviceSpecific_12" value="Device-specific Parameter 12"/>
+			<Text id="STD_TI_OffsetTime" value="Offset Time"/>
+			<Text id="STD_TI_SystemCommand" value="System Command"/>
+			<Text id="STD_TI_SystemCommand_DeviceReset" value="Device Reset"/>
+			<Text id="STD_TI_SystemCommand_ApplicationReset" value="Application Reset"/>
+			<Text id="STD_TI_SystemCommand_RestoreFactorySetting" value="Restore Factory Settings"/>
+			<Text id="STD_TI_SystemCommand_BackToBox" value="Back-to-box"/>
+			<Text id="STD_TI_VendorName" value="Vendor Name"/>
+			<Text id="STD_TI_VendorText" value="Vendor Text"/>
+			<Text id="STD_TI_ProductName" value="Product Name"/>
+			<Text id="STD_TI_ProductID" value="Product ID"/>
+			<Text id="STD_TI_ProductText" value="Product Text"/>
+			<Text id="STD_TI_SerialNumber" value="Serial Number"/>
+			<Text id="STD_TI_HardwareRevision" value="Hardware Revision"/>
+			<Text id="STD_TI_FirmwareRevision" value="Firmware Revision"/>
+			<Text id="STD_TI_ApplicationSpecificName" value="Application-specific Tag"/>
+			<Text id="STD_TI_ErrorCount" value="Error Count"/>
+			<Text id="STD_TI_LastEvent" value="Last Event"/>
+			<Text id="STD_TI_LastEvent_Qualifier" value="Event Qualifier"/>
+			<Text id="STD_TI_LastEvent_Code" value="Event Code"/>
+			<Text id="STD_TI_ProcessDataInput" value="PD Input"/>
+			<Text id="STD_TI_ProcessDataOutput" value="PD Output"/>
+		</PrimaryLanguage>
+	</ExternalTextCollection>
+	<Stamp crc="3500045059"><Checker name="IODD-Checker V1.0.12" version="V1.0.12.0"/></Stamp>
+</IODDStandardDefinitions>

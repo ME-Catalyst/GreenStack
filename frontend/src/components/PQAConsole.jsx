@@ -114,7 +114,8 @@ const PQAConsole = ({ API_BASE, toast }) => {
 
   const loadAnalysisHistory = async (deviceId) => {
     try {
-      const res = await axios.get(`${API_BASE}/api/pqa/metrics/${deviceId}/history`);
+      // Only load the most recent analysis (limit=1) - history shows current state only
+      const res = await axios.get(`${API_BASE}/api/pqa/metrics/${deviceId}/history?limit=1`);
       setAnalysisHistory(res.data || []);
     } catch (error) {
       console.error('Error loading analysis history:', error);
@@ -398,6 +399,10 @@ const PQAConsole = ({ API_BASE, toast }) => {
     return filterSeverity === 'all' || d.severity?.toLowerCase() === filterSeverity;
   }) || [];
 
+  const filteredAnalyzedDevices = analyzedDevices.filter(d => {
+    return selectedFileType === 'all' || d.file_type === selectedFileType;
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -462,7 +467,7 @@ const PQAConsole = ({ API_BASE, toast }) => {
               disabled={!selectedDevice}
             >
               <Clock className="w-4 h-4 mr-2" />
-              Analysis History
+              Current Status
             </Button>
             <Button
               onClick={() => setActiveView('diff')}
@@ -882,19 +887,48 @@ const PQAConsole = ({ API_BASE, toast }) => {
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-brand-green" />
-                Analysis History - All Analyzed Devices
+                Current Status - All Analyzed Devices
               </div>
-              <Button
-                size="sm"
-                onClick={() => loadAnalyzedDevices()}
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => setSelectedFileType('all')}
+                  className={selectedFileType === 'all'
+                    ? 'bg-brand-green/20 text-brand-green'
+                    : 'bg-secondary/50'}
+                >
+                  All
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setSelectedFileType('IODD')}
+                  className={selectedFileType === 'IODD'
+                    ? 'bg-blue-500/20 text-blue-500'
+                    : 'bg-secondary/50'}
+                >
+                  IODD
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setSelectedFileType('EDS')}
+                  className={selectedFileType === 'EDS'
+                    ? 'bg-purple-500/20 text-purple-500'
+                    : 'bg-secondary/50'}
+                >
+                  EDS
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => loadAnalyzedDevices()}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {analyzedDevices.length === 0 ? (
+            {filteredAnalyzedDevices.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p>No devices have been analyzed yet</p>
@@ -902,7 +936,7 @@ const PQAConsole = ({ API_BASE, toast }) => {
               </div>
             ) : (
               <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                {analyzedDevices.map((device) => (
+                {filteredAnalyzedDevices.map((device) => (
                   <div
                     key={`${device.id}-${device.file_type}`}
                     className={`p-4 rounded-lg border ${getScoreBgColor(device.latest_score)} cursor-pointer hover:opacity-80 transition-opacity`}
@@ -968,7 +1002,7 @@ const PQAConsole = ({ API_BASE, toast }) => {
                   Back
                 </Button>
                 <Clock className="w-5 h-5 text-brand-green" />
-                Analysis History - {selectedDevice.file_type} Device #{selectedDevice.id || selectedDevice.device_id}
+                Current Analysis Status - {selectedDevice.file_type} Device #{selectedDevice.id || selectedDevice.device_id}
               </div>
               <Button
                 size="sm"
@@ -983,7 +1017,7 @@ const PQAConsole = ({ API_BASE, toast }) => {
             {analysisHistory.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No analysis history for this device</p>
+                <p>No analysis has been run for this device yet</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">

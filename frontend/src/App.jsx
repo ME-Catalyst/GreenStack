@@ -27,6 +27,7 @@ import EDSDetailsView from './components/EDSDetailsView';
 import TicketButton from './components/TicketButton';
 import TicketModal from './components/TicketModal';
 import GlobalTicketButton from './components/GlobalTicketButton';
+import PQAAnalysisModal from './components/PQAAnalysisModal';
 import SearchPage from './components/SearchPage';
 import ComparisonView from './components/ComparisonView';
 import AdminConsole from './components/AdminConsole';
@@ -984,6 +985,11 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
   const [testConfigurations, setTestConfigurations] = useState(null);
   const [customDatatypes, setCustomDatatypes] = useState([]);
 
+  // PQA (Parser Quality Assurance) metrics
+  const [pqaMetrics, setPqaMetrics] = useState(null);
+  const [loadingPqa, setLoadingPqa] = useState(false);
+  const [showPqaModal, setShowPqaModal] = useState(false);
+
   const deviceId = device?.id;
 
   const fetchAssets = useCallback(async () => {
@@ -1076,6 +1082,23 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
       setCustomDatatypes(response.data);
     } catch (error) {
       console.error('Failed to fetch custom datatypes:', error);
+    }
+  }, [API_BASE, deviceId]);
+
+  const fetchPqaMetrics = useCallback(async () => {
+    if (!deviceId) return;
+    setLoadingPqa(true);
+    try {
+      const response = await axios.get(`${API_BASE}/api/pqa/metrics/${deviceId}?file_type=IODD`);
+      setPqaMetrics(response.data);
+    } catch (error) {
+      // PQA metrics might not exist for all devices - that's ok
+      if (error.response?.status !== 404) {
+        console.error('Failed to fetch PQA metrics:', error);
+      }
+      setPqaMetrics(null);
+    } finally {
+      setLoadingPqa(false);
     }
   }, [API_BASE, deviceId]);
 
@@ -1281,6 +1304,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     fetchWiringConfigurations();
     fetchTestConfigurations();
     fetchCustomDatatypes();
+    fetchPqaMetrics();
   }, [
     device,
     fetchAssets,
@@ -1299,6 +1323,7 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
     fetchWiringConfigurations,
     fetchTestConfigurations,
     fetchCustomDatatypes,
+    fetchPqaMetrics,
   ]);
 
   const handleTabChange = (value) => {
@@ -2393,9 +2418,44 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
                       </h1>
                       <p className="text-xl text-foreground font-medium">{device.manufacturer}</p>
                     </div>
-                    <Badge className="bg-gradient-to-r from-brand-green/20 to-brand-green/20 text-foreground-secondary border-brand-green/50 text-base px-4 py-1 shadow-lg shadow-brand-green/20 animate-pulse" style={{ animationDuration: '3s' }}>
-                      IODD v{formatVersion(device.iodd_version)}
-                    </Badge>
+                    <div className="flex flex-col gap-2 items-end">
+                      <Badge className="bg-gradient-to-r from-brand-green/20 to-brand-green/20 text-foreground-secondary border-brand-green/50 text-base px-4 py-1 shadow-lg shadow-brand-green/20 animate-pulse" style={{ animationDuration: '3s' }}>
+                        IODD v{formatVersion(device.iodd_version)}
+                      </Badge>
+                      {pqaMetrics && (
+                        <a
+                          href={`/pqa/analysis/${pqaMetrics.id}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowPqaModal(true);
+                          }}
+                          className="no-underline"
+                          title="View Parser Quality Analysis"
+                        >
+                          <Badge
+                            className={`
+                              text-base px-4 py-1 shadow-lg cursor-pointer transition-all hover:scale-105
+                              ${pqaMetrics.passed_threshold
+                                ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-success border-success/50 shadow-success/20'
+                                : pqaMetrics.critical_data_loss
+                                  ? 'bg-gradient-to-r from-red-500/20 to-rose-500/20 text-error border-error/50 shadow-error/20 animate-pulse'
+                                  : 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-warning border-warning/50 shadow-warning/20'
+                              }
+                            `}
+                            style={pqaMetrics.critical_data_loss ? { animationDuration: '2s' } : {}}
+                          >
+                            {pqaMetrics.critical_data_loss && <AlertTriangle className="w-4 h-4 inline mr-1" />}
+                            PQA: {pqaMetrics.overall_score.toFixed(1)}%
+                            {pqaMetrics.passed_threshold ? ' ✓' : ' !'}
+                          </Badge>
+                        </a>
+                      )}
+                      {loadingPqa && (
+                        <Badge className="bg-muted text-muted-foreground border-border text-base px-4 py-1">
+                          Loading PQA...
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -4871,6 +4931,17 @@ const DeviceDetailsPage = ({ device, onBack, API_BASE, toast }) => {
         vendorName={device.vendor_name}
         productCode={device.product_id}
       />
+
+      {/* PQA Analysis Modal */}
+      {pqaMetrics && (
+        <PQAAnalysisModal
+          isOpen={showPqaModal}
+          onClose={() => setShowPqaModal(false)}
+          metricId={pqaMetrics.id}
+          API_BASE={API_BASE}
+          toast={toast}
+        />
+      )}
     </div>
   );
 };
@@ -5491,10 +5562,9 @@ const IODDManager = () => {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                <OverviewDashboard
-                  stats={stats}
-                  devices={devices}
+                <OverviewPage
                   onNavigate={handleNavigate}
+                  API_BASE={API_BASE}
                 />
               </motion.div>
             )}

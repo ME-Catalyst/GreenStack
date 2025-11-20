@@ -109,6 +109,9 @@ class UnifiedPQAOrchestrator:
             )
             logger.info(f"Saved quality metrics with ID {metric_id}")
 
+            # Step 4.5: Check for existing open tickets and update/close them if quality improved
+            self._update_existing_tickets(file_id, metrics, file_type)
+
             # Step 5: Check if ticket generation needed
             logger.info(f"Checking if ticket should be generated for {file_type.value} {file_id}")
             logger.info(f"Metrics: score={metrics.overall_score:.2f}%, critical_loss={metrics.critical_data_loss}")
@@ -126,9 +129,23 @@ class UnifiedPQAOrchestrator:
                         diff_items,
                         file_type
                     )
-                    logger.info(f"Successfully generated ticket ID {ticket_id}")
+                    if ticket_id:
+                        logger.info(f"[OK] Successfully generated ticket ID {ticket_id}")
+                        # Verify ticket was actually created
+                        verify_conn = sqlite3.connect(self.db_path)
+                        verify_cursor = verify_conn.cursor()
+                        verify_cursor.execute("SELECT id FROM tickets WHERE id = ?", (ticket_id,))
+                        if verify_cursor.fetchone():
+                            logger.info(f"[OK] Verified ticket {ticket_id} exists in database")
+                        else:
+                            logger.error(f"[FAIL] CRITICAL: Ticket {ticket_id} was not found in database after creation!")
+                        verify_conn.close()
+                    else:
+                        logger.error(f"[FAIL] _generate_quality_ticket returned None instead of ticket_id")
                 except Exception as ticket_err:
-                    logger.error(f"Failed to generate ticket: {ticket_err}", exc_info=True)
+                    logger.error(f"[FAIL] Failed to generate ticket for {file_type.value} {file_id}: {ticket_err}", exc_info=True)
+                    logger.error(f"Exception type: {type(ticket_err).__name__}")
+                    logger.error(f"Metric ID {metric_id} will NOT be marked as ticket_generated")
             else:
                 logger.info(f"Ticket generation not needed for {file_type.value} {file_id}")
 
@@ -363,10 +380,12 @@ class UnifiedPQAOrchestrator:
                                 file_type: FileType) -> int:
         """Generate quality issue ticket"""
         logger.info(f"_generate_quality_ticket called for {file_type.value} {file_id}, metric_id={metric_id}")
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        conn = None
 
         try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+
             # Get device/file name
             logger.info(f"Fetching device name for {file_type.value} {file_id}")
             if file_type == FileType.IODD:
@@ -376,17 +395,19 @@ class UnifiedPQAOrchestrator:
 
             row = cursor.fetchone()
             device_name = row[0] if row else f"{file_type.value}_{file_id}"
+            logger.info(f"Device name: {device_name}")
 
             # Count issues by severity
             critical = sum(1 for d in diff_items if d.severity.value == 'CRITICAL')
             high = sum(1 for d in diff_items if d.severity.value == 'HIGH')
+            logger.info(f"Issue counts: {critical} critical, {high} high, {len(diff_items)} total")
 
-            # Build ticket description
+            # Build ticket description (avoid unicode emojis that cause encoding issues)
             description = f"""
 ## Parser Quality Analysis Results
 
 **{file_type.value} File**: {device_name}
-**Overall Score**: {metrics.overall_score:.1f}% ❌
+**Overall Score**: {metrics.overall_score:.1f}% [FAIL]
 **Data Loss**: {metrics.data_loss_percentage:.2f}%
 
 ### Score Breakdown
@@ -427,38 +448,165 @@ class UnifiedPQAOrchestrator:
 
             # Insert ticket
             logger.info(f"Inserting ticket {ticket_number} for {device_name} with severity {severity}")
-            cursor.execute("""
-                INSERT INTO tickets (
-                    ticket_number, device_type, title, description, status, priority, category,
-                    device_id, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                ticket_number,
-                device_type,
-                f"Parser Quality Issue: {device_name} - Score {metrics.overall_score:.0f}%",
-                description,
-                'open',
-                severity,
-                'parser_quality',
-                file_id,
-                datetime.now().isoformat(),
-                datetime.now().isoformat()
-            ))
+            logger.info(f"Ticket details: device_type={device_type}, device_id={file_id}, category=parser_quality")
+
+            try:
+                cursor.execute("""
+                    INSERT INTO tickets (
+                        ticket_number, device_type, title, description, status, priority, category,
+                        device_id, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    ticket_number,
+                    device_type,
+                    f"Parser Quality Issue: {device_name} - Score {metrics.overall_score:.0f}%",
+                    description,
+                    'open',
+                    severity,
+                    'parser_quality',
+                    file_id,
+                    datetime.now().isoformat(),
+                    datetime.now().isoformat()
+                ))
+                logger.info(f"[OK] INSERT executed successfully")
+            except Exception as insert_err:
+                logger.error(f"[FAIL] INSERT failed: {insert_err}", exc_info=True)
+                raise
 
             ticket_id = cursor.lastrowid
-            logger.info(f"Ticket inserted with ID {ticket_id}")
+            logger.info(f"[OK] Ticket inserted with ID {ticket_id} (lastrowid={cursor.lastrowid})")
 
             # Update metric to mark ticket generated
             logger.info(f"Updating metric {metric_id} to mark ticket_generated=1")
+            try:
+                cursor.execute("""
+                    UPDATE pqa_quality_metrics
+                    SET ticket_generated = 1
+                    WHERE id = ?
+                """, (metric_id,))
+                logger.info(f"[OK] UPDATE executed, rows affected: {cursor.rowcount}")
+            except Exception as update_err:
+                logger.error(f"[FAIL] UPDATE failed: {update_err}", exc_info=True)
+                raise
+
+            # Commit transaction
+            logger.info(f"Committing transaction...")
+            try:
+                conn.commit()
+                logger.info(f"[OK] Transaction committed successfully")
+            except Exception as commit_err:
+                logger.error(f"[FAIL] COMMIT failed: {commit_err}", exc_info=True)
+                raise
+
+            logger.info(f"[OK] Successfully created ticket {ticket_id} and updated metric {metric_id}")
+            return ticket_id
+
+        except Exception as e:
+            logger.error(f"[FAIL] _generate_quality_ticket failed: {e}", exc_info=True)
+            if conn:
+                logger.info("Rolling back transaction...")
+                conn.rollback()
+            raise
+        finally:
+            if conn:
+                conn.close()
+                logger.info("Database connection closed")
+
+    def _update_existing_tickets(self, file_id: int,
+                                metrics: Union[QualityMetrics, EDSQualityMetrics],
+                                file_type: FileType) -> None:
+        """
+        Update or close existing open PQA tickets if quality has improved
+
+        If the new analysis shows:
+        - Score above threshold AND no critical data loss: Close ticket as "resolved"
+        - Score improved but still below threshold: Update ticket with new score
+        - Score worsened: Add comment but keep ticket open
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        try:
+            # Find all open PQA tickets for this device
             cursor.execute("""
-                UPDATE pqa_quality_metrics
-                SET ticket_generated = 1
-                WHERE id = ?
-            """, (metric_id,))
+                SELECT id, title, description, priority
+                FROM tickets
+                WHERE device_id = ? AND category = 'parser_quality' AND status = 'open'
+            """, (file_id,))
+            open_tickets = cursor.fetchall()
+
+            if not open_tickets:
+                logger.info(f"No open PQA tickets found for {file_type.value} {file_id}")
+                return
+
+            # Get threshold to determine if quality is acceptable now
+            cursor.execute("""
+                SELECT min_overall_score FROM pqa_thresholds WHERE active = 1 LIMIT 1
+            """)
+            threshold_row = cursor.fetchone()
+            min_score = threshold_row[0] if threshold_row else 90.0
+
+            passes_threshold = (metrics.overall_score >= min_score and not metrics.critical_data_loss)
+
+            for ticket in open_tickets:
+                ticket_id = ticket[0]
+                logger.info(f"Processing open ticket {ticket_id} for {file_type.value} {file_id}")
+
+                if passes_threshold:
+                    # Quality is now acceptable - close ticket as resolved
+                    resolution_comment = f"""
+## Quality Analysis Update - Issue Resolved [OK]
+
+**New Analysis Results:**
+- Overall Score: **{metrics.overall_score:.1f}%** (threshold: {min_score}%)
+- Critical Data Loss: **{metrics.critical_data_loss}**
+- Data Loss Percentage: **{metrics.data_loss_percentage:.2f}%**
+
+**Resolution:**
+Parser quality has improved and now meets the required threshold. This ticket has been automatically closed.
+
+*Updated: {datetime.now().isoformat()}*
+*Auto-closed by PQA System*
+"""
+
+                    cursor.execute("""
+                        UPDATE tickets
+                        SET status = 'resolved',
+                            description = description || ?,
+                            updated_at = ?
+                        WHERE id = ?
+                    """, (resolution_comment, datetime.now().isoformat(), ticket_id))
+
+                    logger.info(f"Closed ticket {ticket_id} - quality now passes threshold")
+
+                else:
+                    # Still below threshold - add update comment
+                    update_comment = f"""
+
+---
+
+## Quality Analysis Update
+
+**Latest Analysis Results:**
+- Overall Score: **{metrics.overall_score:.1f}%** (threshold: {min_score}%)
+- Critical Data Loss: **{metrics.critical_data_loss}**
+- Data Loss Percentage: **{metrics.data_loss_percentage:.2f}%**
+
+Parser quality still needs improvement to meet the threshold.
+
+*Updated: {datetime.now().isoformat()}*
+"""
+
+                    cursor.execute("""
+                        UPDATE tickets
+                        SET description = description || ?,
+                            updated_at = ?
+                        WHERE id = ?
+                    """, (update_comment, datetime.now().isoformat(), ticket_id))
+
+                    logger.info(f"Updated ticket {ticket_id} with new analysis results")
 
             conn.commit()
-            logger.info(f"Successfully committed ticket {ticket_id} and updated metric {metric_id}")
-            return ticket_id
 
         finally:
             conn.close()

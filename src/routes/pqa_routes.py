@@ -234,16 +234,18 @@ async def run_pqa_analysis_all(
                     if isinstance(xml_content, bytes):
                         xml_content = xml_content.decode('utf-8')
 
-                    # Queue analysis
-                    def run_analysis(did=device_id, content=xml_content):
+                    # Queue analysis using functools.partial to avoid closure issues
+                    from functools import partial
+
+                    def run_iodd_analysis(device_id: int, xml_content: str):
                         try:
                             orchestrator = UnifiedPQAOrchestrator()
-                            orchestrator.run_full_analysis(did, FileType.IODD, content)
-                            logger.info(f"Completed PQA analysis for IODD device {did}")
+                            orchestrator.run_full_analysis(device_id, FileType.IODD, xml_content)
+                            logger.info(f"Completed PQA analysis for IODD device {device_id}")
                         except Exception as e:
-                            logger.error(f"PQA analysis failed for IODD {did}: {e}")
+                            logger.error(f"PQA analysis failed for IODD {device_id}: {e}", exc_info=True)
 
-                    background_tasks.add_task(run_analysis)
+                    background_tasks.add_task(run_iodd_analysis, device_id, xml_content)
                     queued_count += 1
                     iodd_count += 1
 
@@ -258,15 +260,15 @@ async def run_pqa_analysis_all(
 
                 if eds_content:
                     # Queue analysis
-                    def run_analysis(eid=eds_id, content=eds_content):
+                    def run_eds_analysis(eds_id: int, eds_content: str):
                         try:
                             orchestrator = UnifiedPQAOrchestrator()
-                            orchestrator.run_full_analysis(eid, FileType.EDS, content)
-                            logger.info(f"Completed PQA analysis for EDS file {eid}")
+                            orchestrator.run_full_analysis(eds_id, FileType.EDS, eds_content)
+                            logger.info(f"Completed PQA analysis for EDS file {eds_id}")
                         except Exception as e:
-                            logger.error(f"PQA analysis failed for EDS {eid}: {e}")
+                            logger.error(f"PQA analysis failed for EDS {eds_id}: {e}", exc_info=True)
 
-                    background_tasks.add_task(run_analysis)
+                    background_tasks.add_task(run_eds_analysis, eds_id, eds_content)
                     queued_count += 1
                     eds_count += 1
 
@@ -297,32 +299,40 @@ async def get_analyzed_devices():
         conn = get_db()
         cursor = conn.cursor()
 
+        # Get all unique device/file combinations with analyses
         cursor.execute("""
-            SELECT
+            SELECT DISTINCT
                 m.device_id,
-                a.file_type,
-                MAX(m.analysis_timestamp) as latest_analysis,
-                COUNT(m.id) as analysis_count,
-                (SELECT overall_score FROM pqa_quality_metrics m2
-                 WHERE m2.device_id = m.device_id AND m2.archive_id IN
-                   (SELECT id FROM pqa_file_archive a2 WHERE a2.device_id = m.device_id AND a2.file_type = a.file_type)
-                 ORDER BY m2.analysis_timestamp DESC LIMIT 1) as latest_score,
-                (SELECT passed_threshold FROM pqa_quality_metrics m2
-                 WHERE m2.device_id = m.device_id AND m2.archive_id IN
-                   (SELECT id FROM pqa_file_archive a2 WHERE a2.device_id = m.device_id AND a2.file_type = a.file_type)
-                 ORDER BY m2.analysis_timestamp DESC LIMIT 1) as passed
+                a.file_type
             FROM pqa_quality_metrics m
             JOIN pqa_file_archive a ON m.archive_id = a.id
-            GROUP BY m.device_id, a.file_type
-            ORDER BY latest_analysis DESC
         """)
 
-        devices = cursor.fetchall()
+        device_combos = cursor.fetchall()
 
         result = []
-        for device in devices:
-            device_id = device['device_id']
-            file_type = device['file_type']
+        for combo in device_combos:
+            device_id = combo['device_id']
+            file_type = combo['file_type']
+
+            # Get latest metrics for this device/file_type
+            cursor.execute("""
+                SELECT
+                    m.overall_score,
+                    m.passed_threshold,
+                    m.analysis_timestamp,
+                    COUNT(*) OVER() as analysis_count
+                FROM pqa_quality_metrics m
+                JOIN pqa_file_archive a ON m.archive_id = a.id
+                WHERE m.device_id = ? AND a.file_type = ?
+                ORDER BY m.analysis_timestamp DESC
+                LIMIT 1
+            """, (device_id, file_type))
+
+            latest = cursor.fetchone()
+
+            if not latest:
+                continue
 
             # Get device name
             if file_type == 'IODD':
@@ -332,22 +342,34 @@ async def get_analyzed_devices():
 
             device_row = cursor.fetchone()
 
+            # Count total analyses for this device/file_type
+            cursor.execute("""
+                SELECT COUNT(*) as count
+                FROM pqa_quality_metrics m
+                JOIN pqa_file_archive a ON m.archive_id = a.id
+                WHERE m.device_id = ? AND a.file_type = ?
+            """, (device_id, file_type))
+            count_row = cursor.fetchone()
+
             result.append({
                 "id": device_id,
                 "file_type": file_type,
                 "product_name": device_row['product_name'] if device_row else f"Unknown Device {device_id}",
                 "vendor_name": device_row['vendor_name'] if device_row else None,
-                "latest_analysis": device['latest_analysis'],
-                "analysis_count": device['analysis_count'],
-                "latest_score": device['latest_score'],
-                "passed": bool(device['passed'])
+                "latest_analysis": latest['analysis_timestamp'],
+                "analysis_count": count_row['count'] if count_row else 0,
+                "latest_score": latest['overall_score'],
+                "passed": bool(latest['passed_threshold'])
             })
+
+        # Sort by latest analysis timestamp descending
+        result.sort(key=lambda x: x['latest_analysis'], reverse=True)
 
         conn.close()
         return result
 
     except Exception as e:
-        logger.error(f"Error fetching analyzed devices: {e}")
+        logger.error(f"Error fetching analyzed devices: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -399,6 +421,56 @@ async def get_latest_metrics(device_id: int, file_type: str = Query("IODD", desc
         raise
     except Exception as e:
         logger.error(f"Error fetching metrics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/metrics/by-id/{metric_id}", response_model=QualityMetricsResponse)
+async def get_metrics_by_id(metric_id: int):
+    """Get quality metrics by metric ID"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT m.*, a.file_type
+            FROM pqa_quality_metrics m
+            JOIN pqa_file_archive a ON m.archive_id = a.id
+            WHERE m.id = ?
+        """, (metric_id,))
+
+        metric = cursor.fetchone()
+        conn.close()
+
+        if not metric:
+            raise HTTPException(status_code=404, detail=f"Metric {metric_id} not found")
+
+        return QualityMetricsResponse(
+            id=metric['id'],
+            device_id=metric['device_id'],
+            analysis_timestamp=metric['analysis_timestamp'],
+            overall_score=metric['overall_score'],
+            structural_score=metric['structural_score'],
+            attribute_score=metric['attribute_score'],
+            value_score=metric['value_score'],
+            data_loss_percentage=metric['data_loss_percentage'],
+            critical_data_loss=bool(metric['critical_data_loss']),
+            passed_threshold=bool(metric['passed_threshold']),
+            phase1_score=metric['phase1_score'] or 0.0,
+            phase2_score=metric['phase2_score'] or 0.0,
+            phase3_score=metric['phase3_score'] or 0.0,
+            phase4_score=metric['phase4_score'] or 0.0,
+            phase5_score=metric['phase5_score'] or 0.0,
+            total_elements_original=metric['total_elements_original'] or 0,
+            total_elements_reconstructed=metric['total_elements_reconstructed'] or 0,
+            missing_elements=metric['missing_elements'] or 0,
+            extra_elements=metric['extra_elements'] or 0,
+            file_type=metric['file_type']
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching metric {metric_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

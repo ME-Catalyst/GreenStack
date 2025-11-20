@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ExternalTextDocument xmlns="http://www.io-link.com/IODD/2010/10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.io-link.com/IODD/2010/10 IODD-Primitives1.1.xsd ">
+  <DocumentInfo version="V1.00.000" releaseDate="2021-12-15" copyright="Copyright IO-Link Community 2021"/>
+  <Language xml:lang="de">
+    <Text id="T_VendorText" value="USE - Universal, Smart, Easy"/>
+    <Text id="T_VendorUrl" value="www.io-link.com"/>
+    <Text id="T_DeviceName" value="Gerät mit internen Sprachen"/>
+    <Text id="T_DeviceFamily" value="IODD Guideline-Beispiel"/>
+    <Text id="TN_ProductName" value="Internal Language Device"/>
+    <Text id="TD_ProductDescr" value="Basisgerät mit Unterstützung von verschiedenen Sprachen"/>
+    <Text id="TN_PI_PDin" value="PD-Eingang"/>
+    <Text id="TN_PO_PDout" value="PD-Ausgang"/>
+    <Text id="TD_STD_SystemCommand_ApplicationReset" value="Die Parameter der technologiespezifischen Anwendung werden auf Standardwerte gesetzt. Identifikationsparameter bleiben unverändert. Ein Upload in den Datenspeicher des Masters wird ausgeführt, sofern in der Portkonfiguration des Masters aktiviert."/>
+    <Text id="TD_STD_SystemCommand_BackToBox" value="Die Parameter des Geräts werden auf die Werkseinstellungen gesetzt und die Kommunikation wird bis zum nächsten Aus- und Einschalten gesperrt. Hinweis: Trennen Sie das Gerät direkt vom Master-Port!"/>
+    <Text id="TN_V_CP_FunctionTag" value="Funktionskennzeichen"/>
+    <Text id="TD_V_CP_FunctionTag" value="Möglichkeit ein Gerät mit funktionsspezifischen Informationen zu kennzeichnen."/>
+    <Text id="TN_V_CP_LocationTag" value="Ortskennzeichen"/>
+    <Text id="TD_V_CP_LocationTag" value="Möglichkeit ein Gerät mit ortsspezifischen Informationen zu kennzeichnen."/>
+    <Text id="TN_V_X_ExampleParameter" value="Beispielparameter"/>
+    <Text id="TD_V_X_ExampleParameter" value="Nur ein Beispiel."/>
+    <Text id="TN_M_CP_Param_GeneralSettings" value="Allgemeine Einstellungen"/>
+    <Text id="TN_M_CP_Diag_DeviceStatusInfo" value="Gerätestatusinformation"/>
+    <Text id="TN_M_CP_Diag_ServiceFunctions" value="Service-Funktionen"/>
+  </Language>
+  <Stamp crc="2868778477">
+    <Checker name="IODD-Checker V1.1.7" version="V1.1.7.0"/>
+  </Stamp>
+</ExternalTextDocument>

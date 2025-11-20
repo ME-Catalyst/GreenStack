@@ -18,6 +18,7 @@ import ParameterCard from './ParameterCard';
 import { groupParametersByCategory, getSortedCategories, getCategoryBadgeColor, getCategoryIconColor } from '../utils/edsParameterCategorizer';
 import TicketButton from './TicketButton';
 import TicketModal from './TicketModal';
+import PQAAnalysisModal from './PQAAnalysisModal';
 
 const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExportZIP, API_BASE }) => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -32,6 +33,11 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
   const [comparisonEds, setComparisonEds] = useState(null);
   const [previousRevisionData, setPreviousRevisionData] = useState(null);
   const [parameterDiffs, setParameterDiffs] = useState(new Map());
+
+  // PQA (Parser Quality Assurance) metrics
+  const [pqaMetrics, setPqaMetrics] = useState(null);
+  const [loadingPqa, setLoadingPqa] = useState(false);
+  const [showPqaModal, setShowPqaModal] = useState(false);
 
   // Fetch available revisions for this device
   useEffect(() => {
@@ -69,6 +75,27 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
     };
 
     fetchGroups();
+  }, [API_BASE, selectedEds.id]);
+
+  // Fetch PQA metrics for this EDS file
+  useEffect(() => {
+    const fetchPqaMetrics = async () => {
+      setLoadingPqa(true);
+      try {
+        const response = await axios.get(`${API_BASE}/api/pqa/metrics/${selectedEds.id}?file_type=EDS`);
+        setPqaMetrics(response.data);
+      } catch (error) {
+        // PQA metrics might not exist for all devices - that's ok
+        if (error.response?.status !== 404) {
+          console.error('Failed to fetch PQA metrics:', error);
+        }
+        setPqaMetrics(null);
+      } finally {
+        setLoadingPqa(false);
+      }
+    };
+
+    fetchPqaMetrics();
   }, [API_BASE, selectedEds.id]);
 
   // Load a different revision when selected
@@ -315,14 +342,52 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
               <FileText className="w-8 h-8 text-secondary" style={{display: 'none'}} />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-foreground text-2xl">{selectedEds.product_name || 'Unknown Product'}</CardTitle>
-              <CardDescription className="text-muted-foreground mt-1 flex items-center gap-2">
-                <span>{selectedEds.vendor_name || 'Unknown Vendor'}</span>
-                <span>•</span>
-                <span>{selectedEds.catalog_number || 'N/A'}</span>
-                <span>•</span>
-                <span>Rev {selectedEds.major_revision}.{selectedEds.minor_revision}</span>
-              </CardDescription>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle className="text-foreground text-2xl">{selectedEds.product_name || 'Unknown Product'}</CardTitle>
+                  <CardDescription className="text-muted-foreground mt-1 flex items-center gap-2">
+                    <span>{selectedEds.vendor_name || 'Unknown Vendor'}</span>
+                    <span>•</span>
+                    <span>{selectedEds.catalog_number || 'N/A'}</span>
+                    <span>•</span>
+                    <span>Rev {selectedEds.major_revision}.{selectedEds.minor_revision}</span>
+                  </CardDescription>
+                </div>
+                {/* PQA Score Badge */}
+                {pqaMetrics && (
+                  <a
+                    href={`/pqa/analysis/${pqaMetrics.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowPqaModal(true);
+                    }}
+                    className="no-underline flex-shrink-0"
+                    title="View Parser Quality Analysis"
+                  >
+                    <Badge
+                      className={`
+                        text-sm px-3 py-1 shadow-lg cursor-pointer transition-all hover:scale-105
+                        ${pqaMetrics.passed_threshold
+                          ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-success border-success/50 shadow-success/20'
+                          : pqaMetrics.critical_data_loss
+                            ? 'bg-gradient-to-r from-red-500/20 to-rose-500/20 text-error border-error/50 shadow-error/20 animate-pulse'
+                            : 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-warning border-warning/50 shadow-warning/20'
+                        }
+                      `}
+                      style={pqaMetrics.critical_data_loss ? { animationDuration: '2s' } : {}}
+                    >
+                      {pqaMetrics.critical_data_loss && <AlertTriangle className="w-3 h-3 inline mr-1" />}
+                      PQA: {pqaMetrics.overall_score.toFixed(1)}%
+                      {pqaMetrics.passed_threshold ? ' ✓' : ' !'}
+                    </Badge>
+                  </a>
+                )}
+                {loadingPqa && (
+                  <Badge className="bg-muted text-muted-foreground border-border text-sm px-3 py-1 flex-shrink-0">
+                    Loading PQA...
+                  </Badge>
+                )}
+              </div>
             </div>
             {/* Quick stats */}
             <div className="hidden md:flex gap-4">
@@ -1397,6 +1462,16 @@ const DifferencesTab = ({ parameterDiffs, previousRevisionData, selectedEds }) =
             ))}
           </CardContent>
         </Card>
+      )}
+
+      {/* PQA Analysis Modal */}
+      {pqaMetrics && (
+        <PQAAnalysisModal
+          isOpen={showPqaModal}
+          onClose={() => setShowPqaModal(false)}
+          metricId={pqaMetrics.id}
+          API_BASE={API_BASE}
+        />
       )}
     </div>
   );

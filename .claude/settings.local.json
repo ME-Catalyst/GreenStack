@@ -85,7 +85,13 @@
       "Bash(alembic history:*)",
       "Bash(scriptssetup.bat)",
       "Bash(timeout /t 5 /nobreak)",
-      "Bash(del check_xsd.py extract_xsd.py)"
+      "Bash(del check_xsd.py extract_xsd.py)",
+      "Bash(del check_iodd_text.py check_menu_data.py check_schema.py list_params.py)",
+      "Bash(timeout 8 bash:*)",
+      "Bash(del /s /q __pycache__*.pyc 2)",
+      "Bash(timeout 15 bash:*)",
+      "Bash(del test_menu_api.py 2)",
+      "Bash(del test_menu_api.py)"
     ],
     "deny": [],
     "ask": []
