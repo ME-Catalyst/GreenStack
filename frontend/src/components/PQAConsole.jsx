@@ -134,9 +134,21 @@ const PQAConsole = ({ API_BASE, toast }) => {
   const runAnalysis = async (deviceId, fileType) => {
     setAnalyzing(true);
     try {
+      // Fetch the original file content first
+      let originalContent;
+      if (fileType === 'IODD') {
+        const xmlResponse = await axios.get(`${API_BASE}/api/iodd/${deviceId}/xml`);
+        originalContent = xmlResponse.data.xml_content;
+      } else if (fileType === 'EDS') {
+        const edsResponse = await axios.get(`${API_BASE}/api/eds/${deviceId}`);
+        originalContent = edsResponse.data.eds_content;
+      }
+
+      // Now run the analysis with the original content
       await axios.post(`${API_BASE}/api/pqa/analyze`, {
         device_id: deviceId,
-        file_type: fileType
+        file_type: fileType,
+        original_content: originalContent
       });
 
       toast?.({
