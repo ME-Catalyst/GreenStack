@@ -5,6 +5,7 @@ Analyzes the GreenStack project and generates detailed statistics
 import os
 import subprocess
 import json
+import sqlite3
 from datetime import datetime
 from pathlib import Path
 from collections import defaultdict
@@ -19,7 +20,7 @@ class CodebaseStats:
 
     def count_lines_by_extension(self):
         """Count lines of code by file extension"""
-        extensions = defaultdict(lambda: {"files": 0, "lines": 0, "blank": 0, "comments": 0})
+        extensions = defaultdict(lambda: {"files": 0, "lines": 0, "blank": 0, "comments": 0, "is_doc": False})
 
         # Define which extensions to track
         code_extensions = {
@@ -38,6 +39,9 @@ class CodebaseStats:
             '.yml': 'YAML',
             '.yaml': 'YAML'
         }
+
+        # Mark documentation file types
+        doc_extensions = {'.md'}
 
         exclude_dirs = {'node_modules', '__pycache__', 'dist', 'build', '.git', 'venv', 'env', 'test-data'}
 
@@ -64,6 +68,7 @@ class CodebaseStats:
                         extensions[lang]["lines"] += total_lines
                         extensions[lang]["blank"] += blank_lines
                         extensions[lang]["comments"] += comment_lines
+                        extensions[lang]["is_doc"] = ext in doc_extensions
                 except Exception as e:
                     logger.debug(f"Error reading {filepath}: {e}")
 
@@ -109,6 +114,8 @@ class CodebaseStats:
             if result.returncode == 0 and result.stdout.strip():
                 first_commit_timestamp = int(result.stdout.strip())
                 days_active = (datetime.now().timestamp() - first_commit_timestamp) / 86400
+                # Show at least 1 day if there are commits
+                days_active = max(1, int(days_active))
             else:
                 days_active = 0
 
@@ -147,7 +154,7 @@ class CodebaseStats:
                 'total_commits': total_commits,
                 'contributors': contributors,
                 'branches': branches,
-                'days_active': int(days_active),
+                'days_active': days_active,
                 'recent_commits_30d': recent_commits,
                 'recent_commit_details': recent_commit_details
             }
@@ -249,6 +256,61 @@ class CodebaseStats:
 
         return stats
 
+    def get_database_stats(self):
+        """Get database/API statistics"""
+        stats = {
+            'iodd_devices': 0,
+            'iodd_files': 0,
+            'eds_files': 0,
+            'eds_variants': 0,
+            'total_parameters': 0,
+            'total_assemblies': 0,
+            'pqa_analyses': 0
+        }
+
+        try:
+            db_path = self.project_root / 'greenstack.db'
+            if db_path.exists():
+                conn = sqlite3.connect(str(db_path))
+                cursor = conn.cursor()
+
+                # Count IODD devices
+                cursor.execute("SELECT COUNT(*) FROM devices")
+                stats['iodd_devices'] = cursor.fetchone()[0]
+
+                # Count IODD files
+                cursor.execute("SELECT COUNT(*) FROM iodd_files")
+                stats['iodd_files'] = cursor.fetchone()[0]
+
+                # Count EDS files
+                cursor.execute("SELECT COUNT(*) FROM eds_files")
+                stats['eds_files'] = cursor.fetchone()[0]
+
+                # Count EDS variants (unique vendor_code + product_code + major_revision + minor_revision)
+                cursor.execute("SELECT COUNT(DISTINCT vendor_code || '-' || product_code || '-' || major_revision || '-' || minor_revision) FROM eds_files")
+                stats['eds_variants'] = cursor.fetchone()[0]
+
+                # Count total parameters (IODD + EDS)
+                cursor.execute("SELECT COUNT(*) FROM parameters")
+                iodd_params = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM eds_parameters")
+                eds_params = cursor.fetchone()[0]
+                stats['total_parameters'] = iodd_params + eds_params
+
+                # Count assemblies
+                cursor.execute("SELECT COUNT(*) FROM eds_assemblies")
+                stats['total_assemblies'] = cursor.fetchone()[0]
+
+                # Count PQA analyses (IODD only currently)
+                cursor.execute("SELECT COUNT(*) FROM pqa_quality_metrics")
+                stats['pqa_analyses'] = cursor.fetchone()[0]
+
+                conn.close()
+        except Exception as e:
+            logger.warning(f"Error getting database stats: {e}")
+
+        return stats
+
     def generate_all_stats(self):
         """Generate all statistics"""
         logger.info("Generating codebase statistics...")
@@ -260,22 +322,39 @@ class CodebaseStats:
             'git_stats': self.get_git_stats(),
             'file_counts': self.count_files_and_dirs(),
             'project_structure': self.get_project_structure(),
-            'package_stats': self.get_package_stats()
+            'package_stats': self.get_package_stats(),
+            'database_stats': self.get_database_stats()
         }
 
-        # Calculate totals
-        total_code_lines = sum(lang['lines'] - lang['blank'] - lang['comments']
-                              for lang in self.stats['language_stats'].values())
+        # Calculate totals - separate code from docs
+        total_code_lines = 0
+        total_doc_lines = 0
+        total_code_files = 0
+        total_doc_files = 0
+
+        for lang, data in self.stats['language_stats'].items():
+            effective_lines = data['lines'] - data['blank'] - data['comments']
+            if data.get('is_doc', False):
+                total_doc_lines += effective_lines
+                total_doc_files += data['files']
+            else:
+                total_code_lines += effective_lines
+                total_code_files += data['files']
+
         total_files_counted = sum(lang['files'] for lang in self.stats['language_stats'].values())
 
         self.stats['totals'] = {
             'total_code_lines': total_code_lines,
+            'total_doc_lines': total_doc_lines,
+            'total_lines': total_code_lines + total_doc_lines,
+            'total_code_files': total_code_files,
+            'total_doc_files': total_doc_files,
             'total_files_counted': total_files_counted,
             'total_blank_lines': sum(lang['blank'] for lang in self.stats['language_stats'].values()),
             'total_comment_lines': sum(lang['comments'] for lang in self.stats['language_stats'].values())
         }
 
-        logger.info(f"Statistics generated: {total_code_lines} lines of code across {total_files_counted} files")
+        logger.info(f"Statistics generated: {total_code_lines} lines of code, {total_doc_lines} lines of docs across {total_files_counted} files")
 
         return self.stats
 

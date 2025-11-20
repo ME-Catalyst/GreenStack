@@ -41,6 +41,7 @@ import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import DocsViewer from './components/docs/DocsViewer';
 import EdsFilesListPage from './pages/EdsFilesListPage';
+import OverviewPage from './pages/OverviewPage';
 import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from './hooks/useKeyboardShortcuts';
 import { useTheme } from './contexts/ThemeContext';
 import { getUnitInfo } from './utils/iolinkUnits';
@@ -4957,7 +4958,7 @@ const IODDManager = () => {
   const folderInputRef = useRef(null);
   const edsFileInputRef = useRef(null);
   const edsFolderInputRef = useRef(null);
-  const [activeView, setActiveView] = useState('devices');
+  const [activeView, setActiveView] = useState('overview');
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [edsFiles, setEdsFiles] = useState([]);
@@ -4993,7 +4994,7 @@ const IODDManager = () => {
   const fetchEdsFiles = useCallback(async () => {
     try {
       // Use grouped endpoint to show only latest revision per device with revision count
-      const response = await axios.get(`${API_BASE}/api/eds/grouped/by-device`);
+      const response = await axios.get(`${API_BASE}/api/eds/grouped/by-variant`);
       setEdsFiles(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch EDS files:', error);

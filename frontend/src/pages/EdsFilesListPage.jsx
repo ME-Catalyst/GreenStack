@@ -6,6 +6,7 @@ import {
 } from '@/components/ui';
 import {
   Upload, Trash2, Search, Filter, ChevronRight, FileText, FolderOpen,
+  Layers, Info,
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -23,6 +24,10 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
   const [selectedEdsFiles, setSelectedEdsFiles] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [variantsDialogOpen, setVariantsDialogOpen] = useState(false);
+  const [selectedDeviceForVariants, setSelectedDeviceForVariants] = useState(null);
+  const [deviceVariants, setDeviceVariants] = useState([]);
+  const [loadingVariants, setLoadingVariants] = useState(false);
 
   const filteredEdsFiles = useMemo(() => {
     let result = edsFiles;
@@ -98,6 +103,29 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
       });
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleViewVariants = async (eds) => {
+    setSelectedDeviceForVariants(eds);
+    setVariantsDialogOpen(true);
+    setLoadingVariants(true);
+
+    try {
+      const response = await axios.get(
+        `${API_BASE}/api/eds/device/${eds.vendor_code}/${eds.product_code}/revisions`
+      );
+      setDeviceVariants(response.data);
+    } catch (error) {
+      console.error('Failed to fetch variants:', error);
+      toast({
+        title: 'Failed to load variants',
+        description: error.response?.data?.detail || 'Could not fetch device variants',
+        variant: 'destructive',
+      });
+      setDeviceVariants([]);
+    } finally {
+      setLoadingVariants(false);
     }
   };
 
@@ -204,22 +232,55 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
                     <FileText className="w-6 h-6 text-secondary" style={{display: 'none'}} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-lg font-semibold text-foreground truncate">
                         {eds.product_name || 'Unknown Product'}
                       </h3>
                       <Badge variant="outline" className="text-xs">
                         v{eds.major_revision}.{eds.minor_revision}
                       </Badge>
+                      {eds.variant_label && (
+                        <Badge
+                          className={`text-xs ${
+                            eds.variant_label === 'Extended'
+                              ? 'bg-brand-green/20 text-brand-green border-brand-green'
+                              : 'bg-secondary/50 text-foreground-secondary border-secondary'
+                          }`}
+                          title={`Feature Set: ${eds.feature_set || 'Basic'}`}
+                        >
+                          {eds.variant_label}
+                        </Badge>
+                      )}
+                      {eds.assembly_count && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs flex items-center gap-1"
+                          title={`${eds.assembly_count} assemblies`}
+                        >
+                          <Layers className="w-3 h-3" />
+                          {eds.assembly_count}
+                        </Badge>
+                      )}
                       {eds.revision_count > 1 && (
-                        <Badge className="text-xs bg-secondary/50 text-foreground-secondary border-secondary">
-                          {eds.revision_count} revisions
+                        <Badge
+                          className="text-xs bg-secondary/50 text-foreground-secondary border-secondary cursor-pointer hover:bg-secondary/70 transition-colors"
+                          title={`Click to view ${eds.revision_count} variants across all revisions`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewVariants(eds);
+                          }}
+                        >
+                          <Info className="w-3 h-3 mr-1" />
+                          {eds.revision_count} variants
                         </Badge>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {eds.vendor_name || 'Unknown Vendor'}
                       {eds.catalog_number && ` • Cat# ${eds.catalog_number}`}
+                      {eds.features && eds.features.length > 0 && (
+                        <span className="text-brand-green"> • {eds.features.join(', ')}</span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -280,6 +341,98 @@ const EdsFilesListPage = ({ edsFiles, onEdsSelect, onUpload, onUploadFolder, API
               className="bg-error hover:bg-error/90 text-foreground"
             >
               {deleting ? 'Deleting...' : 'Delete Files'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Variants Dialog */}
+      <Dialog open={variantsDialogOpen} onOpenChange={setVariantsDialogOpen}>
+        <DialogContent className="bg-card border-border max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">
+              {selectedDeviceForVariants?.product_name || 'Device'} - All Variants
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {selectedDeviceForVariants?.vendor_name} • Cat# {selectedDeviceForVariants?.catalog_number}
+            </DialogDescription>
+          </DialogHeader>
+
+          {loadingVariants ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-muted-foreground">Loading variants...</div>
+            </div>
+          ) : (
+            <div className="space-y-3 mt-4">
+              {deviceVariants.map((variant) => (
+                <Card
+                  key={variant.id}
+                  className="bg-background border-border hover:border-brand-green/50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    onEdsSelect(variant);
+                    setVariantsDialogOpen(false);
+                  }}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <Badge variant="outline" className="text-xs">
+                            v{variant.major_revision}.{variant.minor_revision}
+                          </Badge>
+                          {variant.variant_label && (
+                            <Badge
+                              className={`text-xs ${
+                                variant.variant_label === 'Extended'
+                                  ? 'bg-brand-green/20 text-brand-green border-brand-green'
+                                  : 'bg-secondary/50 text-foreground-secondary border-secondary'
+                              }`}
+                            >
+                              {variant.variant_label}
+                            </Badge>
+                          )}
+                          {variant.assembly_count && (
+                            <Badge variant="outline" className="text-xs flex items-center gap-1">
+                              <Layers className="w-3 h-3" />
+                              {variant.assembly_count} assemblies
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {variant.features && variant.features.length > 0 ? (
+                            <span className="text-brand-green">Features: {variant.features.join(', ')}</span>
+                          ) : (
+                            <span>Basic feature set</span>
+                          )}
+                        </div>
+                        {variant.import_date && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Imported: {new Date(variant.import_date).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-brand-green hover:text-brand-green"
+                      >
+                        Select
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setVariantsDialogOpen(false)}
+              className="border-border text-foreground hover:bg-secondary"
+            >
+              Close
             </Button>
           </div>
         </DialogContent>

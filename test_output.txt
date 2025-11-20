@@ -1,0 +1,69 @@
+INFO:src.utils.pqa_orchestrator:Starting PQA analysis for EDS file 1
+INFO:src.utils.pqa_orchestrator:Archived original file with ID 158
+INFO:src.utils.pqa_orchestrator:Reconstructed EDS file (61070 chars)
+INFO:src.utils.pqa_orchestrator:Analysis complete: Overall score = 52.2%
+INFO:src.utils.pqa_orchestrator:Saved quality metrics with ID 158
+INFO:src.utils.pqa_orchestrator:Processing open ticket 1 for EDS 1
+INFO:src.utils.pqa_orchestrator:Updated ticket 1 with new analysis results
+INFO:src.utils.pqa_orchestrator:Processing open ticket 14 for EDS 1
+INFO:src.utils.pqa_orchestrator:Updated ticket 14 with new analysis results
+INFO:src.utils.pqa_orchestrator:Processing open ticket 22 for EDS 1
+INFO:src.utils.pqa_orchestrator:Updated ticket 22 with new analysis results
+INFO:src.utils.pqa_orchestrator:Processing open ticket 34 for EDS 1
+INFO:src.utils.pqa_orchestrator:Updated ticket 34 with new analysis results
+INFO:src.utils.pqa_orchestrator:Processing open ticket 150 for EDS 1
+INFO:src.utils.pqa_orchestrator:Updated ticket 150 with new analysis results
+INFO:src.utils.pqa_orchestrator:Processing open ticket 151 for EDS 1
+INFO:src.utils.pqa_orchestrator:Updated ticket 151 with new analysis results
+INFO:src.utils.pqa_orchestrator:Checking if ticket should be generated for EDS 1
+INFO:src.utils.pqa_orchestrator:Metrics: score=52.21%, critical_loss=False
+INFO:src.utils.pqa_orchestrator:_should_generate_ticket returned: True
+INFO:src.utils.pqa_orchestrator:Attempting to generate ticket for EDS 1
+INFO:src.utils.pqa_orchestrator:_generate_quality_ticket called for EDS 1, metric_id=158
+INFO:src.utils.pqa_orchestrator:Fetching device name for EDS 1
+INFO:src.utils.pqa_orchestrator:Device name: MVK Pro ME DIO8 IOL8 5P
+INFO:src.utils.pqa_orchestrator:Issue counts: 0 critical, 194 high, 541 total
+INFO:src.utils.pqa_orchestrator:Inserting ticket TICKET-0152 for MVK Pro ME DIO8 IOL8 5P with severity critical
+INFO:src.utils.pqa_orchestrator:Ticket details: device_type=EDS, device_id=1, category=parser_quality
+INFO:src.utils.pqa_orchestrator:[OK] INSERT executed successfully
+INFO:src.utils.pqa_orchestrator:[OK] Ticket inserted with ID 152 (lastrowid=152)
+INFO:src.utils.pqa_orchestrator:Updating metric 158 to mark ticket_generated=1
+INFO:src.utils.pqa_orchestrator:[OK] UPDATE executed, rows affected: 1
+INFO:src.utils.pqa_orchestrator:Committing transaction...
+INFO:src.utils.pqa_orchestrator:[OK] Transaction committed successfully
+INFO:src.utils.pqa_orchestrator:[OK] Successfully created ticket 152 and updated metric 158
+INFO:src.utils.pqa_orchestrator:Database connection closed
+INFO:src.utils.pqa_orchestrator:[OK] Successfully generated ticket ID 152
+INFO:src.utils.pqa_orchestrator:[OK] Verified ticket 152 exists in database
+================================================================================
+PQA ANALYZER ROUTING TEST
+================================================================================
+
+[OK] Found EDS file 1
+  Content length: 357769 chars
+  Content preview: $ EZ-EDS Version 3.36.1.20241010 Generated Electronic Data Sheet
+
+[File]
+        DescText = "EDS-Fil...
+
+[OK] Initialized UnifiedPQAOrchestrator
+
+[TEST] Testing EDS analysis for file 1...
+
+[RESULTS] EDS Analysis Results:
+  Overall Score: 52.21%
+  Section Score: 46.15%
+  Key Score: 68.00%
+  Value Score: 40.87%
+  Total Sections (Original): 13
+  Total Sections (Reconstructed): 8
+  Total Keys (Original): 575
+  Data Loss: 32.00%
+  Critical Data Loss: False
+  Diff Items Found: 541
+
+[SUCCESS] EDS analyzer correctly used (sections > 0)
+
+================================================================================
+[PASS] TEST PASSED: EDS files are using EDSDiffAnalyzer
+================================================================================

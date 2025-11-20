@@ -134,7 +134,7 @@ class EDSDiffAnalyzer:
 
     def _parse_eds(self, eds_content: str) -> configparser.ConfigParser:
         """Parse EDS file (INI format) into ConfigParser"""
-        config = configparser.ConfigParser(allow_no_value=True, strict=False)
+        config = configparser.ConfigParser(allow_no_value=True, strict=False, comment_prefixes=('$',))
         config.optionxform = str  # Preserve case sensitivity
 
         try:

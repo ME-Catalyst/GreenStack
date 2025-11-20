@@ -4,7 +4,7 @@ import {
   Download, Trash2, BarChart3, Server, Cpu, Package, FileText,
   RefreshCw, Shield, Zap, TrendingUp, Info, BookOpen,
   ExternalLink, Home, Rocket, Terminal, Github, Bug, Search, GitBranch,
-  Wifi, WifiOff, Play, StopCircle, RotateCw, Palette, AlertCircle
+  Wifi, WifiOff, Play, StopCircle, RotateCw, Palette, AlertCircle, XCircle
 } from 'lucide-react';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from './ui';
@@ -1325,6 +1325,22 @@ const DiagnosticsTab = ({ edsDiagnostics, ioddDiagnostics, vendorStats }) => (
         </Card>
       </div>
 
+      {/* PQA (Parser Quality Assurance) Stats Section */}
+      <Card className="bg-gradient-to-br from-brand-green/5 to-purple-500/5 border-brand-green/30">
+        <CardHeader>
+          <CardTitle className="text-foreground flex items-center gap-2">
+            <Activity className="w-5 h-5 text-brand-green" />
+            Parser Quality Assurance (PQA) Metrics
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-2">
+            Real-time quality metrics from forensic reconstruction and diff analysis of parsed files
+          </p>
+        </CardHeader>
+        <CardContent>
+          <PQAMetricsDisplay API_BASE={window.API_BASE || 'http://localhost:8000'} />
+        </CardContent>
+      </Card>
+
       {/* EDS Diagnostic Details */}
       {edsDiagnostics?.by_severity?.length > 0 && (
         <Card className="bg-card border-border">
@@ -1628,5 +1644,310 @@ const SystemTab = ({ systemInfo, overview }) => (
     </Card>
   </div>
 );
+
+/**
+ * PQA Metrics Display Component
+ * Shows detailed Parser Quality Assurance statistics
+ */
+const PQAMetricsDisplay = ({ API_BASE }) => {
+  const [fileTypeFilter, setFileTypeFilter] = useState('ALL'); // 'ALL', 'IODD', 'EDS'
+  const [pqaData, setPqaData] = useState(null);
+  const [ioddData, setIoddData] = useState(null);
+  const [edsData, setEdsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchPQAData();
+  }, [fileTypeFilter]);
+
+  const fetchPQAData = async () => {
+    try {
+      setLoading(true);
+
+      if (fileTypeFilter === 'ALL') {
+        // Fetch all data and both file types separately
+        const [allResponse, ioddResponse, edsResponse] = await Promise.all([
+          axios.get(`${API_BASE}/api/pqa/dashboard/summary`),
+          axios.get(`${API_BASE}/api/pqa/dashboard/summary?file_type=IODD`).catch(() => null),
+          axios.get(`${API_BASE}/api/pqa/dashboard/summary?file_type=EDS`).catch(() => null)
+        ]);
+        setPqaData(allResponse.data);
+        setIoddData(ioddResponse?.data || null);
+        setEdsData(edsResponse?.data || null);
+      } else {
+        // Fetch filtered data
+        const response = await axios.get(`${API_BASE}/api/pqa/dashboard/summary?file_type=${fileTypeFilter}`);
+        setPqaData(response.data);
+      }
+
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch PQA data:', err);
+      setError('PQA system not initialized or no analyses run yet');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <RefreshCw className="w-5 h-5 animate-spin" />
+          <span>Loading PQA metrics...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-warning mx-auto mb-3" />
+          <p className="text-muted-foreground">{error}</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Run PQA analysis from the PQA Console tab below to see metrics
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const passRate = pqaData.total_analyses > 0
+    ? ((pqaData.passed_analyses / pqaData.total_analyses) * 100).toFixed(1)
+    : 0;
+
+  return (
+    <div className="space-y-6">
+      {/* File Type Filter Tabs */}
+      <div className="flex gap-2 border-b border-border pb-2">
+        <button
+          onClick={() => setFileTypeFilter('ALL')}
+          className={`px-4 py-2 rounded-t-lg transition-colors ${
+            fileTypeFilter === 'ALL'
+              ? 'bg-brand-green text-white font-semibold'
+              : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+          }`}
+        >
+          All Files
+        </button>
+        <button
+          onClick={() => setFileTypeFilter('IODD')}
+          className={`px-4 py-2 rounded-t-lg transition-colors ${
+            fileTypeFilter === 'IODD'
+              ? 'bg-brand-green text-white font-semibold'
+              : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+          }`}
+        >
+          IODD (XML)
+        </button>
+        <button
+          onClick={() => setFileTypeFilter('EDS')}
+          className={`px-4 py-2 rounded-t-lg transition-colors ${
+            fileTypeFilter === 'EDS'
+              ? 'bg-brand-green text-white font-semibold'
+              : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+          }`}
+        >
+          EDS (INI)
+        </button>
+      </div>
+
+      {/* Comparison View for 'ALL' tab */}
+      {fileTypeFilter === 'ALL' && ioddData && edsData && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* IODD Summary */}
+          <div className="bg-card border border-border rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <FileCode className="w-5 h-5 text-brand-green" />
+              IODD Files (XML)
+            </h4>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Total Analyses</span>
+                <span className="text-xl font-bold text-foreground">{ioddData.total_analyses}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Average Score</span>
+                <span className="text-xl font-bold text-brand-green">{ioddData.average_score.toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Pass Rate</span>
+                <span className="text-lg font-semibold text-success">
+                  {ioddData.total_analyses > 0 ? ((ioddData.passed_analyses / ioddData.total_analyses) * 100).toFixed(1) : 0}%
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Critical Failures</span>
+                <span className="text-lg font-semibold text-error">{ioddData.critical_failures}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* EDS Summary */}
+          <div className="bg-card border border-border rounded-lg p-4">
+            <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <FileCode className="w-5 h-5 text-cyan-400" />
+              EDS Files (INI)
+            </h4>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Total Analyses</span>
+                <span className="text-xl font-bold text-foreground">{edsData.total_analyses}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Average Score</span>
+                <span className="text-xl font-bold text-cyan-400">{edsData.average_score.toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Pass Rate</span>
+                <span className="text-lg font-semibold text-success">
+                  {edsData.total_analyses > 0 ? ((edsData.passed_analyses / edsData.total_analyses) * 100).toFixed(1) : 0}%
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Critical Failures</span>
+                <span className="text-lg font-semibold text-error">{edsData.critical_failures}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Key Metrics Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-brand-green/10 to-brand-green/5 rounded-lg p-4 border border-brand-green/30">
+          <div className="flex items-center justify-between mb-2">
+            <CheckCircle className="w-5 h-5 text-brand-green" />
+            <TrendingUp className="w-4 h-4 text-brand-green/50" />
+          </div>
+          <p className="text-3xl font-bold text-brand-green">{pqaData.total_analyses}</p>
+          <p className="text-sm text-muted-foreground mt-1">Total Analyses</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-success/10 to-success/5 rounded-lg p-4 border border-success/30">
+          <div className="flex items-center justify-between mb-2">
+            <CheckCircle className="w-5 h-5 text-success" />
+            <span className="text-xs font-semibold text-success">{passRate}%</span>
+          </div>
+          <p className="text-3xl font-bold text-success">{pqaData.passed_analyses}</p>
+          <p className="text-sm text-muted-foreground mt-1">Passed Threshold</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-error/10 to-error/5 rounded-lg p-4 border border-error/30">
+          <div className="flex items-center justify-between mb-2">
+            <XCircle className="w-5 h-5 text-error" />
+            {pqaData.critical_failures > 0 && (
+              <AlertTriangle className="w-4 h-4 text-error animate-pulse" />
+            )}
+          </div>
+          <p className="text-3xl font-bold text-error">{pqaData.failed_analyses}</p>
+          <p className="text-sm text-muted-foreground mt-1">Failed Analyses</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-warning/10 to-warning/5 rounded-lg p-4 border border-warning/30">
+          <div className="flex items-center justify-between mb-2">
+            <AlertTriangle className="w-5 h-5 text-warning" />
+          </div>
+          <p className="text-3xl font-bold text-warning">{pqaData.critical_failures}</p>
+          <p className="text-sm text-muted-foreground mt-1">Critical Data Loss</p>
+        </div>
+      </div>
+
+      {/* Average Score Display */}
+      <div className="bg-card border border-border rounded-lg p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h4 className="text-lg font-semibold text-foreground">Average Quality Score</h4>
+            <p className="text-sm text-muted-foreground">Across {pqaData.devices_analyzed} analyzed devices</p>
+          </div>
+          <div className="text-right">
+            <p className="text-5xl font-bold bg-gradient-to-r from-brand-green to-cyan-400 bg-clip-text text-transparent">
+              {pqaData.average_score.toFixed(1)}%
+            </p>
+          </div>
+        </div>
+
+        {/* Score Progress Bar */}
+        <div className="relative w-full h-4 bg-secondary rounded-full overflow-hidden">
+          <div
+            className={`absolute top-0 left-0 h-full transition-all duration-500 ${
+              pqaData.average_score >= 95 ? 'bg-gradient-to-r from-success to-brand-green' :
+              pqaData.average_score >= 80 ? 'bg-gradient-to-r from-brand-green to-cyan-400' :
+              pqaData.average_score >= 60 ? 'bg-gradient-to-r from-warning to-orange-400' :
+              'bg-gradient-to-r from-error to-red-600'
+            }`}
+            style={{ width: `${pqaData.average_score}%` }}
+          />
+        </div>
+
+        {/* Score Legend */}
+        <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+          <span>0%</span>
+          <span>Poor</span>
+          <span>Fair</span>
+          <span>Good</span>
+          <span>Excellent</span>
+          <span>100%</span>
+        </div>
+      </div>
+
+      {/* Recent Analyses */}
+      {pqaData.recent_analyses && pqaData.recent_analyses.length > 0 && (
+        <div>
+          <h4 className="text-sm font-semibold text-foreground mb-3">Recent Analyses</h4>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {pqaData.recent_analyses.slice(0, 10).map((analysis, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg border border-border/50 hover:border-brand-green/30 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${analysis.passed ? 'bg-success' : 'bg-error'}`} />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {analysis.file_type} Device #{analysis.device_id}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(analysis.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className={`text-lg font-bold ${
+                    analysis.overall_score >= 95 ? 'text-success' :
+                    analysis.overall_score >= 80 ? 'text-brand-green' :
+                    analysis.overall_score >= 60 ? 'text-warning' :
+                    'text-error'
+                  }`}>
+                    {analysis.overall_score.toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Info Banner */}
+      <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-foreground mb-1">About PQA Metrics</p>
+            <p className="text-xs text-muted-foreground">
+              PQA (Parser Quality Assurance) uses forensic reconstruction to rebuild files from database content,
+              then performs detailed diff analysis against originals. The system now supports separate analysis workflows:
+              <strong className="text-foreground"> IODD files</strong> use XML-based DiffAnalyzer,
+              and <strong className="text-foreground"> EDS files</strong> use INI-format EDSDiffAnalyzer.
+              Use the tabs above to view metrics for each file type separately or combined.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default AdminConsole;

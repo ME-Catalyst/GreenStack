@@ -241,7 +241,7 @@ class UnifiedPQAOrchestrator:
             if file_type == FileType.IODD:
                 cursor.execute("""
                     INSERT INTO pqa_quality_metrics (
-                        device_id, archive_id, overall_score, structural_score,
+                        device_id, archive_id, file_type, overall_score, structural_score,
                         attribute_score, value_score, total_elements_original,
                         total_elements_reconstructed, missing_elements, extra_elements,
                         total_attributes_original, total_attributes_reconstructed,
@@ -249,9 +249,9 @@ class UnifiedPQAOrchestrator:
                         critical_data_loss, phase1_score, phase2_score, phase3_score,
                         phase4_score, phase5_score, passed_threshold, requires_review,
                         reconstruction_time_ms, comparison_time_ms
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    file_id, archive_id, metrics.overall_score, metrics.structural_score,
+                    file_id, archive_id, file_type.value, metrics.overall_score, metrics.structural_score,
                     metrics.attribute_score, metrics.value_score,
                     metrics.total_elements_original, metrics.total_elements_reconstructed,
                     metrics.missing_elements, metrics.extra_elements,
@@ -266,16 +266,16 @@ class UnifiedPQAOrchestrator:
                 # Map EDS metrics to common structure
                 cursor.execute("""
                     INSERT INTO pqa_quality_metrics (
-                        device_id, archive_id, overall_score, structural_score,
+                        device_id, archive_id, file_type, overall_score, structural_score,
                         attribute_score, value_score, total_elements_original,
                         total_elements_reconstructed, missing_elements, extra_elements,
                         total_attributes_original, total_attributes_reconstructed,
                         missing_attributes, incorrect_attributes, data_loss_percentage,
                         critical_data_loss, phase1_score, phase2_score, phase3_score,
                         phase4_score, phase5_score, passed_threshold, requires_review
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    file_id, archive_id, metrics.overall_score, metrics.section_score,
+                    file_id, archive_id, file_type.value, metrics.overall_score, metrics.section_score,
                     metrics.key_score, metrics.value_score,
                     metrics.total_sections_original, metrics.total_sections_reconstructed,
                     metrics.missing_sections, metrics.extra_sections,

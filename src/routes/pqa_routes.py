@@ -753,47 +753,64 @@ async def update_threshold(threshold_id: int, threshold: ThresholdConfig):
 # ============================================================================
 
 @router.get("/dashboard/summary", response_model=DashboardSummary)
-async def get_dashboard_summary():
-    """Get PQA dashboard summary statistics"""
+async def get_dashboard_summary(file_type: Optional[str] = Query(None, description="Filter by file type: IODD or EDS")):
+    """
+    Get PQA dashboard summary statistics
+
+    Can be filtered by file_type to show IODD-only or EDS-only statistics,
+    or show combined statistics if no filter is applied.
+    """
     try:
         conn = get_db()
         cursor = conn.cursor()
 
+        # Build WHERE clause for file_type filtering
+        file_type_filter = ""
+        params = []
+        if file_type:
+            file_type_upper = file_type.upper()
+            if file_type_upper not in ['IODD', 'EDS']:
+                raise HTTPException(status_code=400, detail="file_type must be 'IODD' or 'EDS'")
+            file_type_filter = "WHERE file_type = ?"
+            params.append(file_type_upper)
+
         # Total analyses
-        cursor.execute("SELECT COUNT(*) FROM pqa_quality_metrics")
+        cursor.execute(f"SELECT COUNT(*) FROM pqa_quality_metrics {file_type_filter}", params)
         total_analyses = cursor.fetchone()[0]
 
         # Passed/Failed
-        cursor.execute("SELECT COUNT(*) FROM pqa_quality_metrics WHERE passed_threshold = 1")
+        cursor.execute(f"SELECT COUNT(*) FROM pqa_quality_metrics {file_type_filter} {'AND' if file_type_filter else 'WHERE'} passed_threshold = 1",
+                      params)
         passed = cursor.fetchone()[0]
         failed = total_analyses - passed
 
         # Average score
-        cursor.execute("SELECT AVG(overall_score) FROM pqa_quality_metrics")
+        cursor.execute(f"SELECT AVG(overall_score) FROM pqa_quality_metrics {file_type_filter}", params)
         avg_score = cursor.fetchone()[0] or 0.0
 
         # Unique devices
-        cursor.execute("SELECT COUNT(DISTINCT device_id) FROM pqa_quality_metrics")
+        cursor.execute(f"SELECT COUNT(DISTINCT device_id) FROM pqa_quality_metrics {file_type_filter}", params)
         devices_analyzed = cursor.fetchone()[0]
 
         # Critical failures
-        cursor.execute("SELECT COUNT(*) FROM pqa_quality_metrics WHERE critical_data_loss = 1")
+        cursor.execute(f"SELECT COUNT(*) FROM pqa_quality_metrics {file_type_filter} {'AND' if file_type_filter else 'WHERE'} critical_data_loss = 1",
+                      params)
         critical_failures = cursor.fetchone()[0]
 
         # Recent analyses
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT
-                m.id,
-                m.device_id,
-                m.overall_score,
-                m.passed_threshold,
-                m.analysis_timestamp,
-                a.file_type
-            FROM pqa_quality_metrics m
-            JOIN pqa_file_archive a ON m.archive_id = a.id
-            ORDER BY m.analysis_timestamp DESC
+                id,
+                device_id,
+                overall_score,
+                passed_threshold,
+                analysis_timestamp,
+                file_type
+            FROM pqa_quality_metrics
+            {file_type_filter}
+            ORDER BY analysis_timestamp DESC
             LIMIT 10
-        """)
+        """, params)
         recent = cursor.fetchall()
 
         conn.close()
@@ -818,6 +835,8 @@ async def get_dashboard_summary():
             ]
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching dashboard summary: {e}")
         raise HTTPException(status_code=500, detail=str(e))

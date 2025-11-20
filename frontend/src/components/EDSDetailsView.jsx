@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   ArrowLeft, Download, FileText, Server, ArrowUpRight, ArrowDownRight,
-  Users, Activity, Clock, Package, Code, Database, FileCode, ChevronDown, ChevronRight, Info, Filter, Boxes, Network, Cpu, GitCompare, AlertTriangle
+  Users, Activity, Clock, Package, Code, Database, FileCode, ChevronDown, ChevronRight, Info, Filter, Boxes, Network, Cpu, GitCompare, AlertTriangle, Layers
 } from 'lucide-react';
 import AssembliesSection from './AssembliesSection';
 import PortsSection from './PortsSection';
@@ -238,8 +238,23 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
                     value={rev.id.toString()}
                     className="text-foreground focus:bg-muted"
                   >
-                    {rev.revision_string}
-                    {rev.mod_date && ` (${rev.mod_date})`}
+                    <div className="flex items-center gap-2">
+                      <span>{rev.revision_string}</span>
+                      {rev.variant_label && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${
+                          rev.variant_label === 'Extended'
+                            ? 'bg-brand-green/20 text-brand-green'
+                            : 'bg-secondary/50 text-foreground-secondary'
+                        }`}>
+                          {rev.variant_label}
+                        </span>
+                      )}
+                      {rev.assembly_count && (
+                        <span className="text-xs text-muted-foreground">
+                          ({rev.assembly_count} asm)
+                        </span>
+                      )}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -344,13 +359,43 @@ const EDSDetailsView = ({ selectedEds: initialEds, onBack, onExportJSON, onExpor
             <div className="flex-1">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <CardTitle className="text-foreground text-2xl">{selectedEds.product_name || 'Unknown Product'}</CardTitle>
-                  <CardDescription className="text-muted-foreground mt-1 flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <CardTitle className="text-foreground text-2xl">{selectedEds.product_name || 'Unknown Product'}</CardTitle>
+                    {selectedEds.variant_label && (
+                      <Badge
+                        className={`text-xs ${
+                          selectedEds.variant_label === 'Extended'
+                            ? 'bg-brand-green/20 text-brand-green border-brand-green'
+                            : 'bg-secondary/50 text-foreground-secondary border-secondary'
+                        }`}
+                        title={`Feature Set: ${selectedEds.feature_set || 'Basic'}`}
+                      >
+                        {selectedEds.variant_label}
+                      </Badge>
+                    )}
+                    {selectedEds.assembly_count && (
+                      <Badge
+                        variant="outline"
+                        className="text-xs flex items-center gap-1"
+                        title={`${selectedEds.assembly_count} assemblies`}
+                      >
+                        <Layers className="w-3 h-3" />
+                        {selectedEds.assembly_count}
+                      </Badge>
+                    )}
+                  </div>
+                  <CardDescription className="text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
                     <span>{selectedEds.vendor_name || 'Unknown Vendor'}</span>
                     <span>•</span>
                     <span>{selectedEds.catalog_number || 'N/A'}</span>
                     <span>•</span>
                     <span>Rev {selectedEds.major_revision}.{selectedEds.minor_revision}</span>
+                    {selectedEds.features && selectedEds.features.length > 0 && (
+                      <>
+                        <span>•</span>
+                        <span className="text-brand-green">{selectedEds.features.join(', ')}</span>
+                      </>
+                    )}
                   </CardDescription>
                 </div>
                 {/* PQA Score Badge */}

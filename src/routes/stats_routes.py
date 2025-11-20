@@ -26,6 +26,7 @@ class CodebaseStatsResponse(BaseModel):
     file_counts: Dict[str, int]
     project_structure: Dict[str, int]
     package_stats: Dict[str, int]
+    database_stats: Dict[str, int]
     totals: Dict[str, int]
 
 

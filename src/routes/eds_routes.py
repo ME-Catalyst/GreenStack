@@ -475,14 +475,61 @@ async def list_eds_files():
     return eds_files
 
 
+def detect_eds_variant_features(cursor, eds_file_id: int) -> dict:
+    """
+    Detect variant features for an EDS file by analyzing its assemblies.
+
+    Returns:
+        dict with variant_label, assembly_count, and feature_flags
+    """
+    # Get assembly count and specific feature assemblies
+    cursor.execute("""
+        SELECT assembly_number, assembly_name
+        FROM eds_assemblies
+        WHERE eds_file_id = ?
+    """, (eds_file_id,))
+
+    assemblies = cursor.fetchall()
+    assembly_count = len(assemblies)
+    assembly_numbers = {row[0] for row in assemblies}
+
+    # Detect specific features
+    features = []
+    has_opcua = 210 in assembly_numbers
+    has_mqtt = 211 in assembly_numbers
+    has_json = 213 in assembly_numbers
+
+    if has_opcua:
+        features.append("OPC-UA")
+    if has_mqtt:
+        features.append("MQTT")
+    if has_json:
+        features.append("JSON")
+
+    # Determine variant label
+    if features:
+        variant_label = "Extended"
+        feature_set = ", ".join(features)
+    else:
+        variant_label = "Standard"
+        feature_set = "Basic"
+
+    return {
+        "variant_label": variant_label,
+        "assembly_count": assembly_count,
+        "features": features,
+        "feature_set": feature_set
+    }
+
+
 @router.get("/grouped/by-device")
 async def list_eds_files_grouped():
     """
     Get list of EDS files grouped by device (vendor_code + product_code).
-    Returns only the latest revision for each unique device, plus revision count.
+    Returns only the latest revision for each unique device, plus revision count and variant info.
 
     Returns:
-        List of EDS file information with revision_count field
+        List of EDS file information with revision_count and variant information
     """
     conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
@@ -522,8 +569,13 @@ async def list_eds_files_grouped():
 
     eds_files = []
     for row in cursor.fetchall():
+        eds_id = row[0]
+
+        # Detect variant features
+        variant_info = detect_eds_variant_features(cursor, eds_id)
+
         eds_files.append({
-            "id": row[0],
+            "id": eds_id,
             "vendor_code": row[1],
             "vendor_name": row[2],
             "product_code": row[3],
@@ -543,7 +595,92 @@ async def list_eds_files_grouped():
                 "fatal_count": row[16] or 0,
                 "has_issues": bool(row[17])
             },
-            "revision_count": row[18]  # Number of revisions for this device
+            "revision_count": row[18],  # Number of revisions for this device
+            "variant_label": variant_info["variant_label"],
+            "assembly_count": variant_info["assembly_count"],
+            "features": variant_info["features"],
+            "feature_set": variant_info["feature_set"]
+        })
+
+    conn.close()
+    return eds_files
+
+
+@router.get("/grouped/by-variant")
+async def list_eds_files_by_variant():
+    """
+    Get list of EDS files grouped by unique variant (vendor + product + revision + variant_label).
+    Shows all distinct variants, not just the latest revision per device.
+
+    Returns:
+        List of EDS file information with all unique variants
+    """
+    conn = sqlite3.connect(get_db_path())
+    cursor = conn.cursor()
+
+    # Get one representative per unique variant (grouped by vendor, product, revision, and assembly count)
+    cursor.execute("""
+        WITH ranked AS (
+            SELECT
+                id, vendor_code, vendor_name, product_code, product_type,
+                product_type_str, product_name, catalog_number,
+                major_revision, minor_revision, description,
+                import_date, home_url,
+                diagnostic_info_count, diagnostic_warn_count,
+                diagnostic_error_count, diagnostic_fatal_count,
+                has_parsing_issues,
+                ROW_NUMBER() OVER (
+                    PARTITION BY vendor_code, product_code, major_revision, minor_revision,
+                                 (SELECT COUNT(*) FROM eds_assemblies WHERE eds_file_id = eds_files.id)
+                    ORDER BY import_date DESC
+                ) as rn
+            FROM eds_files
+        )
+        SELECT
+            id, vendor_code, vendor_name, product_code, product_type,
+            product_type_str, product_name, catalog_number,
+            major_revision, minor_revision, description,
+            import_date, home_url,
+            diagnostic_info_count, diagnostic_warn_count,
+            diagnostic_error_count, diagnostic_fatal_count,
+            has_parsing_issues
+        FROM ranked
+        WHERE rn = 1
+        ORDER BY vendor_name, product_name, major_revision DESC, minor_revision DESC
+    """)
+
+    eds_files = []
+    for row in cursor.fetchall():
+        eds_id = row[0]
+
+        # Detect variant features
+        variant_info = detect_eds_variant_features(cursor, eds_id)
+
+        eds_files.append({
+            "id": eds_id,
+            "vendor_code": row[1],
+            "vendor_name": row[2],
+            "product_code": row[3],
+            "product_type": row[4],
+            "product_type_str": row[5],
+            "product_name": row[6],
+            "catalog_number": row[7],
+            "major_revision": row[8],
+            "minor_revision": row[9],
+            "description": row[10],
+            "import_date": row[11],
+            "home_url": row[12],
+            "diagnostics": {
+                "info_count": row[13] or 0,
+                "warn_count": row[14] or 0,
+                "error_count": row[15] or 0,
+                "fatal_count": row[16] or 0,
+                "has_issues": bool(row[17])
+            },
+            "variant_label": variant_info["variant_label"],
+            "assembly_count": variant_info["assembly_count"],
+            "features": variant_info["features"],
+            "feature_set": variant_info["feature_set"]
         })
 
     conn.close()
@@ -554,14 +691,14 @@ async def list_eds_files_grouped():
 async def get_device_revisions(vendor_code: int, product_code: int):
     """
     Get all revisions for a specific device (identified by vendor_code + product_code).
-    Returns list sorted by revision (newest first).
+    Returns list sorted by revision (newest first) with variant information.
 
     Args:
         vendor_code: Device vendor code
         product_code: Device product code
 
     Returns:
-        List of all revisions for this device
+        List of all revisions for this device with variant details
     """
     conn = sqlite3.connect(get_db_path())
     cursor = conn.cursor()
@@ -578,8 +715,13 @@ async def get_device_revisions(vendor_code: int, product_code: int):
 
     revisions = []
     for row in cursor.fetchall():
+        eds_id = row[0]
+
+        # Detect variant features
+        variant_info = detect_eds_variant_features(cursor, eds_id)
+
         revisions.append({
-            "id": row[0],
+            "id": eds_id,
             "vendor_code": row[1],
             "vendor_name": row[2],
             "product_code": row[3],
@@ -591,7 +733,11 @@ async def get_device_revisions(vendor_code: int, product_code: int):
             "description": row[9],
             "mod_date": row[10],
             "mod_time": row[11],
-            "revision_string": f"v{row[6]}.{row[7]}"
+            "revision_string": f"v{row[6]}.{row[7]}",
+            "variant_label": variant_info["variant_label"],
+            "assembly_count": variant_info["assembly_count"],
+            "features": variant_info["features"],
+            "feature_set": variant_info["feature_set"]
         })
 
     conn.close()
@@ -776,6 +922,13 @@ async def get_eds_file(eds_id: int):
         ]
     else:
         eds_info["capacity"] = None
+
+    # Add variant information
+    variant_info = detect_eds_variant_features(cursor, eds_id)
+    eds_info["variant_label"] = variant_info["variant_label"]
+    eds_info["assembly_count"] = variant_info["assembly_count"]
+    eds_info["features"] = variant_info["features"]
+    eds_info["feature_set"] = variant_info["feature_set"]
 
     conn.close()
     return eds_info

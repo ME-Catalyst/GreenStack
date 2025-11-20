@@ -91,7 +91,9 @@
       "Bash(del /s /q __pycache__*.pyc 2)",
       "Bash(timeout 15 bash:*)",
       "Bash(del test_menu_api.py 2)",
-      "Bash(del test_menu_api.py)"
+      "Bash(del test_menu_api.py)",
+      "Bash(del check_pqa_data.py check_pqa_archive.py investigate_pqa_scores.py)",
+      "Bash(timeout 60 bash:*)"
     ],
     "deny": [],
     "ask": []
