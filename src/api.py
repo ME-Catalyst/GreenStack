@@ -37,7 +37,7 @@ if os.getenv("SENTRY_DSN"):
     logger.info("Sentry error tracking initialized")
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -563,11 +563,19 @@ async def timeout_middleware(request: Request, call_next):
     Prevents long-running requests from tying up workers and resources.
     """
     try:
-        # Create a timeout task
-        return await asyncio.wait_for(
+        # Create a timeout task - ensure response is properly awaited
+        response = await asyncio.wait_for(
             call_next(request),
             timeout=REQUEST_TIMEOUT
         )
+        # Ensure we return a proper Response object
+        if not isinstance(response, Response):
+            logger.error(f"call_next returned non-Response object: {type(response)}")
+            return JSONResponse(
+                status_code=500,
+                content={"detail": "Internal server error", "error": "Invalid response type"}
+            )
+        return response
     except asyncio.TimeoutError:
         logger.warning(
             f"Request timeout after {REQUEST_TIMEOUT}s: {request.method} {request.url.path}"
@@ -679,6 +687,7 @@ async def root():
 @limiter.limit("1000/minute")  # Rate limit: 1000 uploads per minute (high-performance server)
 async def upload_iodd(
     request: Request,
+    response: Response,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...)
 ):
