@@ -74,13 +74,27 @@ Transform the parsed IODD UserInterface menu structure into a fully functional, 
 - Identified all required components and services
 - **Next**: Create backend API endpoint
 
+### 2025-11-20 - Step 1: Backend API Endpoint
+- ✅ Created `src/routes/iodd_routes.py` with `/api/iodd/{device_id}/menus` endpoint
+- ✅ Implemented complete menu data retrieval with text resolution
+- ✅ Added parameter metadata lookup for menu items
+- ✅ Included role-based menu sets (observer, maintenance, specialist)
+- ✅ Registered router in `src/api.py`
+- Features:
+  - Fetches all menus for a device with items
+  - Resolves text IDs to actual text values
+  - Includes parameter data (name, type, defaults, ranges, enumerations)
+  - Supports role filtering via query parameter
+  - Returns structured data with Pydantic models
+- **Next**: Create frontend Menu Renderer component
+
 ---
 
 ## Completed Steps
-<!-- Steps will be added here as they are completed -->
+1. ✅ Backend API endpoint `/api/iodd/{device_id}/menus` created and registered
 
 ## Current Step
-**Step 1**: Create backend API endpoint `/api/iodd/{device_id}/menus`
+**Step 2**: Build IODDMenuRenderer React component
 
 ## Blockers/Issues
 <!-- None yet -->

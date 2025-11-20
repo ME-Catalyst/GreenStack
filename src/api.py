@@ -654,6 +654,11 @@ from src.routes import pqa_routes
 
 app.include_router(pqa_routes.router)
 
+# Include IODD-specific routes
+from src.routes import iodd_routes
+
+app.include_router(iodd_routes.router)
+
 # Include Node-RED Flow Generation routes
 from src.routes import flow_routes
 
