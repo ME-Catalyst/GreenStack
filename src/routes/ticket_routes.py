@@ -579,6 +579,77 @@ async def upload_attachment(ticket_id: int, file: UploadFile = File(...)):
     }
 
 
+@router.post("/{ticket_id}/attachments/bulk")
+async def upload_multiple_attachments(ticket_id: int, files: list[UploadFile] = File(...)):
+    """Upload multiple attachments to a ticket in a single request"""
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA foreign_keys = ON")
+    cursor = conn.cursor()
+
+    # Verify ticket exists
+    cursor.execute("SELECT id FROM tickets WHERE id = ?", (ticket_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    # Create ticket-specific directory
+    ticket_dir = ATTACHMENTS_DIR / str(ticket_id)
+    ticket_dir.mkdir(exist_ok=True)
+
+    uploaded_files = []
+    failed_files = []
+
+    for file in files:
+        try:
+            # Generate safe filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            safe_filename = f"{timestamp}_{file.filename}"
+            file_path = ticket_dir / safe_filename
+
+            # Save file
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+
+            # Get file size
+            file_size = os.path.getsize(file_path)
+
+            # Store in database
+            now = datetime.now().isoformat()
+            cursor.execute("""
+                INSERT INTO ticket_attachments (
+                    ticket_id, filename, file_path, file_size, content_type, uploaded_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            """, (ticket_id, file.filename, str(file_path), file_size, file.content_type, now))
+
+            attachment_id = cursor.lastrowid
+
+            uploaded_files.append({
+                "id": attachment_id,
+                "filename": file.filename,
+                "file_size": file_size,
+                "content_type": file.content_type,
+                "uploaded_at": now
+            })
+
+        except Exception as e:
+            logger.error(f"Failed to upload {file.filename}: {e}")
+            failed_files.append({
+                "filename": file.filename,
+                "error": str(e)
+            })
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "ticket_id": ticket_id,
+        "uploaded": len(uploaded_files),
+        "failed": len(failed_files),
+        "files": uploaded_files,
+        "errors": failed_files
+    }
+
+
 @router.get("/{ticket_id}/attachments")
 async def get_attachments(ticket_id: int):
     """Get all attachments for a ticket"""

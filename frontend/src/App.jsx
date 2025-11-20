@@ -26,6 +26,7 @@ import 'yet-another-react-lightbox/styles.css';
 import EDSDetailsView from './components/EDSDetailsView';
 import TicketButton from './components/TicketButton';
 import TicketModal from './components/TicketModal';
+import GlobalTicketButton from './components/GlobalTicketButton';
 import SearchPage from './components/SearchPage';
 import ComparisonView from './components/ComparisonView';
 import AdminConsole from './components/AdminConsole';
@@ -5855,6 +5856,9 @@ const IODDManager = () => {
         isOpen={showKeyboardHelp}
         onClose={() => setShowKeyboardHelp(false)}
       />
+
+      {/* Global Ticket Button - appears on every page */}
+      <GlobalTicketButton API_BASE={API_BASE} />
 
       <Toaster />
     </div>
