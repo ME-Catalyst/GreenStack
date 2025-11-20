@@ -86,7 +86,11 @@ cd greenstack`}
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <CheckCircle className="w-5 h-5 text-brand-green" />
-                          <strong>Web Interface:</strong> <code>http://localhost:5173</code>
+                          <strong>Web Interface:</strong>{' '}
+                          <code>http://localhost:6173</code>{' '}
+                          <span className="text-sm text-muted-foreground">
+                            (auto-detects the next open port in the 6000 range)
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <CheckCircle className="w-5 h-5 text-brand-green" />
@@ -215,7 +219,8 @@ npm --version`}
                 <div className="flex-1">
                   <h4 className="font-semibold text-foreground mb-1">Start Servers</h4>
                   <p className="text-sm text-muted-foreground">
-                    Launches the Python backend API (port 8000) and Vite frontend dev server (port 5173)
+                    Launches the Python backend API (port 8000) and the Vite frontend dev server
+                    starting at port 6173 (auto-selects the next open port in the 6000s if needed)
                   </p>
                 </div>
               </div>
@@ -239,7 +244,7 @@ npm --version`}
                 <div className="flex-1">
                   <h4 className="font-semibold text-foreground mb-1">Open Browser</h4>
                   <p className="text-sm text-muted-foreground">
-                    Automatically opens http://localhost:5173 in your default browser
+                    Automatically opens the detected frontend port (starting at http://localhost:6173) in your default browser
                   </p>
                 </div>
               </div>
@@ -267,7 +272,7 @@ npm --version`}
             <div>
               <h4 className="font-semibold text-foreground mb-2">Port already in use</h4>
               <DocsParagraph>
-                If ports 5173 or 8000 are already in use:
+                If ports are already in use, the launcher now rolls to the next open port in the 6000 range automatically.
               </DocsParagraph>
               <DocsCodeBlock language="bash">
 {`# Find process using port 8000

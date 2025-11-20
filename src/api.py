@@ -2628,36 +2628,48 @@ async def get_statistics():
     conn = sqlite3.connect(manager.storage.db_path)
     cursor = conn.cursor()
 
+    # Cache table list so we can safely query even if migrations haven't been applied yet
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    existing_tables = {row[0] for row in cursor.fetchall()}
+
+    def table_exists(name: str) -> bool:
+        return name in existing_tables
+
+    def safe_count(table: str) -> int:
+        if not table_exists(table):
+            logger.debug("Statistics endpoint: table '%s' missing, returning 0", table)
+            return 0
+        cursor.execute(f"SELECT COUNT(*) FROM {table}")
+        value = cursor.fetchone()
+        return value[0] if value else 0
+
     # Get IO-Link statistics
-    cursor.execute("SELECT COUNT(*) FROM devices")
-    total_devices = cursor.fetchone()[0]
+    total_devices = safe_count("devices")
+    total_parameters = safe_count("parameters")
+    total_generated = safe_count("generated_adapters")
 
-    cursor.execute("SELECT COUNT(*) FROM parameters")
-    total_parameters = cursor.fetchone()[0]
-
-    cursor.execute("SELECT COUNT(*) FROM generated_adapters")
-    total_generated = cursor.fetchone()[0]
-
-    cursor.execute("""
-        SELECT target_platform, COUNT(*)
-        FROM generated_adapters
-        GROUP BY target_platform
-    """)
-    platform_stats = dict(cursor.fetchall())
+    platform_stats = {}
+    if table_exists("generated_adapters"):
+        cursor.execute(
+            """
+            SELECT target_platform, COUNT(*)
+            FROM generated_adapters
+            GROUP BY target_platform
+            """
+        )
+        platform_stats = dict(cursor.fetchall())
 
     # Get EDS statistics
-    cursor.execute("SELECT COUNT(*) FROM eds_files")
-    total_eds_files = cursor.fetchone()[0]
-
-    cursor.execute("SELECT COUNT(*) FROM eds_parameters")
-    total_eds_parameters = cursor.fetchone()[0]
-
-    cursor.execute("SELECT COUNT(*) FROM eds_packages")
-    total_eds_packages = cursor.fetchone()[0]
+    total_eds_files = safe_count("eds_files")
+    total_eds_parameters = safe_count("eds_parameters")
+    total_eds_packages = safe_count("eds_packages")
 
     # Get unique EDS devices (by vendor_code + product_code)
-    cursor.execute("SELECT COUNT(DISTINCT vendor_code || '_' || product_code) FROM eds_files")
-    unique_eds_devices = cursor.fetchone()[0]
+    if table_exists("eds_files"):
+        cursor.execute("SELECT COUNT(DISTINCT vendor_code || '_' || product_code) FROM eds_files")
+        unique_eds_devices = cursor.fetchone()[0]
+    else:
+        unique_eds_devices = 0
 
     conn.close()
 

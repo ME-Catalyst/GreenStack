@@ -39,7 +39,9 @@ API_WORKERS = int(os.getenv('API_WORKERS', '4'))  # Enable parallel processing
 # ============================================================================
 
 FRONTEND_HOST = os.getenv('FRONTEND_HOST', '0.0.0.0')
-FRONTEND_PORT = int(os.getenv('FRONTEND_PORT', '3000'))
+FRONTEND_PORT = int(os.getenv('FRONTEND_PORT', '6173'))
+FRONTEND_PORT_RANGE_START = int(os.getenv('FRONTEND_PORT_RANGE_START', '6000'))
+FRONTEND_PORT_RANGE_END = int(os.getenv('FRONTEND_PORT_RANGE_END', '6999'))
 AUTO_OPEN_BROWSER = os.getenv('AUTO_OPEN_BROWSER', 'true').lower() == 'true'
 
 # ============================================================================

@@ -9,6 +9,7 @@ import argparse
 import logging
 import os
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -147,6 +148,44 @@ class IODDManagerLauncher:
 
         logger.info(f"✅ Frontend server is running on http://localhost:{self.frontend_port}")
         return True
+
+    def _is_port_available(self, port: int) -> bool:
+        """Check whether a TCP port is free on localhost."""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                sock.bind(('127.0.0.1', port))
+                return True
+            except OSError:
+                return False
+
+    def _find_available_frontend_port(self, preferred_port: int) -> int:
+        """Find an available frontend port within the configured range."""
+        start = min(config.FRONTEND_PORT_RANGE_START, config.FRONTEND_PORT_RANGE_END)
+        end = max(config.FRONTEND_PORT_RANGE_START, config.FRONTEND_PORT_RANGE_END)
+
+        candidates = []
+        if preferred_port:
+            candidates.append(preferred_port)
+
+        for port in range(start, end + 1):
+            if port not in candidates:
+                candidates.append(port)
+
+        for port in candidates:
+            if self._is_port_available(port):
+                if port != preferred_port:
+                    logger.warning(
+                        "Preferred frontend port %s unavailable; using %s instead",
+                        preferred_port,
+                        port,
+                    )
+                return port
+
+        raise RuntimeError(
+            f"No available frontend ports between {start} and {end}. "
+            "Please free a port or adjust FRONTEND_PORT_RANGE_* settings."
+        )
     
     def open_browser(self):
         """Open the web interface in the default browser"""
@@ -331,8 +370,8 @@ def main():
     parser.add_argument(
         '--frontend-port',
         type=int,
-        default=3000,
-        help='Frontend server port (default: 3000)'
+        default=None,
+        help='Preferred frontend server port (auto-detects free port in 6000-range if omitted)'
     )
     
     parser.add_argument(
@@ -345,9 +384,15 @@ def main():
     
     # Create and run launcher
     launcher = IODDManagerLauncher()
-    launcher.api_port = args.api_port
-    launcher.frontend_port = args.frontend_port
-    
+    launcher.api_port = args.api_port or config.API_PORT
+
+    if args.frontend_port is not None:
+        launcher.frontend_port = args.frontend_port
+    else:
+        launcher.frontend_port = config.FRONTEND_PORT
+
+    launcher.frontend_port = launcher._find_available_frontend_port(launcher.frontend_port)
+
     return launcher.run(args)
 
 if __name__ == '__main__':

@@ -443,8 +443,8 @@ const HubTab = ({ overview, onNavigate, API_BASE }) => {
       items: [
         { label: 'README', onClick: () => onNavigate('docs'), internal: true },
         { label: 'API Docs (Swagger)', href: `${API_BASE}/docs`, external: true },
-        { label: 'Changelog', href: '/docs/CHANGELOG.md', external: true },
-        { label: 'Contributing Guide', href: '/docs/CONTRIBUTING.md', external: true }
+        { label: 'Changelog', href: '/docs/reports/CHANGELOG.md', external: true },
+        { label: 'Contributing Guide', href: '/docs/guides/CONTRIBUTING.md', external: true }
       ]
     },
     {

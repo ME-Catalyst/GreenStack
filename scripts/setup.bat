@@ -83,7 +83,7 @@ echo.
 echo ══════════════════════════════════════════════════════════════
 echo   The application will start in a moment...
 echo   • API Server: http://localhost:8000
-echo   • Web Interface: http://localhost:5173 (or next available port)
+echo   • Web Interface: http://localhost:6173 (auto-detects next open port)
 echo   • API Documentation: http://localhost:8000/docs
 echo ══════════════════════════════════════════════════════════════
 echo.
@@ -92,7 +92,7 @@ echo.
 
 :: Start the application
 :: Note: The Python script will auto-detect and use the next available port
-python -m src.start --frontend-port 5173
+python -m src.start
 if %errorlevel% neq 0 (
     echo.
     echo X Application failed to start! See errors above.

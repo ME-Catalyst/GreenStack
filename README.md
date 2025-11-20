@@ -86,14 +86,14 @@ chmod +x setup.sh
 ```
 
 **Access the application:**
-- Web Interface: http://localhost:5173
+- Web Interface: http://localhost:6173 (auto-detects an open port in the 6000s when using `setup.bat`)
 - API Documentation: http://localhost:8000/docs
 
 ## Documentation
 
 📚 **Complete in-platform documentation system with 28 comprehensive pages!**
 
-Access all documentation directly in the web interface at http://localhost:5173 → Click **"Docs"**
+Access all documentation directly in the web interface at http://localhost:6173 → Click **"Docs"** (or whatever port `setup.bat` selects)
 
 ### 📖 In-Platform Documentation (28 Pages)
 
@@ -132,8 +132,8 @@ Access all documentation directly in the web interface at http://localhost:5173 
 - Interactive API testing and documentation
 
 ### 📝 GitHub Documentation
-- **[Contributing Guide](docs/CONTRIBUTING.md)** - Development workflow and standards
-- **[Changelog](docs/CHANGELOG.md)** - Version history and release notes
+- **[Contributing Guide](docs/guides/CONTRIBUTING.md)** - Development workflow and standards
+- **[Changelog](docs/reports/CHANGELOG.md)** - Version history and release notes
 - **[License](LICENSE.md)** - MIT License details
 
 ### 📦 Component READMEs
@@ -151,7 +151,7 @@ Access all documentation directly in the web interface at http://localhost:5173 
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for:
+We welcome contributions! Please see our [Contributing Guide](docs/guides/CONTRIBUTING.md) for:
 
 - Development setup and workflow
 - Code style guidelines and standards
