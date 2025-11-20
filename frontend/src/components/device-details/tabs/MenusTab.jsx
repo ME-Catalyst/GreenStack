@@ -5,11 +5,16 @@ import {
 import {
   Menu, Download
 } from 'lucide-react';
+import IODDMenuRenderer from '../IODDMenuRenderer';
 
 
-export const MenusTab = ({ device, uiMenus, MenuItemDisplay, InteractiveParameterControl }) => {
+export const MenusTab = ({ device, uiMenus, MenuItemDisplay, InteractiveParameterControl, API_BASE }) => {
   return (
               <TabsContent value="menus" className="space-y-4 mt-6">
+            {/* IODD Menu Renderer - Role-based interactive menu interface */}
+            {device && device.id && (
+              <IODDMenuRenderer deviceId={device.id} API_BASE={API_BASE} />
+            )}
             {/* System Command Buttons */}
             {menuButtons && menuButtons.length > 0 && (
               <Card className="bg-card/80 backdrop-blur-sm border-border hover:border-orange-500/30 transition-all">
