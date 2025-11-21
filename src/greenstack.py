@@ -2682,8 +2682,8 @@ class StorageManager:
                                       access_rights, default_value, min_value,
                                       max_value, unit, description, enumeration_values, bit_length,
                                       dynamic, excluded_from_data_storage, modifies_other_variables,
-                                      unit_code, value_range_name)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                      unit_code, value_range_name, variable_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 device_id,
                 param.index,
@@ -2701,7 +2701,8 @@ class StorageManager:
                 1 if param.excluded_from_data_storage else 0,
                 1 if param.modifies_other_variables else 0,
                 param.unit_code,
-                param.value_range_name
+                param.value_range_name,
+                param.id  # Store the original IODD Variable ID
             ))
 
         # Save error types

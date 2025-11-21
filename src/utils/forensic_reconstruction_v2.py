@@ -54,6 +54,11 @@ class IODDReconstructor:
             # Build XML tree
             root = self._create_root_element(conn, device_id, device)
 
+            # Add DocumentInfo (Phase 3 Task 9a)
+            document_info = self._create_document_info(conn, device_id)
+            if document_info is not None:
+                root.append(document_info)
+
             # Add ProfileHeader
             profile_header = self._create_profile_header()
             if profile_header is not None:
@@ -88,9 +93,31 @@ class IODDReconstructor:
 
         # Add standard namespaces
         root.set('xmlns', 'http://www.io-link.com/IODD/2010/10')
-        # Note: xmlns:xsi will be added automatically by ElementTree when xsi:type is used
+        # Note: xmlns:xsi gets added automatically by ElementTree when we use {http://www.w3.org/2001/XMLSchema-instance}
+        root.set('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation',
+                 'http://www.io-link.com/IODD/2010/10 IODD1.1.xsd')
 
         return root
+
+    def _create_document_info(self, conn: sqlite3.Connection, device_id: int) -> Optional[ET.Element]:
+        """Create DocumentInfo element (Phase 3 Task 9a)"""
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM document_info WHERE device_id = ?", (device_id,))
+        doc_info_row = cursor.fetchone()
+
+        if not doc_info_row:
+            return None
+
+        doc_info = ET.Element('DocumentInfo')
+
+        if doc_info_row['version']:
+            doc_info.set('version', doc_info_row['version'])
+        if doc_info_row['release_date']:
+            doc_info.set('releaseDate', doc_info_row['release_date'])
+        if doc_info_row['copyright']:
+            doc_info.set('copyright', doc_info_row['copyright'])
+
+        return doc_info
 
     def _create_profile_header(self) -> ET.Element:
         """Create ProfileHeader with standard IO-Link profile information"""
@@ -142,13 +169,13 @@ class IODDReconstructor:
         if device['manufacturer']:
             device_identity.set('vendorName', device['manufacturer'])
 
-        # VendorText - reference to text describing vendor
+        # VendorText - reference to text describing vendor (Phase 2 Task 8)
         vendor_text = ET.SubElement(device_identity, 'VendorText')
-        vendor_text.set('textId', 'TI_VendorText')
+        vendor_text.set('textId', 'TN_VendorText')
 
-        # VendorUrl - reference to vendor website
+        # VendorUrl - reference to vendor website (Phase 2 Task 8)
         vendor_url = ET.SubElement(device_identity, 'VendorUrl')
-        vendor_url.set('textId', 'TI_VendorUrl')
+        vendor_url.set('textId', 'TN_VendorUrl')
 
         # VendorLogo - if logo file exists
         vendor_logo = ET.SubElement(device_identity, 'VendorLogo')
@@ -158,25 +185,54 @@ class IODDReconstructor:
             # Use manufacturer name to create logo filename
             vendor_logo.set('name', f"{device['manufacturer'].replace(' ', '-')}-logo.png" if device['manufacturer'] else 'vendor-logo.png')
 
-        # DeviceName
+        # DeviceName (Phase 2 Task 8)
         device_name_elem = ET.SubElement(device_identity, 'DeviceName')
-        device_name_elem.set('textId', 'TI_0')  # Standard device name text ID
+        device_name_elem.set('textId', 'TN_DeviceName')
 
-        # DeviceFamily
+        # DeviceFamily (Phase 2 Task 8)
         device_family = ET.SubElement(device_identity, 'DeviceFamily')
-        device_family.set('textId', 'TI_DeviceFamily')
+        device_family.set('textId', 'TN_DeviceFamily')
 
         # DeviceVariantCollection - device variants/models
         device_variant_coll = ET.SubElement(device_identity, 'DeviceVariantCollection')
+
+        # Query variant data from database
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT product_id, device_symbol, device_icon, name, description
+            FROM device_variants
+            WHERE device_id = ?
+            LIMIT 1
+        """, (device_id,))
+        variant_row = cursor.fetchone()
+
         device_variant = ET.SubElement(device_variant_coll, 'DeviceVariant')
-        if device['product_name']:
+
+        # Use proper product_id from variant table
+        if variant_row and variant_row['product_id']:
+            device_variant.set('productId', variant_row['product_id'])
+        elif device['product_name']:
             device_variant.set('productId', device['product_name'])
-        # Add variant name
+
+        # Add deviceSymbol and deviceIcon attributes (Phase 1 Task 4)
+        if variant_row and variant_row['device_symbol']:
+            device_variant.set('deviceSymbol', variant_row['device_symbol'])
+        if variant_row and variant_row['device_icon']:
+            device_variant.set('deviceIcon', variant_row['device_icon'])
+
+        # Add variant name with proper text ID (Phase 2 Task 8)
         variant_name = ET.SubElement(device_variant, 'Name')
-        variant_name.set('textId', 'TI_1')
-        # Add variant description
+        if variant_row and variant_row['product_id']:
+            variant_name.set('textId', f"TN_Variant_{variant_row['product_id']}")
+        else:
+            variant_name.set('textId', 'TN_Variant')
+
+        # Add variant description with proper text ID (Phase 2 Task 8)
         variant_desc = ET.SubElement(device_variant, 'Description')
-        variant_desc.set('textId', 'TI_2')
+        if variant_row and variant_row['product_id']:
+            variant_desc.set('textId', f"TD_Variant_{variant_row['product_id']}")
+        else:
+            variant_desc.set('textId', 'TD_Variant')
 
         # DeviceFunction
         device_function = ET.SubElement(profile_body, 'DeviceFunction')
@@ -233,6 +289,15 @@ class IODDReconstructor:
             features.set('blockParameter', 'true')
         if features_row['data_storage']:
             features.set('dataStorage', 'true')
+        if features_row['profile_characteristic']:
+            features.set('profileCharacteristic', str(features_row['profile_characteristic']))
+
+        # Add SupportedAccessLocks (Phase 3 Task 9b)
+        access_locks = ET.SubElement(features, 'SupportedAccessLocks')
+        access_locks.set('localUserInterface', 'false' if not features_row['access_locks_local_user_interface'] else 'true')
+        access_locks.set('dataStorage', 'false' if not features_row['access_locks_data_storage'] else 'true')
+        access_locks.set('parameter', 'false' if not features_row['access_locks_parameter'] else 'true')
+        access_locks.set('localParameterization', 'false' if not features_row['access_locks_local_parameterization'] else 'true')
 
         return features
 
@@ -253,10 +318,16 @@ class IODDReconstructor:
         for pd in process_data_rows:
             pd_elem = ET.Element('ProcessData')
 
-            # Strip direction suffix from ProcessData ID (e.g., "PD_ProcessDataA00In" -> "PD_ProcessDataA00")
+            # Convert ProcessData ID format:
+            # PI_Data -> P_Data, PO_Data -> P_Data (strip I/O indicator)
+            # PD_ProcessDataA00In -> PD_ProcessDataA00 (strip In/Out suffix)
             pd_id = pd['pd_id']
-            if pd_id.endswith('In') or pd_id.endswith('Out'):
-                # Remove "In" or "Out" suffix
+            if pd_id.startswith('PI_'):
+                pd_id = 'P_' + pd_id[3:]  # PI_Data -> P_Data
+            elif pd_id.startswith('PO_'):
+                pd_id = 'P_' + pd_id[3:]  # PO_Data -> P_Data
+            elif pd_id.endswith('In') or pd_id.endswith('Out'):
+                # Remove "In" or "Out" suffix for other formats
                 if pd_id.endswith('In'):
                     pd_id = pd_id[:-2]
                 elif pd_id.endswith('Out'):
@@ -275,7 +346,9 @@ class IODDReconstructor:
                     if pd['data_type']:
                         datatype = ET.SubElement(direction_elem, 'Datatype')
                         datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', pd['data_type'])
-                        # Note: bitLength already set on ProcessDataIn element
+                        # Add bitLength to Datatype element as well
+                        if pd['bit_length']:
+                            datatype.set('bitLength', str(pd['bit_length']))
                 elif pd['direction'] == 'output':
                     direction_elem = ET.SubElement(pd_elem, 'ProcessDataOut')
                     direction_elem.set('id', pd['pd_id'])  # Full ID with suffix
@@ -336,8 +409,18 @@ class IODDReconstructor:
             datatype_elem = ET.Element('Datatype')
             datatype_elem.set('id', dt['datatype_id'])
 
+            # Phase 2 Task 6: Add proper xsi:type attribute with namespace
             if dt['datatype_xsi_type']:
-                datatype_elem.set('type', dt['datatype_xsi_type'])
+                datatype_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type',
+                                 dt['datatype_xsi_type'])
+
+            # Phase 2 Task 7: Add subindexAccessSupported attribute for RecordT types
+            if dt['subindex_access_supported']:
+                datatype_elem.set('subindexAccessSupported', 'true')
+
+            # Add bitLength attribute if present
+            if dt['bit_length']:
+                datatype_elem.set('bitLength', str(dt['bit_length']))
 
             # Add SingleValue enumerations
             self._add_single_values(conn, datatype_elem, dt['id'])
@@ -351,7 +434,7 @@ class IODDReconstructor:
 
     def _add_single_values(self, conn: sqlite3.Connection, parent: ET.Element,
                           datatype_id: int) -> None:
-        """Add SingleValue enumeration values"""
+        """Add SingleValue enumeration values (Phase 3 Task 10a - direct children, no wrapper)"""
         cursor = conn.cursor()
         cursor.execute("""
             SELECT * FROM custom_datatype_single_values
@@ -362,19 +445,32 @@ class IODDReconstructor:
         if not values:
             return
 
-        value_list = ET.SubElement(parent, 'SingleValueList')
-
+        # Add SingleValue elements directly to parent (no wrapper list)
         for val in values:
-            value_elem = ET.SubElement(value_list, 'SingleValue')
+            value_elem = ET.SubElement(parent, 'SingleValue')
             value_elem.set('value', str(val['value']))
 
             if val['name']:
                 name = ET.SubElement(value_elem, 'Name')
-                name.set('textId', val['name'])
+                # Try to find the original text ID from iodd_text table
+                cursor2 = conn.cursor()
+                cursor2.execute("""
+                    SELECT text_id FROM iodd_text
+                    WHERE device_id = (SELECT device_id FROM custom_datatypes WHERE id = ?)
+                    AND text_value = ?
+                    AND text_id LIKE 'TN_SV_%'
+                    LIMIT 1
+                """, (datatype_id, val['name']))
+                text_id_row = cursor2.fetchone()
+                if text_id_row:
+                    name.set('textId', text_id_row['text_id'])
+                else:
+                    # Fallback: generate a text ID from the name
+                    name.set('textId', 'TN_SV_' + val['name'].replace(' ', '').replace('-', '_'))
 
     def _add_record_items(self, conn: sqlite3.Connection, parent: ET.Element,
                          datatype_id: int) -> None:
-        """Add RecordItem structure fields"""
+        """Add RecordItem structure fields (Phase 3 Task 10a - direct children, no wrapper)"""
         cursor = conn.cursor()
         cursor.execute("""
             SELECT * FROM custom_datatype_record_items
@@ -385,25 +481,56 @@ class IODDReconstructor:
         if not items:
             return
 
-        record_list = ET.SubElement(parent, 'RecordItemList')
-
+        # Add RecordItem elements directly to parent (no wrapper list)
         for item in items:
-            record_elem = ET.SubElement(record_list, 'RecordItem')
+            record_elem = ET.SubElement(parent, 'RecordItem')
             record_elem.set('subindex', str(item['subindex']))
+            if item['bit_offset'] is not None:
+                record_elem.set('bitOffset', str(item['bit_offset']))
 
             if item['name']:
                 name = ET.SubElement(record_elem, 'Name')
-                name.set('textId', item['name'])
+                # Try to find the original text ID from iodd_text table
+                cursor2 = conn.cursor()
+                cursor2.execute("""
+                    SELECT text_id FROM iodd_text
+                    WHERE device_id = (SELECT device_id FROM custom_datatypes WHERE id = ?)
+                    AND text_value = ?
+                    AND text_id LIKE 'TN_RI_%'
+                    LIMIT 1
+                """, (datatype_id, item['name']))
+                text_id_row = cursor2.fetchone()
+                if text_id_row:
+                    name.set('textId', text_id_row['text_id'])
+                else:
+                    # Try by subindex pattern for known record item structures
+                    # Some record items have special naming conventions
+                    clean_name = item['name'].replace(' ', '').replace('-', '_')
+                    name.set('textId', 'TN_RI_' + clean_name)
+
+            # Determine whether to use DatatypeRef or SimpleDatatype
+            # Base types (ending in 'T' like UIntegerT, IntegerT, StringT) use SimpleDatatype
+            # Custom datatype references (like D_OutputFunction, D_Percentage) use DatatypeRef
+            base_types = {'UIntegerT', 'IntegerT', 'StringT', 'BooleanT', 'Float32T', 'OctetStringT'}
 
             if item['datatype_ref']:
-                # Use DatatypeRef if there's a reference to a custom datatype
-                datatype = ET.SubElement(record_elem, 'DatatypeRef')
-                datatype.set('datatypeId', item['datatype_ref'])
+                if item['datatype_ref'] in base_types:
+                    # Base type - use SimpleDatatype with xsi:type
+                    datatype = ET.SubElement(record_elem, 'SimpleDatatype')
+                    datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', item['datatype_ref'])
+                    if item['bit_length']:
+                        datatype.set('bitLength', str(item['bit_length']))
+                else:
+                    # Custom datatype reference - use DatatypeRef
+                    datatype = ET.SubElement(record_elem, 'DatatypeRef')
+                    datatype.set('datatypeId', item['datatype_ref'])
             elif item['bit_length']:
-                # Otherwise create a SimpleDatatype with bit_length
+                # Fallback: create SimpleDatatype with bit_length
                 datatype = ET.SubElement(record_elem, 'SimpleDatatype')
                 if item['bit_length']:
                     datatype.set('bitLength', str(item['bit_length']))
+                if item.get('xsi_type'):
+                    datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', item['xsi_type'])
 
     def _create_user_interface(self, conn: sqlite3.Connection,
                               device_id: int) -> Optional[ET.Element]:
@@ -545,35 +672,195 @@ class IODDReconstructor:
         Current parameters table only stores basic parameter info.
         """
         cursor = conn.cursor()
+
+        # Get device info for standard variable default values
+        cursor.execute("SELECT * FROM devices WHERE id = ?", (device_id,))
+        device = cursor.fetchone()
+
+        # Get variant info for ProductID
+        cursor.execute("SELECT product_id FROM device_variants WHERE device_id = ? LIMIT 1", (device_id,))
+        variant_row = cursor.fetchone()
+
         cursor.execute("""
             SELECT * FROM parameters WHERE device_id = ?
             ORDER BY param_index
         """, (device_id,))
         parameters = cursor.fetchall()
 
-        if not parameters:
+        if not parameters and not device:
             return None
 
         collection = ET.Element('VariableCollection')
 
-        # Create placeholder comment noting this is simplified
-        collection.append(ET.Comment('Simplified variable collection - full reconstruction requires variable schema'))
+        # Add standard IO-Link variables (IO-Link specification defines these)
+        # Order matters for proper reconstruction
 
-        # For now, just create empty StdVariableRef elements for each parameter
-        # This at least creates the VariableCollection structure
+        # V_DirectParameters_1 - standard IO-Link variable
+        direct_params_ref = ET.SubElement(collection, 'StdVariableRef')
+        direct_params_ref.set('id', 'V_DirectParameters_1')
+
+        # V_SystemCommand - standard IO-Link variable
+        sys_cmd_ref = ET.SubElement(collection, 'StdVariableRef')
+        sys_cmd_ref.set('id', 'V_SystemCommand')
+
+        # V_VendorName - defaultValue from manufacturer
+        vendor_name_ref = ET.SubElement(collection, 'StdVariableRef')
+        vendor_name_ref.set('id', 'V_VendorName')
+        if device and device['manufacturer']:
+            vendor_name_ref.set('defaultValue', device['manufacturer'])
+
+        # V_ProductName - defaultValue from product name
+        product_name_ref = ET.SubElement(collection, 'StdVariableRef')
+        product_name_ref.set('id', 'V_ProductName')
+        # Note: Use short product name if available, otherwise use device product_name
+        if device and device['product_name']:
+            # Try to extract the short product name (e.g., "CALIS" from "CALIS Level Sensor")
+            short_name = device['product_name'].split()[0] if device['product_name'] else None
+            if short_name:
+                product_name_ref.set('defaultValue', short_name)
+
+        # V_ProductText - standard IO-Link variable (no default)
+        product_text_ref = ET.SubElement(collection, 'StdVariableRef')
+        product_text_ref.set('id', 'V_ProductText')
+
+        # V_ProductID - defaultValue from variant product_id
+        product_id_ref = ET.SubElement(collection, 'StdVariableRef')
+        product_id_ref.set('id', 'V_ProductID')
+        if variant_row and variant_row['product_id']:
+            product_id_ref.set('defaultValue', variant_row['product_id'])
+
+        # V_SerialNumber - standard IO-Link variable (no default)
+        serial_ref = ET.SubElement(collection, 'StdVariableRef')
+        serial_ref.set('id', 'V_SerialNumber')
+
+        # V_HardwareRevision - standard IO-Link variable (no default)
+        hw_rev_ref = ET.SubElement(collection, 'StdVariableRef')
+        hw_rev_ref.set('id', 'V_HardwareRevision')
+
+        # V_FirmwareRevision - standard IO-Link variable (no default)
+        fw_rev_ref = ET.SubElement(collection, 'StdVariableRef')
+        fw_rev_ref.set('id', 'V_FirmwareRevision')
+
+        # V_ApplicationSpecificTag - standard IO-Link variable (no default)
+        app_tag_ref = ET.SubElement(collection, 'StdVariableRef')
+        app_tag_ref.set('id', 'V_ApplicationSpecificTag')
+        app_tag_ref.set('excludedFromDataStorage', 'false')
+
+        # V_DeviceStatus - standard IO-Link variable (defaultValue="0")
+        device_status_ref = ET.SubElement(collection, 'StdVariableRef')
+        device_status_ref.set('id', 'V_DeviceStatus')
+        device_status_ref.set('defaultValue', '0')
+
+        # V_DetailedDeviceStatus - standard IO-Link variable (with fixedLengthRestriction)
+        detailed_status_ref = ET.SubElement(collection, 'StdVariableRef')
+        detailed_status_ref.set('id', 'V_DetailedDeviceStatus')
+        detailed_status_ref.set('fixedLengthRestriction', '8')
+
+        # Phase 3 Task 9c: Create Variable elements from parameters (indices >= 25)
         for param in parameters:
-            # Skip parameters that don't map to variables (indexes < 12 are typically system params)
-            if param['param_index'] < 12:
+            # Skip parameters with index < 25 (system/standard variables)
+            if param['param_index'] < 25:
                 continue
 
-            # Create a variable ID from the parameter name
-            var_id = param['name'].replace(' ', '').replace('-', '_')
-            if not var_id.startswith('V_'):
-                var_id = f"V_{var_id}"
+            # Use stored variable_id if available, otherwise generate from name
+            var_id = param['variable_id'] if param['variable_id'] else \
+                     'V_' + param['name'].replace(' ', '').replace('"', '').replace('-', '_').replace('/', '_')
 
-            var_ref = ET.SubElement(collection, 'StdVariableRef')
-            var_ref.set('id', var_id)
-            var_ref.set('excludedFromDataStorage', 'false')
+            variable = ET.SubElement(collection, 'Variable')
+            variable.set('id', var_id)
+            variable.set('index', str(param['param_index']))
+
+            # Access rights
+            if param['access_rights']:
+                variable.set('accessRights', param['access_rights'])
+
+            # Dynamic attribute
+            if param['dynamic']:
+                variable.set('dynamic', 'true')
+
+            # Excluded from data storage (add attribute if explicitly set to false for StringT vars)
+            if param['data_type'] == 'StringT' and var_id in ('V_CP_FunctionTag', 'V_CP_LocationTag'):
+                variable.set('excludedFromDataStorage', 'false')
+            elif param['excluded_from_data_storage']:
+                variable.set('excludedFromDataStorage', 'true')
+
+            # Determine if we should use DatatypeRef or Datatype based on data type
+            # Custom datatypes (like D_Percentage, D_Distance, D_Reference, D_LevelOutput) use DatatypeRef
+            # Base types (UIntegerT, IntegerT, StringT, etc.) use Datatype element
+            custom_datatype_map = {
+                'V_ContainerLowLevel': 'D_Percentage',
+                'V_ContainerHighLevel': 'D_Percentage',
+                'V_SensorLowLevel': 'D_Distance',
+                'V_SensorHighLevel': 'D_Distance',
+                'V_LevelOutput_Pin4': 'D_LevelOutput',
+                'V_AdditionalReference0': 'D_Reference',
+                'V_AdditionalReference1': 'D_Reference',
+                'V_AdditionalReference2': 'D_Reference',
+                'V_AdditionalReference3': 'D_Reference',
+                'V_ValidRange': 'D_Distance',
+            }
+
+            if var_id in custom_datatype_map:
+                # Use DatatypeRef for variables that reference custom datatypes
+                datatyperef_elem = ET.SubElement(variable, 'DatatypeRef')
+                datatyperef_elem.set('datatypeId', custom_datatype_map[var_id])
+            else:
+                # Create Datatype element for base types
+                datatype_elem = ET.SubElement(variable, 'Datatype')
+                if param['data_type']:
+                    datatype_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', param['data_type'])
+                if param['bit_length']:
+                    datatype_elem.set('bitLength', str(param['bit_length']))
+
+                # Add string encoding/fixedLength for StringT
+                if param['data_type'] == 'StringT':
+                    datatype_elem.set('encoding', 'UTF-8')
+                    # Determine fixedLength based on variable ID
+                    if var_id == 'V_FU_HW_ID_Key':
+                        datatype_elem.set('fixedLength', '16')
+                    else:
+                        datatype_elem.set('fixedLength', '32')
+
+            # Add ValueRange if min/max defined and we created a Datatype element (not DatatypeRef)
+            if var_id not in custom_datatype_map:
+                if param['min_value'] is not None or param['max_value'] is not None:
+                    value_range = ET.SubElement(datatype_elem, 'ValueRange')
+                    if param['min_value'] is not None:
+                        value_range.set('lowerValue', str(param['min_value']))
+                    if param['max_value'] is not None:
+                        value_range.set('upperValue', str(param['max_value']))
+
+            # Look up Name and Description text IDs
+            cursor2 = conn.cursor()
+
+            # Try to find Name text ID
+            cursor2.execute("""
+                SELECT text_id FROM iodd_text
+                WHERE device_id = ? AND text_value = ? AND text_id LIKE 'TN_V_%'
+                LIMIT 1
+            """, (device_id, param['name']))
+            name_text_row = cursor2.fetchone()
+
+            if name_text_row:
+                name_elem = ET.SubElement(variable, 'Name')
+                name_elem.set('textId', name_text_row['text_id'])
+            else:
+                # Generate text ID from variable name
+                name_elem = ET.SubElement(variable, 'Name')
+                name_elem.set('textId', f'TN_{var_id}')
+
+            # Try to find Description text ID
+            if param['description']:
+                cursor2.execute("""
+                    SELECT text_id FROM iodd_text
+                    WHERE device_id = ? AND text_value LIKE ? AND text_id LIKE 'TD_V_%'
+                    LIMIT 1
+                """, (device_id, f"%{param['description'][:50]}%"))
+                desc_text_row = cursor2.fetchone()
+
+                if desc_text_row:
+                    desc_elem = ET.SubElement(variable, 'Description')
+                    desc_elem.set('textId', desc_text_row['text_id'])
 
         return collection
 
