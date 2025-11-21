@@ -246,6 +246,9 @@ class MenuItem:
     # Phase 1: UI rendering metadata
     gradient: Optional[float] = None
     offset: Optional[float] = None
+    # PQA: Store original string format for exact reconstruction
+    gradient_str: Optional[str] = None
+    offset_str: Optional[str] = None
     # Phase 3: Button configuration
     buttons: List[MenuButton] = field(default_factory=list)
     # PQA: MenuRef Condition support

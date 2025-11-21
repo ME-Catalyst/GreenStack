@@ -1607,6 +1607,8 @@ class IODDParser:
                     unit_code=var_ref.get('unitCode'),
                     gradient=float(gradient) if gradient else None,
                     offset=float(offset) if offset else None,
+                    gradient_str=gradient,  # PQA: preserve original string format
+                    offset_str=offset,  # PQA: preserve original string format
                     buttons=buttons
                 ))
 
@@ -1623,7 +1625,9 @@ class IODDParser:
                     display_format=record_ref.get('displayFormat'),
                     unit_code=record_ref.get('unitCode'),
                     gradient=float(gradient) if gradient else None,
-                    offset=float(offset) if offset else None
+                    offset=float(offset) if offset else None,
+                    gradient_str=gradient,  # PQA: preserve original string format
+                    offset_str=offset  # PQA: preserve original string format
                 ))
 
             # Extract menu references (sub-menus) with optional Condition

@@ -1123,10 +1123,13 @@ class IODDReconstructor:
                     if item['unit_code']:
                         var_ref.set('unitCode', item['unit_code'])
                     # Use 'is not None' to handle 0 values correctly
+                    # PQA: Use original string format if available, otherwise format the float
                     if item['gradient'] is not None:
-                        var_ref.set('gradient', self._format_number(item['gradient']))
+                        gradient_str = item['gradient_str'] if 'gradient_str' in item.keys() and item['gradient_str'] else None
+                        var_ref.set('gradient', gradient_str if gradient_str else self._format_number(item['gradient']))
                     if item['offset'] is not None:
-                        var_ref.set('offset', self._format_number(item['offset']))
+                        offset_str = item['offset_str'] if 'offset_str' in item.keys() and item['offset_str'] else None
+                        var_ref.set('offset', offset_str if offset_str else self._format_number(item['offset']))
                     # Add Button children if any
                     cursor2 = conn.cursor()
                     cursor2.execute("""
@@ -1161,10 +1164,13 @@ class IODDReconstructor:
                     if item['unit_code']:
                         record_ref.set('unitCode', item['unit_code'])
                     # Use 'is not None' to handle 0 values correctly
+                    # PQA: Use original string format if available, otherwise format the float
                     if item['gradient'] is not None:
-                        record_ref.set('gradient', self._format_number(item['gradient']))
+                        gradient_str = item['gradient_str'] if 'gradient_str' in item.keys() and item['gradient_str'] else None
+                        record_ref.set('gradient', gradient_str if gradient_str else self._format_number(item['gradient']))
                     if item['offset'] is not None:
-                        record_ref.set('offset', self._format_number(item['offset']))
+                        offset_str = item['offset_str'] if 'offset_str' in item.keys() and item['offset_str'] else None
+                        record_ref.set('offset', offset_str if offset_str else self._format_number(item['offset']))
                 elif item['menu_ref']:
                     # MenuRef
                     menu_ref = ET.SubElement(menu_elem, 'MenuRef')

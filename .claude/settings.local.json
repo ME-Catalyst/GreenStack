@@ -5,7 +5,18 @@
       "Bash(python:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(git -C F:/github/GreenStack status)",
+      "Bash(git -C F:/github/GreenStack diff --stat)",
+      "Bash(git -C F:/github/GreenStack add src/models/__init__.py src/parsing/__init__.py src/storage/custom_datatype.py src/storage/parameter.py src/storage/process_data.py src/utils/forensic_reconstruction_v2.py alembic/versions/050_add_record_item_access_right_restriction.py)",
+      "Bash(git -C F:/github/GreenStack commit -m \"$(cat <<''EOF''\nfeat(pqa): add RecordItem accessRightRestriction extraction and reconstruction\n\nExtract and store accessRightRestriction attribute from RecordItem elements\nacross all three contexts: VariableCollection, ProcessDataCollection, and\nDatatypeCollection. Update reconstruction to output the attribute when present.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C F:/github/GreenStack add docs/in-progress/session-log.md)",
+      "Bash(git -C F:/github/GreenStack commit -m \"$(cat <<''EOF''\ndocs: update session log with Fix #7 accessRightRestriction\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(dir:*)",
+      "Bash(git -C F:/github/GreenStack add src/utils/forensic_reconstruction_v2.py)",
+      "Bash(git -C F:/github/GreenStack commit -m \"$(cat <<''EOF''\nfeat(pqa): add CommNetworkProfile reconstruction\n\nGenerate CommNetworkProfile element with TransportLayers/PhysicalLayer,\nConnection with wire configurations, and Test section with Config and\nEventTrigger elements. Uses data from communication_profile,\nwire_configurations, device_test_config, and device_test_event_triggers tables.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C F:/github/GreenStack commit -m \"$(cat <<''EOF''\nfeat(pqa): add Stamp element reconstruction\n\nGenerate Stamp element with crc attribute and Checker child element\ncontaining name and version attributes. Data retrieved from iodd_files table.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C F:/github/GreenStack commit -m \"$(cat <<''EOF''\ndocs: update session log with Fix #8 and Fix #9\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

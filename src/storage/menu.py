@@ -66,8 +66,9 @@ class MenuSaver(BaseSaver):
                 menu_id, variable_id, record_item_ref, subindex,
                 access_right_restriction, display_format, unit_code,
                 button_value, menu_ref, item_order, gradient, offset,
-                condition_variable_id, condition_value
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                condition_variable_id, condition_value,
+                gradient_str, offset_str
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         for idx, item in enumerate(items):
@@ -86,6 +87,8 @@ class MenuSaver(BaseSaver):
                 getattr(item, 'offset', None),
                 getattr(item, 'condition_variable_id', None),  # PQA: MenuRef Condition
                 getattr(item, 'condition_value', None),  # PQA: MenuRef Condition
+                getattr(item, 'gradient_str', None),  # PQA: original string format
+                getattr(item, 'offset_str', None),  # PQA: original string format
             )
             self._execute(query, params)
             menu_item_db_id = self._get_lastrowid()
