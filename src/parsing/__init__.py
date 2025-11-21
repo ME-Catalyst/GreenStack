@@ -784,13 +784,13 @@ class IODDParser:
                     subindex = int(record_item.get('subindex', 0))
                     bit_offset = int(record_item.get('bitOffset', 0))
 
-                    # Get record item name
-                    item_name_elem = record_item.find('.//iodd:Name', self.NAMESPACES)
+                    # Get record item name (direct child only, not SingleValue/Name)
+                    item_name_elem = record_item.find('iodd:Name', self.NAMESPACES)
                     item_name_id = item_name_elem.get('textId') if item_name_elem is not None else None
                     item_name = self._resolve_text(item_name_id) or f'Item {subindex}'
 
-                    # Get record item description (PQA reconstruction)
-                    item_desc_elem = record_item.find('.//iodd:Description', self.NAMESPACES)
+                    # Get record item description (direct child only, PQA reconstruction)
+                    item_desc_elem = record_item.find('iodd:Description', self.NAMESPACES)
                     item_desc_id = item_desc_elem.get('textId') if item_desc_elem is not None else None
                     item_description = self._resolve_text(item_desc_id) if item_desc_id else None
 
@@ -902,13 +902,13 @@ class IODDParser:
                     subindex = int(record_item.get('subindex', 0))
                     bit_offset = int(record_item.get('bitOffset', 0))
 
-                    # Get record item name
-                    item_name_elem = record_item.find('.//iodd:Name', self.NAMESPACES)
+                    # Get record item name (direct child only, not SingleValue/Name)
+                    item_name_elem = record_item.find('iodd:Name', self.NAMESPACES)
                     item_name_id = item_name_elem.get('textId') if item_name_elem is not None else None
                     item_name = self._resolve_text(item_name_id) or f'Item {subindex}'
 
-                    # Get record item description (PQA reconstruction)
-                    item_desc_elem = record_item.find('.//iodd:Description', self.NAMESPACES)
+                    # Get record item description (direct child only, PQA reconstruction)
+                    item_desc_elem = record_item.find('iodd:Description', self.NAMESPACES)
                     item_desc_id = item_desc_elem.get('textId') if item_desc_elem is not None else None
                     item_description = self._resolve_text(item_desc_id) if item_desc_id else None
 
@@ -1811,13 +1811,13 @@ class IODDParser:
                 subindex = record_item_elem.get('subindex')
                 bit_offset = record_item_elem.get('bitOffset')
 
-                # Get name
-                name_elem = record_item_elem.find('.//iodd:Name', self.NAMESPACES)
+                # Get name (direct child only, not SingleValue/Name)
+                name_elem = record_item_elem.find('iodd:Name', self.NAMESPACES)
                 name_text_id = name_elem.get('textId') if name_elem is not None else None
                 item_name = self._resolve_text(name_text_id) or f"Item_{subindex}"
 
-                # Get description (PQA reconstruction)
-                desc_elem = record_item_elem.find('.//iodd:Description', self.NAMESPACES)
+                # Get description (direct child only, PQA reconstruction)
+                desc_elem = record_item_elem.find('iodd:Description', self.NAMESPACES)
                 description_text_id = desc_elem.get('textId') if desc_elem is not None else None
                 description = self._resolve_text(description_text_id) if description_text_id else None
 
