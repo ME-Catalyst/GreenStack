@@ -45,15 +45,57 @@ logger = logging.getLogger(__name__)
 class IODDParser:
     """Parse IODD XML files and extract device information"""
 
-    NAMESPACES = {
+    # Known IODD schema namespaces
+    IODD_NAMESPACES = {
+        '1.1': 'http://www.io-link.com/IODD/2010/10',
+        '1.0.1': 'http://www.io-link.com/IODD/2009/11',
+    }
+
+    # Default namespace (fallback)
+    DEFAULT_NAMESPACES = {
         'iodd': 'http://www.io-link.com/IODD/2010/10'
     }
 
     def __init__(self, xml_content: str):
         self.xml_content = xml_content
         self.root = ET.fromstring(xml_content)
+        # Detect and set the correct namespace based on the XML file
+        self.NAMESPACES = self._detect_namespace()
+        self.detected_schema_version = self._detected_schema_version
         self.text_lookup = self._build_text_lookup()
         self.all_text_data = self._build_all_text_data()
+
+    def _detect_namespace(self) -> Dict[str, str]:
+        """Detect the IODD namespace from the root element
+
+        Returns:
+            Dict with 'iodd' key mapped to the detected namespace URI
+        """
+        # Get the root element's tag to extract namespace
+        root_tag = self.root.tag
+
+        # Extract namespace from tag (format: {namespace}localname)
+        if root_tag.startswith('{'):
+            namespace_end = root_tag.find('}')
+            if namespace_end > 0:
+                detected_ns = root_tag[1:namespace_end]
+
+                # Identify which schema version this corresponds to
+                for version, ns_uri in self.IODD_NAMESPACES.items():
+                    if detected_ns == ns_uri:
+                        self._detected_schema_version = version
+                        logger.debug(f"Detected IODD schema version {version} (namespace: {ns_uri})")
+                        return {'iodd': detected_ns}
+
+                # Unknown namespace - use it anyway but log warning
+                logger.warning(f"Unknown IODD namespace detected: {detected_ns}. Using it anyway.")
+                self._detected_schema_version = 'unknown'
+                return {'iodd': detected_ns}
+
+        # Fallback to default 1.1 namespace
+        logger.debug("No namespace detected in root element, using default IODD 1.1 namespace")
+        self._detected_schema_version = '1.1'
+        return self.DEFAULT_NAMESPACES.copy()
 
     def _build_text_lookup(self) -> Dict[str, str]:
         """Build lookup table for textId references from ExternalTextCollection (English only for backwards compatibility)"""
@@ -1295,7 +1337,16 @@ class IODDParser:
         return '1.0.1'
 
     def _get_schema_version(self) -> str:
-        """Get schema version from ProfileRevision"""
+        """Get schema version from namespace detection or ProfileRevision
+
+        Returns the detected schema version from namespace first (most reliable),
+        then falls back to ProfileRevision element content.
+        """
+        # Use detected schema version from namespace if available
+        if hasattr(self, 'detected_schema_version') and self.detected_schema_version != 'unknown':
+            return self.detected_schema_version
+
+        # Fallback to ProfileRevision
         profile_rev = self.root.find('.//iodd:ProfileRevision', self.NAMESPACES)
         if profile_rev is not None and profile_rev.text:
             return profile_rev.text

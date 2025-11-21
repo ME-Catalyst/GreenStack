@@ -23,17 +23,69 @@ class IODDReconstructor:
     iodd_text, device_features, ui_menus, etc.
     """
 
+    # Known IODD schema namespaces and XSD files
+    SCHEMA_CONFIGS = {
+        '1.1': {
+            'namespace': 'http://www.io-link.com/IODD/2010/10',
+            'xsd': 'IODD1.1.xsd'
+        },
+        '1.0.1': {
+            'namespace': 'http://www.io-link.com/IODD/2009/11',
+            'xsd': 'IODD1.0.1.xsd'
+        },
+        '1.0': {  # Alias for 1.0.1
+            'namespace': 'http://www.io-link.com/IODD/2009/11',
+            'xsd': 'IODD1.0.1.xsd'
+        },
+    }
+
+    DEFAULT_SCHEMA_VERSION = '1.1'
+
     def __init__(self, db_path: str = "greenstack.db"):
         self.db_path = db_path
-        # Register XML namespaces to prevent duplication
+        # Default namespace registration (will be updated per-device)
         ET.register_namespace('xsi', 'http://www.w3.org/2001/XMLSchema-instance')
-        ET.register_namespace('', 'http://www.io-link.com/IODD/2010/10')
+        # Default to 1.1 - this will be updated dynamically per device
+        self._current_namespace = self.SCHEMA_CONFIGS['1.1']['namespace']
+        ET.register_namespace('', self._current_namespace)
 
     def get_connection(self) -> sqlite3.Connection:
         """Get database connection with Row factory"""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
+
+    def _get_schema_version(self, conn: sqlite3.Connection, device_id: int) -> str:
+        """Get schema version for a device from iodd_files table
+
+        Args:
+            conn: Database connection
+            device_id: Device ID
+
+        Returns:
+            Schema version string (e.g., '1.1', '1.0.1', '1.0')
+        """
+        cursor = conn.cursor()
+        cursor.execute("SELECT schema_version FROM iodd_files WHERE device_id = ?", (device_id,))
+        row = cursor.fetchone()
+        if row and row['schema_version']:
+            return row['schema_version']
+        return self.DEFAULT_SCHEMA_VERSION
+
+    def _get_schema_config(self, schema_version: str) -> dict:
+        """Get schema configuration for a version
+
+        Args:
+            schema_version: Version string
+
+        Returns:
+            Dict with 'namespace' and 'xsd' keys
+        """
+        if schema_version in self.SCHEMA_CONFIGS:
+            return self.SCHEMA_CONFIGS[schema_version]
+        # Fallback to default
+        logger.warning(f"Unknown schema version '{schema_version}', falling back to {self.DEFAULT_SCHEMA_VERSION}")
+        return self.SCHEMA_CONFIGS[self.DEFAULT_SCHEMA_VERSION]
 
     def reconstruct_iodd(self, device_id: int) -> str:
         """
@@ -130,15 +182,27 @@ class IODDReconstructor:
 
     def _create_root_element(self, conn: sqlite3.Connection, device_id: int,
                             device: sqlite3.Row) -> ET.Element:
-        """Create root IODevice element"""
+        """Create root IODevice element with correct namespace based on schema version"""
         root = ET.Element('IODevice')
 
-        # Add standard namespaces
-        root.set('xmlns', 'http://www.io-link.com/IODD/2010/10')
+        # Get schema configuration for this device
+        schema_version = self._get_schema_version(conn, device_id)
+        schema_config = self._get_schema_config(schema_version)
+        namespace = schema_config['namespace']
+        xsd_file = schema_config['xsd']
+
+        # Store namespace for potential use in child elements
+        self._current_namespace = namespace
+        # Re-register default namespace for this device
+        ET.register_namespace('', namespace)
+
+        # Add namespaces
+        root.set('xmlns', namespace)
         # Note: xmlns:xsi gets added automatically by ElementTree when we use {http://www.w3.org/2001/XMLSchema-instance}
         root.set('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation',
-                 'http://www.io-link.com/IODD/2010/10 IODD1.1.xsd')
+                 f'{namespace} {xsd_file}')
 
+        logger.debug(f"Using schema version {schema_version} with namespace {namespace} for device {device_id}")
         return root
 
     def _create_document_info(self, conn: sqlite3.Connection, device_id: int) -> Optional[ET.Element]:
