@@ -116,7 +116,7 @@ class RecordItem:
     subindex: int
     name: str
     bit_offset: int
-    bit_length: int
+    bit_length: Optional[int]  # None when not explicitly in original IODD (PQA)
     data_type: str
     default_value: Optional[str] = None
     single_values: List[SingleValue] = field(default_factory=list)

@@ -1,12 +1,12 @@
 {
-  "generated_at": "2025-11-21T15:05:12.841291",
+  "generated_at": "2025-11-21T16:24:06.142661",
   "project_name": "GreenStack",
   "language_stats": {
     "Python": {
-      "files": 157,
-      "lines": 42696,
-      "blank": 7061,
-      "comments": 2983,
+      "files": 158,
+      "lines": 42775,
+      "blank": 7073,
+      "comments": 2994,
       "is_doc": false
     },
     "JSX": {
@@ -32,15 +32,15 @@
     },
     "JSON": {
       "files": 10,
-      "lines": 14941,
+      "lines": 14834,
       "blank": 0,
       "comments": 0,
       "is_doc": false
     },
     "Markdown": {
       "files": 91,
-      "lines": 59799,
-      "blank": 13069,
+      "lines": 59875,
+      "blank": 13096,
       "comments": 0,
       "is_doc": true
     },
@@ -74,12 +74,40 @@
     }
   },
   "git_stats": {
-    "total_commits": 259,
+    "total_commits": 263,
     "contributors": 3,
     "branches": 4,
     "days_active": 10,
-    "recent_commits_30d": 259,
+    "recent_commits_30d": 263,
     "recent_commit_details": [
+      {
+        "hash": "0ce3f60",
+        "author": "sys_eng",
+        "email": "sys_eng@example.com",
+        "timestamp": 1763757447,
+        "message": "fix(pqa): replace .get() with sqlite3.Row compatible pattern"
+      },
+      {
+        "hash": "641189e",
+        "author": "sys_eng",
+        "email": "sys_eng@example.com",
+        "timestamp": 1763756781,
+        "message": "fix(pqa): add code attribute to StdErrorTypeRef reconstruction"
+      },
+      {
+        "hash": "89f2016",
+        "author": "sys_eng",
+        "email": "sys_eng@example.com",
+        "timestamp": 1763756699,
+        "message": "feat(pqa): add ProcessData name_text_id and subindexAccessSupported"
+      },
+      {
+        "hash": "1940a62",
+        "author": "sys_eng",
+        "email": "sys_eng@example.com",
+        "timestamp": 1763755665,
+        "message": "fix(pqa): fix parser shadowing and boolean column defaults"
+      },
       {
         "hash": "b979f12",
         "author": "sys_eng",
@@ -121,40 +149,12 @@
         "email": "sys_eng@example.com",
         "timestamp": 1763750756,
         "message": "feat(pqa): implement Phase 2 - preserve original textIds and ordering"
-      },
-      {
-        "hash": "93bfb1e",
-        "author": "sys_eng",
-        "email": "sys_eng@example.com",
-        "timestamp": 1763749550,
-        "message": "feat(pqa): implement Phase 1 - fix default attribute generation"
-      },
-      {
-        "hash": "8ffa12c",
-        "author": "sys_eng",
-        "email": "sys_eng@example.com",
-        "timestamp": 1763747837,
-        "message": "chore: update codebase statistics"
-      },
-      {
-        "hash": "820add3",
-        "author": "sys_eng",
-        "email": "sys_eng@example.com",
-        "timestamp": 1763747828,
-        "message": "chore: add codebase stats update to setup script"
-      },
-      {
-        "hash": "c9131f1",
-        "author": "sys_eng",
-        "email": "sys_eng@example.com",
-        "timestamp": 1763747754,
-        "message": "feat: add NetworkConfigTab for advanced EDS network configuration"
       }
     ]
   },
   "file_counts": {
-    "total_files": 475,
-    "total_directories": 84
+    "total_files": 478,
+    "total_directories": 85
   },
   "project_structure": {
     "backend": 64,
@@ -171,22 +171,22 @@
     "npm_dev_dependencies": 10
   },
   "database_stats": {
-    "iodd_devices": 149,
-    "iodd_files": 149,
-    "eds_files": 0,
-    "eds_variants": 0,
-    "total_parameters": 3939,
-    "total_assemblies": 0,
-    "pqa_analyses": 149
+    "iodd_devices": 161,
+    "iodd_files": 161,
+    "eds_files": 73,
+    "eds_variants": 43,
+    "total_parameters": 15239,
+    "total_assemblies": 1375,
+    "pqa_analyses": 161
   },
   "totals": {
-    "total_code_lines": 102636,
-    "total_doc_lines": 46730,
-    "total_lines": 149366,
-    "total_code_files": 335,
+    "total_code_lines": 102585,
+    "total_doc_lines": 46779,
+    "total_lines": 149364,
+    "total_code_files": 336,
     "total_doc_files": 91,
-    "total_files_counted": 426,
-    "total_blank_lines": 25235,
-    "total_comment_lines": 3706
+    "total_files_counted": 427,
+    "total_blank_lines": 25274,
+    "total_comment_lines": 3717
   }
 }

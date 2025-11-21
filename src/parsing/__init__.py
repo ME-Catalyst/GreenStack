@@ -683,7 +683,8 @@ class IODDParser:
                 bit_length = None
             elif simple_dt is not None:
                 data_type = simple_dt.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'UIntegerT')
-                bit_length = int(simple_dt.get('bitLength', 8)) if simple_dt.get('bitLength') else 8
+                # PQA: Only store bitLength if explicitly present in original IODD
+                bit_length = int(simple_dt.get('bitLength')) if simple_dt.get('bitLength') else None
 
                 # Extract SingleValues from SimpleDatatype
                 for sv_elem in simple_dt.findall('iodd:SingleValue', self.NAMESPACES):
@@ -700,13 +701,13 @@ class IODDParser:
                         ))
             else:
                 data_type = 'Unknown'
-                bit_length = 8
+                bit_length = None  # PQA: Don't assume bitLength when not in original
 
             record_items.append(RecordItem(
                 subindex=subindex,
                 name=name,
                 bit_offset=bit_offset,
-                bit_length=bit_length or 8,
+                bit_length=bit_length,  # PQA: None if not in original
                 data_type=data_type,
                 name_text_id=name_text_id,
                 single_values=single_values,
@@ -796,13 +797,14 @@ class IODDParser:
 
                     # Get datatype info and single values
                     item_type = 'Unknown'
-                    item_bit_length = 8
+                    item_bit_length = None  # PQA: Don't default, track if present
                     single_values = []
 
                     simple_dt = record_item.find('.//iodd:SimpleDatatype', self.NAMESPACES)
                     if simple_dt is not None:
                         item_type = simple_dt.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'UIntegerT')
-                        item_bit_length = int(simple_dt.get('bitLength', 8))
+                        # PQA: Only store bitLength if explicitly present
+                        item_bit_length = int(simple_dt.get('bitLength')) if simple_dt.get('bitLength') else None
 
                         # Extract inline single values
                         for single_val in simple_dt.findall('.//iodd:SingleValue', self.NAMESPACES):
@@ -832,7 +834,8 @@ class IODDParser:
                             if datatype_id in self.datatype_lookup:
                                 custom_dt = self.datatype_lookup[datatype_id]
                                 bit_len = custom_dt.get('bitLength')
-                                item_bit_length = int(bit_len) if bit_len is not None else 8
+                                # PQA: Only use bitLength if present in custom datatype
+                                item_bit_length = int(bit_len) if bit_len is not None else None
 
                                 # Convert single values dictionary to list of SingleValue objects
                                 for value, name in custom_dt.get('singleValues', {}).items():
@@ -842,10 +845,10 @@ class IODDParser:
                                         description=None
                                     ))
                             else:
-                                item_bit_length = 8  # Default
+                                item_bit_length = None  # PQA: No default
                         else:
                             item_type = 'Unknown'
-                            item_bit_length = 8
+                            item_bit_length = None  # PQA: No default
 
                     record_items.append(RecordItem(
                         subindex=subindex,
@@ -914,13 +917,14 @@ class IODDParser:
 
                     # Get datatype info and single values
                     item_type = 'Unknown'
-                    item_bit_length = 8
+                    item_bit_length = None  # PQA: Don't default, track if present
                     single_values = []
 
                     simple_dt = record_item.find('.//iodd:SimpleDatatype', self.NAMESPACES)
                     if simple_dt is not None:
                         item_type = simple_dt.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'UIntegerT')
-                        item_bit_length = int(simple_dt.get('bitLength', 8))
+                        # PQA: Only store bitLength if explicitly present
+                        item_bit_length = int(simple_dt.get('bitLength')) if simple_dt.get('bitLength') else None
 
                         # Extract inline single values
                         for single_val in simple_dt.findall('.//iodd:SingleValue', self.NAMESPACES):
@@ -950,7 +954,8 @@ class IODDParser:
                             if datatype_id in self.datatype_lookup:
                                 custom_dt = self.datatype_lookup[datatype_id]
                                 bit_len = custom_dt.get('bitLength')
-                                item_bit_length = int(bit_len) if bit_len is not None else 8
+                                # PQA: Only use bitLength if present in custom datatype
+                                item_bit_length = int(bit_len) if bit_len is not None else None
 
                                 # Convert single values dictionary to list of SingleValue objects
                                 for value, name in custom_dt.get('singleValues', {}).items():
@@ -960,10 +965,10 @@ class IODDParser:
                                         description=None
                                     ))
                             else:
-                                item_bit_length = 8  # Default
+                                item_bit_length = None  # PQA: No default
                         else:
                             item_type = 'Unknown'
-                            item_bit_length = 8
+                            item_bit_length = None  # PQA: No default
 
                     record_items.append(RecordItem(
                         subindex=subindex,
@@ -1823,22 +1828,26 @@ class IODDParser:
 
                 # Get datatype reference or inline datatype
                 datatype_ref_elem = record_item_elem.find('.//iodd:DatatypeRef', self.NAMESPACES)
+                simple_datatype_elem = record_item_elem.find('.//iodd:SimpleDatatype', self.NAMESPACES)
+                item_bit_length = None  # PQA: Track if explicitly present
+
                 if datatype_ref_elem is not None:
                     datatype_ref = datatype_ref_elem.get('datatypeId')
+                    # DatatypeRef doesn't have bitLength (it's in referenced datatype)
+                elif simple_datatype_elem is not None:
+                    datatype_ref = simple_datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                    # PQA: Only store bitLength if explicitly present in SimpleDatatype
+                    if simple_datatype_elem.get('bitLength'):
+                        item_bit_length = int(simple_datatype_elem.get('bitLength'))
                 else:
-                    # Inline datatype
-                    simple_datatype_elem = record_item_elem.find('.//iodd:SimpleDatatype', self.NAMESPACES)
-                    if simple_datatype_elem is not None:
-                        datatype_ref = simple_datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
-                    else:
-                        datatype_ref = 'Unknown'
+                    datatype_ref = 'Unknown'
 
                 if subindex and bit_offset:
                     record_items.append(RecordItem(
                         subindex=int(subindex),
                         name=item_name,
                         bit_offset=int(bit_offset),
-                        bit_length=int(record_item_elem.get('bitLength', 0)),
+                        bit_length=item_bit_length,  # PQA: None if not in original
                         data_type=datatype_ref or 'Unknown',
                         name_text_id=name_text_id,  # Preserve original textId for PQA
                         description=description,

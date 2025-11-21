@@ -4,6 +4,85 @@
 
 ---
 
+## FIXES IN PROGRESS (Session 2025-11-21)
+
+### Fix #1: RecordItem/Description Missing (513 issues) - COMMITTED
+
+**Commit**: `2838891` feat(pqa): add RecordItem/Description extraction and reconstruction
+
+**Problem**: RecordItem/Description elements were not being extracted, stored, or reconstructed for:
+- VariableCollection: 396 issues
+- DatatypeCollection: 76 issues
+- ProcessDataCollection: 41 issues
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `description` and `description_text_id` fields to RecordItem model
+2. `src/parsing/__init__.py` - Extract Description from RecordItems in:
+   - `_extract_variable_record_items()` (Variable RecordItems)
+   - `_extract_custom_datatypes()` (Custom Datatype RecordItems)
+   - ProcessDataIn/Out parsing (Process Data RecordItems)
+3. `src/storage/parameter.py` - Save description_text_id for parameter_record_items
+4. `src/storage/custom_datatype.py` - Save description_text_id for custom_datatype_record_items
+5. `src/storage/process_data.py` - Save description_text_id for process_data_record_items
+6. `src/utils/forensic_reconstruction_v2.py` - Generate Description elements in all three contexts
+7. `alembic/versions/046_add_record_item_description.py` - Add description_text_id columns
+
+**Expected Impact**: ~513 issues resolved (requires re-import)
+
+**Status**: COMMITTED - Requires re-import to populate data
+
+---
+
+### Fix #2: SimpleDatatype/SingleValue Missing (822 issues) - COMMITTED
+
+**Commit**: `e84a2a7` feat(pqa): add SingleValue reconstruction for ProcessData and ArrayT Variables
+
+**Problem**: SingleValue elements inside SimpleDatatype were not being reconstructed for:
+- ProcessDataCollection: 487 issues
+- VariableCollection (ArrayT): 259 issues
+- DatatypeCollection: 64 issues (deferred)
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Store text_id for ProcessData RecordItem SingleValues
+2. `src/storage/process_data.py` - Save name_text_id for process_data_single_values
+3. `src/utils/forensic_reconstruction_v2.py`:
+   - Add SingleValue generation in `_add_process_data_record_items()`
+   - Add SingleValue generation for ArrayT Variable SimpleDatatype
+4. `alembic/versions/047_add_process_data_single_value_text_id.py` - Add name_text_id column
+
+**Expected Impact**: ~746 of 822 issues resolved (requires re-import)
+
+**Remaining Work**: DatatypeCollection/RecordItem/SimpleDatatype/SingleValue (~64 issues)
+requires new table `custom_datatype_record_item_single_values`
+
+**Status**: COMMITTED - Requires re-import to populate data
+
+---
+
+### Fix #3: Name@textId Incorrect (682 issues) - PARTIALLY FIXED
+
+**Commit**: `6da5958` fix(pqa): use direct child selectors for RecordItem Name/Description
+
+**Problem**: RecordItem Name@textId was incorrect because parser used `.//iodd:Name`
+which found SingleValue/Name descendants instead of direct child Name element.
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Changed from `.//iodd:Name` to `iodd:Name` (direct child) in:
+   - ProcessDataIn/Out RecordItem parsing
+   - Custom Datatype RecordItem parsing
+   - Also fixed Description selectors
+
+**Expected Impact**: ~264 of 682 issues resolved (ProcessData + DatatypeCollection RecordItems)
+
+**Remaining Issues**:
+- Variable/Name (181) - may need investigation
+- SingleValue/Name (97) - text_id fallback issues
+- DeviceName/VendorText etc (221) - use lookup instead of stored values
+
+**Status**: PARTIALLY COMMITTED - Requires re-import
+
+---
+
 ## POST-REIMPORT RESULTS (CURRENT STATE)
 
 Re-import completed successfully with parser shadowing fix applied.
