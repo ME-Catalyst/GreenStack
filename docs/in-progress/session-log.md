@@ -157,6 +157,34 @@ which doesn't match how Variables appear in the original IODD file.
 
 ---
 
+### Fix #7: RecordItem@accessRightRestriction (187 issues) - COMMITTED
+
+**Commit**: `3a2dd77` feat(pqa): add RecordItem accessRightRestriction extraction and reconstruction
+
+**Problem**: RecordItem elements have an optional `accessRightRestriction` attribute that was not
+being extracted, stored, or reconstructed. This affected ~187 issues across:
+- VariableCollection: Variable/Datatype/RecordItem
+- ProcessDataCollection: ProcessDataIn/Out/Datatype/RecordItem
+- DatatypeCollection: Datatype/RecordItem
+
+**Changes Made**:
+1. `src/models/__init__.py` - Already had `access_right_restriction` field in RecordItem model
+2. `src/parsing/__init__.py` - Extract accessRightRestriction from RecordItems in:
+   - `_extract_variable_record_items()` (Variable RecordItems)
+   - ProcessDataIn/Out RecordItem parsing
+   - `_extract_custom_datatypes()` (Custom Datatype RecordItems)
+3. `src/storage/parameter.py` - Save access_right_restriction for parameter_record_items
+4. `src/storage/process_data.py` - Save access_right_restriction for process_data_record_items
+5. `src/storage/custom_datatype.py` - Save access_right_restriction for custom_datatype_record_items
+6. `src/utils/forensic_reconstruction_v2.py` - Output accessRightRestriction attribute in all three contexts
+7. `alembic/versions/050_add_record_item_access_right_restriction.py` - Add access_right_restriction columns
+
+**Expected Impact**: ~187 issues resolved (requires re-import)
+
+**Status**: COMMITTED - Requires re-import to populate data
+
+---
+
 ## POST-REIMPORT RESULTS (CURRENT STATE)
 
 Re-import completed successfully with parser shadowing fix applied.
