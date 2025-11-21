@@ -363,8 +363,11 @@ class IODDParser:
         for rii_elem in var_elem.findall('iodd:RecordItemInfo', self.NAMESPACES):
             rii_subindex = rii_elem.get('subindex')
             rii_default = rii_elem.get('defaultValue')
-            rii_excluded = rii_elem.get('excludedFromDataStorage', 'false') == 'true'
-            rii_modifies = rii_elem.get('modifiesOtherVariables', 'false') == 'true'
+            # Use None when attribute is not present (to avoid generating extra attributes)
+            rii_excluded_attr = rii_elem.get('excludedFromDataStorage')
+            rii_excluded = rii_excluded_attr == 'true' if rii_excluded_attr is not None else None
+            rii_modifies_attr = rii_elem.get('modifiesOtherVariables')
+            rii_modifies = rii_modifies_attr == 'true' if rii_modifies_attr is not None else None
             if rii_subindex is not None:
                 record_item_info.append({
                     'subindex': int(rii_subindex),

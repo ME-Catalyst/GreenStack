@@ -210,12 +210,15 @@ class ParameterSaver(BaseSaver):
 
         values_list = []
         for idx, rii in enumerate(record_item_info):
+            # Store NULL when attribute was not present, 1/0 when explicitly set
+            excluded = rii.get('excluded_from_data_storage')
+            modifies = rii.get('modifies_other_variables')
             values_list.append((
                 parameter_id,
                 rii.get('subindex', 0),
                 rii.get('default_value'),
-                1 if rii.get('excluded_from_data_storage', False) else 0,
-                1 if rii.get('modifies_other_variables', False) else 0,
+                1 if excluded is True else (0 if excluded is False else None),
+                1 if modifies is True else (0 if modifies is False else None),
                 idx  # order_index
             ))
 

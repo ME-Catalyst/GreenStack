@@ -709,11 +709,14 @@ class IODDReconstructor:
             ri_info_elem.set('subindex', str(item['subindex']))
             if item['default_value'] is not None:
                 ri_info_elem.set('defaultValue', str(item['default_value']))
-            # Always emit boolean attributes as explicit true/false
-            excluded = item['excluded_from_data_storage'] if 'excluded_from_data_storage' in item.keys() else 0
-            modifies = item['modifies_other_variables'] if 'modifies_other_variables' in item.keys() else 0
-            ri_info_elem.set('excludedFromDataStorage', 'true' if excluded else 'false')
-            ri_info_elem.set('modifiesOtherVariables', 'true' if modifies else 'false')
+            # Only output boolean attributes if they were explicitly set (not NULL)
+            # This avoids generating extra attributes that weren't in the original IODD
+            excluded = item['excluded_from_data_storage'] if 'excluded_from_data_storage' in item.keys() else None
+            modifies = item['modifies_other_variables'] if 'modifies_other_variables' in item.keys() else None
+            if excluded is not None:
+                ri_info_elem.set('excludedFromDataStorage', 'true' if excluded else 'false')
+            if modifies is not None:
+                ri_info_elem.set('modifiesOtherVariables', 'true' if modifies else 'false')
 
     def _create_datatype_collection(self, conn: sqlite3.Connection,
                                    device_id: int) -> Optional[ET.Element]:
@@ -1291,8 +1294,8 @@ class IODDReconstructor:
         collection = ET.Element('ErrorTypeCollection')
 
         for error in error_types:
+            # StdErrorTypeRef only has additionalCode attribute (code is always 0x80 = 128)
             error_ref = ET.SubElement(collection, 'StdErrorTypeRef')
-            error_ref.set('code', str(error['code']))
             error_ref.set('additionalCode', str(error['additional_code']))
 
         return collection
