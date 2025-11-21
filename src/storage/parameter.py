@@ -36,8 +36,8 @@ class ParameterSaver(BaseSaver):
                 access_rights, default_value, min_value,
                 max_value, unit, description, enumeration_values, bit_length,
                 dynamic, excluded_from_data_storage, modifies_other_variables,
-                unit_code, value_range_name
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                unit_code, value_range_name, variable_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -65,6 +65,7 @@ class ParameterSaver(BaseSaver):
                 1 if getattr(param, 'modifies_other_variables', False) else 0,
                 getattr(param, 'unit_code', None),
                 getattr(param, 'value_range_name', None),
+                getattr(param, 'id', None),  # variable_id is stored as param.id
             ))
 
         # Bulk insert

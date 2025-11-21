@@ -401,6 +401,9 @@ class IODDReconstructor:
                         # Add bitLength to Datatype element as well
                         if pd['bit_length']:
                             datatype.set('bitLength', str(pd['bit_length']))
+                        # Add RecordItem elements for RecordT types
+                        if pd['data_type'] == 'RecordT':
+                            self._add_process_data_record_items(conn, datatype, pd['id'])
                 elif pd['direction'] == 'output':
                     direction_elem = ET.SubElement(pd_elem, 'ProcessDataOut')
                     direction_elem.set('id', pd['pd_id'])  # Full ID with suffix
@@ -411,7 +414,12 @@ class IODDReconstructor:
                     if pd['data_type']:
                         datatype = ET.SubElement(direction_elem, 'Datatype')
                         datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', pd['data_type'])
-                        # Note: bitLength already set on ProcessDataOut element
+                        # Add bitLength to Datatype element
+                        if pd['bit_length']:
+                            datatype.set('bitLength', str(pd['bit_length']))
+                        # Add RecordItem elements for RecordT types
+                        if pd['data_type'] == 'RecordT':
+                            self._add_process_data_record_items(conn, datatype, pd['id'])
 
             # Add UI info if available
             self._add_ui_info(conn, pd_elem, pd['id'])
@@ -442,6 +450,68 @@ class IODDReconstructor:
             ui_elem.set('unitCode', ui_info['unit_code'])
         if ui_info['display_format']:
             ui_elem.set('displayFormat', ui_info['display_format'])
+
+    def _add_process_data_record_items(self, conn: sqlite3.Connection, parent: ET.Element,
+                                       process_data_id: int) -> None:
+        """Add RecordItem elements to ProcessData Datatype
+
+        Queries process_data_record_items table and creates RecordItem child elements.
+        """
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT * FROM process_data_record_items
+            WHERE process_data_id = ? ORDER BY subindex
+        """, (process_data_id,))
+        items = cursor.fetchall()
+
+        if not items:
+            return
+
+        # Get device_id for text lookups
+        cursor.execute("""
+            SELECT device_id FROM process_data WHERE id = ?
+        """, (process_data_id,))
+        device_row = cursor.fetchone()
+        device_id = device_row['device_id'] if device_row else None
+
+        for item in items:
+            record_elem = ET.SubElement(parent, 'RecordItem')
+            record_elem.set('subindex', str(item['subindex']))
+            if item['bit_offset'] is not None:
+                record_elem.set('bitOffset', str(item['bit_offset']))
+
+            # Add SimpleDatatype or DatatypeRef based on data_type
+            if item['data_type']:
+                base_types = {'UIntegerT', 'IntegerT', 'StringT', 'BooleanT', 'Float32T', 'OctetStringT'}
+                if item['data_type'] in base_types:
+                    simple_dt = ET.SubElement(record_elem, 'SimpleDatatype')
+                    simple_dt.set('{http://www.w3.org/2001/XMLSchema-instance}type', item['data_type'])
+                    if item['bit_length']:
+                        simple_dt.set('bitLength', str(item['bit_length']))
+                else:
+                    # Custom datatype reference
+                    dt_ref = ET.SubElement(record_elem, 'DatatypeRef')
+                    dt_ref.set('datatypeId', item['data_type'])
+
+            # Add Name element with textId
+            if item['name'] and device_id:
+                name_elem = ET.SubElement(record_elem, 'Name')
+                # Try to find text ID from stored data or iodd_text
+                name_text_id = item.get('name_text_id') if isinstance(item, dict) else None
+                if not name_text_id:
+                    cursor.execute("""
+                        SELECT text_id FROM iodd_text
+                        WHERE device_id = ? AND text_value = ? AND language_code = 'en'
+                        LIMIT 1
+                    """, (device_id, item['name']))
+                    text_row = cursor.fetchone()
+                    name_text_id = text_row['text_id'] if text_row else None
+                if name_text_id:
+                    name_elem.set('textId', name_text_id)
+                else:
+                    # Generate text ID from name
+                    clean_name = item['name'].replace(' ', '_').replace(',', '').replace('(', '').replace(')', '')
+                    name_elem.set('textId', f'TN_RI_{clean_name[:20]}')
 
     def _create_datatype_collection(self, conn: sqlite3.Connection,
                                    device_id: int) -> Optional[ET.Element]:
@@ -925,12 +995,18 @@ class IODDReconstructor:
 
     def _create_event_collection(self, conn: sqlite3.Connection,
                                  device_id: int) -> Optional[ET.Element]:
-        """Create EventCollection from events table"""
+        """Create EventCollection from events table
+
+        Distinguishes between StdEventRef (standard IO-Link events) and
+        Event (device-specific events) based on event_type being NULL.
+        Preserves original insertion order using id column.
+        """
         cursor = conn.cursor()
+        # Order by id preserves original XML order
         cursor.execute("""
             SELECT code, name, description, event_type FROM events
             WHERE device_id = ?
-            ORDER BY code
+            ORDER BY id
         """, (device_id,))
         events = cursor.fetchall()
 
@@ -940,33 +1016,44 @@ class IODDReconstructor:
         collection = ET.Element('EventCollection')
 
         for event in events:
-            event_elem = ET.SubElement(collection, 'Event')
-            event_elem.set('code', str(event['code']))
-            if event['event_type']:
-                event_elem.set('type', event['event_type'])
+            # StdEventRef: standard IO-Link events have no type, and name is auto-generated
+            # Parser generates names like "Event 16928" for StdEventRef elements
+            is_std_event = (event['event_type'] is None and
+                           (event['name'] is None or
+                            (event['name'] and event['name'].startswith('Event ') and
+                             event['name'][6:].isdigit())))
+            if is_std_event:
+                std_ref = ET.SubElement(collection, 'StdEventRef')
+                std_ref.set('code', str(event['code']))
+            else:
+                # Event: device-specific events with type, name, description
+                event_elem = ET.SubElement(collection, 'Event')
+                event_elem.set('code', str(event['code']))
+                if event['event_type']:
+                    event_elem.set('type', event['event_type'])
 
-            # Lookup text IDs for name and description
-            if event['name']:
-                cursor.execute("""
-                    SELECT text_id FROM iodd_text
-                    WHERE device_id = ? AND text_value = ? AND language_code = 'en'
-                    LIMIT 1
-                """, (device_id, event['name']))
-                name_text_id_row = cursor.fetchone()
-                if name_text_id_row:
-                    name_elem = ET.SubElement(event_elem, 'Name')
-                    name_elem.set('textId', name_text_id_row['text_id'])
+                # Lookup text IDs for name and description
+                if event['name']:
+                    cursor.execute("""
+                        SELECT text_id FROM iodd_text
+                        WHERE device_id = ? AND text_value = ? AND language_code = 'en'
+                        LIMIT 1
+                    """, (device_id, event['name']))
+                    name_text_id_row = cursor.fetchone()
+                    if name_text_id_row:
+                        name_elem = ET.SubElement(event_elem, 'Name')
+                        name_elem.set('textId', name_text_id_row['text_id'])
 
-            if event['description']:
-                cursor.execute("""
-                    SELECT text_id FROM iodd_text
-                    WHERE device_id = ? AND text_value = ? AND language_code = 'en'
-                    LIMIT 1
-                """, (device_id, event['description']))
-                desc_text_id_row = cursor.fetchone()
-                if desc_text_id_row:
-                    desc_elem = ET.SubElement(event_elem, 'Description')
-                    desc_elem.set('textId', desc_text_id_row['text_id'])
+                if event['description']:
+                    cursor.execute("""
+                        SELECT text_id FROM iodd_text
+                        WHERE device_id = ? AND text_value = ? AND language_code = 'en'
+                        LIMIT 1
+                    """, (device_id, event['description']))
+                    desc_text_id_row = cursor.fetchone()
+                    if desc_text_id_row:
+                        desc_elem = ET.SubElement(event_elem, 'Description')
+                        desc_elem.set('textId', desc_text_id_row['text_id'])
 
         return collection
 
