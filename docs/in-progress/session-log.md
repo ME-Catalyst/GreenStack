@@ -185,6 +185,48 @@ being extracted, stored, or reconstructed. This affected ~187 issues across:
 
 ---
 
+### Fix #8: CommNetworkProfile Missing (63 issues) - COMMITTED
+
+**Commit**: `3a5d85e` feat(pqa): add CommNetworkProfile reconstruction
+
+**Problem**: CommNetworkProfile element was not being reconstructed at all. This is a direct child of
+ProfileBody that contains TransportLayers/PhysicalLayer with bitrate, minCycleTime, mSequenceCapability,
+sioSupported attributes, plus Connection with wire configurations, and Test section with Config elements.
+
+**Changes Made**:
+1. `src/utils/forensic_reconstruction_v2.py`:
+   - Added `_create_comm_network_profile()` method to generate the entire CommNetworkProfile structure
+   - Called from `_create_profile_body()` after DeviceFunction
+   - Generates TransportLayers/PhysicalLayer with all attributes
+   - Generates Connection with xsi:type, ProductRef, and Wire1-Wire5 elements
+   - Generates Test section with Config1-Config7 and EventTrigger elements
+
+**Expected Impact**: ~63 issues resolved (no re-import needed - uses existing data)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #9: Stamp Missing (58 issues) - COMMITTED
+
+**Commit**: `90c88de` feat(pqa): add Stamp element reconstruction
+
+**Problem**: Stamp element was not being reconstructed. The Stamp element contains:
+- `crc` attribute with CRC checksum value
+- `Checker` child element with `name` and `version` attributes
+
+**Changes Made**:
+1. `src/utils/forensic_reconstruction_v2.py`:
+   - Added `_create_stamp()` method to generate Stamp element
+   - Called from `_create_profile_body()` after CommNetworkProfile
+   - Retrieves stamp_crc, checker_name, checker_version from iodd_files table
+
+**Expected Impact**: ~58 issues resolved (no re-import needed - uses existing data)
+
+**Status**: COMMITTED
+
+---
+
 ## POST-REIMPORT RESULTS (CURRENT STATE)
 
 Re-import completed successfully with parser shadowing fix applied.
