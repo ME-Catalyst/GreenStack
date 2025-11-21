@@ -86,6 +86,47 @@ class IODDReconstructor:
         cursor.execute("SELECT * FROM devices WHERE id = ?", (device_id,))
         return cursor.fetchone()
 
+    def _lookup_textid(self, conn: sqlite3.Connection, device_id: int,
+                       text_value: str, fallback_patterns: list) -> str:
+        """
+        Look up the original textId from iodd_text table by text value.
+        Falls back to trying common prefix patterns if exact match not found.
+
+        Args:
+            conn: Database connection
+            device_id: Device ID
+            text_value: The text value to look up
+            fallback_patterns: List of pattern prefixes to try (e.g., ['TI_', 'TN_'])
+
+        Returns:
+            The original textId or a generated fallback
+        """
+        cursor = conn.cursor()
+
+        # First try exact match on text_value
+        cursor.execute("""
+            SELECT text_id FROM iodd_text
+            WHERE device_id = ? AND text_value = ?
+            LIMIT 1
+        """, (device_id, text_value))
+        row = cursor.fetchone()
+        if row:
+            return row['text_id']
+
+        # Try each fallback pattern
+        for pattern in fallback_patterns:
+            cursor.execute("""
+                SELECT text_id FROM iodd_text
+                WHERE device_id = ? AND text_id LIKE ?
+                LIMIT 1
+            """, (device_id, pattern + '%'))
+            row = cursor.fetchone()
+            if row:
+                return row['text_id']
+
+        # Final fallback: generate using first pattern
+        return fallback_patterns[0] if fallback_patterns else 'TN_Unknown'
+
     def _create_root_element(self, conn: sqlite3.Connection, device_id: int,
                             device: sqlite3.Row) -> ET.Element:
         """Create root IODevice element"""
@@ -169,13 +210,15 @@ class IODDReconstructor:
         if device['manufacturer']:
             device_identity.set('vendorName', device['manufacturer'])
 
-        # VendorText - reference to text describing vendor (Phase 2 Task 8)
+        # VendorText - look up actual textId from database (may be TI_ or TN_ prefix)
         vendor_text = ET.SubElement(device_identity, 'VendorText')
-        vendor_text.set('textId', 'TN_VendorText')
+        vendor_text_id = self._lookup_textid(conn, device_id, None, ['TI_VendorText', 'TN_VendorText'])
+        vendor_text.set('textId', vendor_text_id)
 
-        # VendorUrl - reference to vendor website (Phase 2 Task 8)
+        # VendorUrl - look up actual textId from database
         vendor_url = ET.SubElement(device_identity, 'VendorUrl')
-        vendor_url.set('textId', 'TN_VendorUrl')
+        vendor_url_id = self._lookup_textid(conn, device_id, None, ['TI_VendorUrl', 'TN_VendorUrl'])
+        vendor_url.set('textId', vendor_url_id)
 
         # VendorLogo - if logo file exists
         vendor_logo = ET.SubElement(device_identity, 'VendorLogo')
@@ -185,13 +228,15 @@ class IODDReconstructor:
             # Use manufacturer name to create logo filename
             vendor_logo.set('name', f"{device['manufacturer'].replace(' ', '-')}-logo.png" if device['manufacturer'] else 'vendor-logo.png')
 
-        # DeviceName (Phase 2 Task 8)
+        # DeviceName - look up actual textId (some IODDs use TI_Device instead of TN_DeviceName)
         device_name_elem = ET.SubElement(device_identity, 'DeviceName')
-        device_name_elem.set('textId', 'TN_DeviceName')
+        device_name_id = self._lookup_textid(conn, device_id, None, ['TI_Device', 'TN_DeviceName', 'TN_Device'])
+        device_name_elem.set('textId', device_name_id)
 
-        # DeviceFamily (Phase 2 Task 8)
+        # DeviceFamily - look up actual textId
         device_family = ET.SubElement(device_identity, 'DeviceFamily')
-        device_family.set('textId', 'TN_DeviceFamily')
+        device_family_id = self._lookup_textid(conn, device_id, None, ['TI_DeviceFamily', 'TN_DeviceFamily'])
+        device_family.set('textId', device_family_id)
 
         # DeviceVariantCollection - device variants/models
         device_variant_coll = ET.SubElement(device_identity, 'DeviceVariantCollection')
@@ -443,9 +488,16 @@ class IODDReconstructor:
                           datatype_id: int) -> None:
         """Add SingleValue enumeration values (Phase 3 Task 10a - direct children, no wrapper)"""
         cursor = conn.cursor()
+        # Sort numerically if value is numeric, otherwise alphabetically
+        # This preserves original IODD ordering (0,1,2,...10,11 not 0,1,10,11,2,...)
         cursor.execute("""
             SELECT * FROM custom_datatype_single_values
-            WHERE datatype_id = ? ORDER BY value
+            WHERE datatype_id = ?
+            ORDER BY CASE
+                WHEN value GLOB '[0-9]*' AND value NOT GLOB '*[^0-9]*'
+                THEN CAST(value AS INTEGER)
+                ELSE 999999
+            END, value
         """, (datatype_id,))
         values = cursor.fetchall()
 
@@ -712,69 +764,33 @@ class IODDReconstructor:
 
         collection = ET.Element('VariableCollection')
 
-        # Add standard IO-Link variables (IO-Link specification defines these)
-        # Order matters for proper reconstruction
+        # Query stored StdVariableRef elements in original order
+        cursor.execute("""
+            SELECT variable_id, default_value, fixed_length_restriction, excluded_from_data_storage, order_index
+            FROM std_variable_refs
+            WHERE device_id = ?
+            ORDER BY order_index
+        """, (device_id,))
+        std_var_refs = cursor.fetchall()
 
-        # V_DirectParameters_1 - standard IO-Link variable
-        direct_params_ref = ET.SubElement(collection, 'StdVariableRef')
-        direct_params_ref.set('id', 'V_DirectParameters_1')
+        if std_var_refs:
+            # Use stored StdVariableRef data for accurate reconstruction
+            for ref in std_var_refs:
+                std_ref = ET.SubElement(collection, 'StdVariableRef')
+                std_ref.set('id', ref['variable_id'])
 
-        # V_SystemCommand - standard IO-Link variable
-        sys_cmd_ref = ET.SubElement(collection, 'StdVariableRef')
-        sys_cmd_ref.set('id', 'V_SystemCommand')
+                if ref['default_value'] is not None:
+                    std_ref.set('defaultValue', ref['default_value'])
 
-        # V_VendorName - defaultValue from manufacturer
-        vendor_name_ref = ET.SubElement(collection, 'StdVariableRef')
-        vendor_name_ref.set('id', 'V_VendorName')
-        if device and device['manufacturer']:
-            vendor_name_ref.set('defaultValue', device['manufacturer'])
+                if ref['fixed_length_restriction'] is not None:
+                    std_ref.set('fixedLengthRestriction', str(ref['fixed_length_restriction']))
 
-        # V_ProductName - defaultValue from product name
-        product_name_ref = ET.SubElement(collection, 'StdVariableRef')
-        product_name_ref.set('id', 'V_ProductName')
-        # Note: Use short product name if available, otherwise use device product_name
-        if device and device['product_name']:
-            # Try to extract the short product name (e.g., "CALIS" from "CALIS Level Sensor")
-            short_name = device['product_name'].split()[0] if device['product_name'] else None
-            if short_name:
-                product_name_ref.set('defaultValue', short_name)
-
-        # V_ProductText - standard IO-Link variable (no default)
-        product_text_ref = ET.SubElement(collection, 'StdVariableRef')
-        product_text_ref.set('id', 'V_ProductText')
-
-        # V_ProductID - defaultValue from variant product_id
-        product_id_ref = ET.SubElement(collection, 'StdVariableRef')
-        product_id_ref.set('id', 'V_ProductID')
-        if variant_row and variant_row['product_id']:
-            product_id_ref.set('defaultValue', variant_row['product_id'])
-
-        # V_SerialNumber - standard IO-Link variable (no default)
-        serial_ref = ET.SubElement(collection, 'StdVariableRef')
-        serial_ref.set('id', 'V_SerialNumber')
-
-        # V_HardwareRevision - standard IO-Link variable (no default)
-        hw_rev_ref = ET.SubElement(collection, 'StdVariableRef')
-        hw_rev_ref.set('id', 'V_HardwareRevision')
-
-        # V_FirmwareRevision - standard IO-Link variable (no default)
-        fw_rev_ref = ET.SubElement(collection, 'StdVariableRef')
-        fw_rev_ref.set('id', 'V_FirmwareRevision')
-
-        # V_ApplicationSpecificTag - standard IO-Link variable (no default)
-        app_tag_ref = ET.SubElement(collection, 'StdVariableRef')
-        app_tag_ref.set('id', 'V_ApplicationSpecificTag')
-        app_tag_ref.set('excludedFromDataStorage', 'false')
-
-        # V_DeviceStatus - standard IO-Link variable (defaultValue="0")
-        device_status_ref = ET.SubElement(collection, 'StdVariableRef')
-        device_status_ref.set('id', 'V_DeviceStatus')
-        device_status_ref.set('defaultValue', '0')
-
-        # V_DetailedDeviceStatus - standard IO-Link variable (with fixedLengthRestriction)
-        detailed_status_ref = ET.SubElement(collection, 'StdVariableRef')
-        detailed_status_ref.set('id', 'V_DetailedDeviceStatus')
-        detailed_status_ref.set('fixedLengthRestriction', '8')
+                if ref['excluded_from_data_storage'] is not None:
+                    std_ref.set('excludedFromDataStorage', 'true' if ref['excluded_from_data_storage'] else 'false')
+        else:
+            # Fallback to hardcoded standard IO-Link variables if no stored data
+            # This maintains backwards compatibility for older imported devices
+            self._add_fallback_std_variable_refs(collection, device, variant_row)
 
         # Phase 3 Task 9c: Create Variable elements from parameters (indices >= 25)
         for param in parameters:
@@ -988,6 +1004,71 @@ class IODDReconstructor:
                 text_elem.set('value', text['text_value'] or '')
 
         return collection
+
+    def _add_fallback_std_variable_refs(self, collection: ET.Element, device, variant_row):
+        """Add hardcoded standard IO-Link variables as fallback
+
+        This is used when no StdVariableRef data is stored in the database
+        (for backwards compatibility with older imports).
+        """
+        # V_DirectParameters_1 - standard IO-Link variable
+        direct_params_ref = ET.SubElement(collection, 'StdVariableRef')
+        direct_params_ref.set('id', 'V_DirectParameters_1')
+
+        # V_SystemCommand - standard IO-Link variable
+        sys_cmd_ref = ET.SubElement(collection, 'StdVariableRef')
+        sys_cmd_ref.set('id', 'V_SystemCommand')
+
+        # V_VendorName - defaultValue from manufacturer
+        vendor_name_ref = ET.SubElement(collection, 'StdVariableRef')
+        vendor_name_ref.set('id', 'V_VendorName')
+        if device and device['manufacturer']:
+            vendor_name_ref.set('defaultValue', device['manufacturer'])
+
+        # V_ProductName - defaultValue from product name
+        product_name_ref = ET.SubElement(collection, 'StdVariableRef')
+        product_name_ref.set('id', 'V_ProductName')
+        if device and device['product_name']:
+            short_name = device['product_name'].split()[0] if device['product_name'] else None
+            if short_name:
+                product_name_ref.set('defaultValue', short_name)
+
+        # V_ProductText - standard IO-Link variable (no default)
+        product_text_ref = ET.SubElement(collection, 'StdVariableRef')
+        product_text_ref.set('id', 'V_ProductText')
+
+        # V_ProductID - defaultValue from variant product_id
+        product_id_ref = ET.SubElement(collection, 'StdVariableRef')
+        product_id_ref.set('id', 'V_ProductID')
+        if variant_row and variant_row['product_id']:
+            product_id_ref.set('defaultValue', variant_row['product_id'])
+
+        # V_SerialNumber - standard IO-Link variable (no default)
+        serial_ref = ET.SubElement(collection, 'StdVariableRef')
+        serial_ref.set('id', 'V_SerialNumber')
+
+        # V_HardwareRevision - standard IO-Link variable (no default)
+        hw_rev_ref = ET.SubElement(collection, 'StdVariableRef')
+        hw_rev_ref.set('id', 'V_HardwareRevision')
+
+        # V_FirmwareRevision - standard IO-Link variable (no default)
+        fw_rev_ref = ET.SubElement(collection, 'StdVariableRef')
+        fw_rev_ref.set('id', 'V_FirmwareRevision')
+
+        # V_ApplicationSpecificTag - standard IO-Link variable (no default)
+        app_tag_ref = ET.SubElement(collection, 'StdVariableRef')
+        app_tag_ref.set('id', 'V_ApplicationSpecificTag')
+        app_tag_ref.set('excludedFromDataStorage', 'false')
+
+        # V_DeviceStatus - standard IO-Link variable (defaultValue="0")
+        device_status_ref = ET.SubElement(collection, 'StdVariableRef')
+        device_status_ref.set('id', 'V_DeviceStatus')
+        device_status_ref.set('defaultValue', '0')
+
+        # V_DetailedDeviceStatus - standard IO-Link variable (with fixedLengthRestriction)
+        detailed_status_ref = ET.SubElement(collection, 'StdVariableRef')
+        detailed_status_ref.set('id', 'V_DetailedDeviceStatus')
+        detailed_status_ref.set('fixedLengthRestriction', '8')
 
     def _prettify_xml(self, elem: ET.Element) -> str:
         """Convert XML element to pretty-printed string"""

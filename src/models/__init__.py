@@ -292,6 +292,16 @@ class CustomDatatype:
 
 
 @dataclass
+class StdVariableRef:
+    """Standard variable reference from VariableCollection"""
+    variable_id: str  # e.g., V_VendorName, V_ProductName
+    default_value: Optional[str] = None
+    fixed_length_restriction: Optional[int] = None
+    excluded_from_data_storage: Optional[bool] = None
+    order_index: int = 0  # Original order in IODD
+
+
+@dataclass
 class DeviceProfile:
     """Complete device profile from IODD"""
     vendor_info: VendorInfo
@@ -332,6 +342,9 @@ class DeviceProfile:
     checker_name: Optional[str] = None
     checker_version: Optional[str] = None
 
+    # PQA: StdVariableRef preservation
+    std_variable_refs: List[StdVariableRef] = field(default_factory=list)
+
 
 # Export all models
 __all__ = [
@@ -361,5 +374,6 @@ __all__ = [
     'TestEventTrigger',
     'DeviceTestConfig',
     'CustomDatatype',
+    'StdVariableRef',
     'DeviceProfile',
 ]

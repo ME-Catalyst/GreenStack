@@ -23,6 +23,7 @@ from .menu import MenuSaver
 from .text import TextSaver
 from .custom_datatype import CustomDatatypeSaver
 from .test_config import TestConfigSaver
+from .std_variable_ref import StdVariableRefSaver
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,7 @@ class StorageManager:
             text_saver = TextSaver(cursor)
             custom_datatype_saver = CustomDatatypeSaver(cursor)
             test_config_saver = TestConfigSaver(cursor)
+            std_variable_ref_saver = StdVariableRefSaver(cursor)
 
             # Save core device info (may return existing device ID)
             # The save method returns existing ID if device already exists
@@ -114,6 +116,7 @@ class StorageManager:
             text_saver.save(device_id, getattr(profile, 'all_text_data', {}))
             custom_datatype_saver.save(device_id, getattr(profile, 'custom_datatypes', []))
             test_config_saver.save(device_id, getattr(profile, 'test_configurations', []))
+            std_variable_ref_saver.save(device_id, getattr(profile, 'std_variable_refs', []))
 
             conn.commit()
             logger.info(f"Successfully saved device profile with ID: {device_id}")
@@ -146,4 +149,5 @@ __all__ = [
     'TextSaver',
     'CustomDatatypeSaver',
     'TestConfigSaver',
+    'StdVariableRefSaver',
 ]

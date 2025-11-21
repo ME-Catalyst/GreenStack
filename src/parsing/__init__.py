@@ -31,6 +31,7 @@ from src.models import (
     ProcessDataUIInfo,
     RecordItem,
     SingleValue,
+    StdVariableRef,
     TestEventTrigger,
     UserInterfaceMenus,
     VendorInfo,
@@ -186,7 +187,9 @@ class IODDParser:
             vendor_logo_filename=vendor_logo,
             stamp_crc=stamp_data.get('crc'),
             checker_name=stamp_data.get('checker_name'),
-            checker_version=stamp_data.get('checker_version')
+            checker_version=stamp_data.get('checker_version'),
+            # PQA: StdVariableRef preservation
+            std_variable_refs=self._extract_std_variable_refs()
         )
 
     def _extract_vendor_info(self) -> VendorInfo:
@@ -1583,6 +1586,33 @@ class IODDParser:
                 'checker_version': checker_elem.get('version') if checker_elem is not None else None
             }
         return {'crc': None, 'checker_name': None, 'checker_version': None}
+
+    def _extract_std_variable_refs(self) -> List[StdVariableRef]:
+        """Extract StdVariableRef elements from VariableCollection in original order"""
+        refs = []
+        var_collection = self.root.find('.//iodd:VariableCollection', self.NAMESPACES)
+        if var_collection is None:
+            return refs
+
+        for idx, std_ref in enumerate(var_collection.findall('iodd:StdVariableRef', self.NAMESPACES)):
+            var_id = std_ref.get('id')
+            if not var_id:
+                continue
+
+            default_val = std_ref.get('defaultValue')
+            fixed_len = std_ref.get('fixedLengthRestriction')
+            excluded = std_ref.get('excludedFromDataStorage')
+
+            refs.append(StdVariableRef(
+                variable_id=var_id,
+                default_value=default_val,
+                fixed_length_restriction=int(fixed_len) if fixed_len else None,
+                excluded_from_data_storage=excluded.lower() == 'true' if excluded else None,
+                order_index=idx
+            ))
+
+        logger.info(f"Extracted {len(refs)} StdVariableRef elements")
+        return refs
 
 
 __all__ = ['IODDParser']
