@@ -1032,6 +1032,14 @@ class IODDReconstructor:
                     # MenuRef
                     menu_ref = ET.SubElement(menu_elem, 'MenuRef')
                     menu_ref.set('menuId', item['menu_ref'])
+                    # Add Condition child element if present
+                    cond_var_id = item['condition_variable_id'] if 'condition_variable_id' in item.keys() else None
+                    cond_value = item['condition_value'] if 'condition_value' in item.keys() else None
+                    if cond_var_id:
+                        condition_elem = ET.SubElement(menu_ref, 'Condition')
+                        condition_elem.set('variableId', cond_var_id)
+                        if cond_value is not None:
+                            condition_elem.set('value', str(cond_value))
 
         # Role Menu Sets - get from ui_menu_roles table
         cursor.execute("""

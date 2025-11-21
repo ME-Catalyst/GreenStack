@@ -65,8 +65,9 @@ class MenuSaver(BaseSaver):
             INSERT INTO ui_menu_items (
                 menu_id, variable_id, record_item_ref, subindex,
                 access_right_restriction, display_format, unit_code,
-                button_value, menu_ref, item_order, gradient, offset
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                button_value, menu_ref, item_order, gradient, offset,
+                condition_variable_id, condition_value
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         for idx, item in enumerate(items):
@@ -83,6 +84,8 @@ class MenuSaver(BaseSaver):
                 idx,
                 getattr(item, 'gradient', None),
                 getattr(item, 'offset', None),
+                getattr(item, 'condition_variable_id', None),  # PQA: MenuRef Condition
+                getattr(item, 'condition_value', None),  # PQA: MenuRef Condition
             )
             self._execute(query, params)
             menu_item_db_id = self._get_lastrowid()

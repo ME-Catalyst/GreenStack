@@ -1532,13 +1532,24 @@ class IODDParser:
                     offset=float(offset) if offset else None
                 ))
 
-            # Extract menu references (sub-menus)
+            # Extract menu references (sub-menus) with optional Condition
             sub_menus = []
             for menu_ref in menu_elem.findall('.//iodd:MenuRef', self.NAMESPACES):
                 sub_menu_id = menu_ref.get('menuId')
                 if sub_menu_id:
                     sub_menus.append(sub_menu_id)
-                    items.append(MenuItem(menu_ref=sub_menu_id))
+                    # Check for Condition child element
+                    condition_elem = menu_ref.find('iodd:Condition', self.NAMESPACES)
+                    condition_var_id = None
+                    condition_value = None
+                    if condition_elem is not None:
+                        condition_var_id = condition_elem.get('variableId')
+                        condition_value = condition_elem.get('value')
+                    items.append(MenuItem(
+                        menu_ref=sub_menu_id,
+                        condition_variable_id=condition_var_id,
+                        condition_value=condition_value
+                    ))
 
             menus.append(Menu(
                 id=menu_id,

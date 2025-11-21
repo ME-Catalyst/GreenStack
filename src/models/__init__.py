@@ -236,6 +236,9 @@ class MenuItem:
     offset: Optional[float] = None
     # Phase 3: Button configuration
     buttons: List[MenuButton] = field(default_factory=list)
+    # PQA: MenuRef Condition support
+    condition_variable_id: Optional[str] = None
+    condition_value: Optional[str] = None
 
 
 @dataclass
