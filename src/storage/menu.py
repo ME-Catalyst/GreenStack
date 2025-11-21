@@ -44,13 +44,14 @@ class MenuSaver(BaseSaver):
     def _save_menu(self, device_id: int, menu) -> int:
         """Save main menu entry"""
         query = """
-            INSERT INTO ui_menus (device_id, menu_id, name)
-            VALUES (?, ?, ?)
+            INSERT INTO ui_menus (device_id, menu_id, name, name_text_id)
+            VALUES (?, ?, ?, ?)
         """
         params = (
             device_id,
             getattr(menu, 'id', None),
             getattr(menu, 'name', None),
+            getattr(menu, 'name_text_id', None),  # PQA reconstruction
         )
         self._execute(query, params)
         return self._get_lastrowid()

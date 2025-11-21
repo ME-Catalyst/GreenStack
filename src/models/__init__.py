@@ -245,6 +245,8 @@ class Menu:
     name: str
     items: List[MenuItem] = field(default_factory=list)
     sub_menus: List[str] = field(default_factory=list)
+    # PQA reconstruction field
+    name_text_id: Optional[str] = None  # Original textId for Name element
 
 
 @dataclass

@@ -943,8 +943,14 @@ class IODDReconstructor:
             menu_elem = ET.SubElement(menu_collection, 'Menu')
             menu_elem.set('id', menu['menu_id'])
 
-            # Add Menu Name element with textId reference (reverse lookup from name)
-            if menu['name']:
+            # Add Menu Name element with textId reference
+            # Use stored name_text_id if available, otherwise fallback to reverse lookup
+            name_text_id = menu['name_text_id'] if 'name_text_id' in menu.keys() and menu['name_text_id'] else None
+            if name_text_id:
+                name_elem = ET.SubElement(menu_elem, 'Name')
+                name_elem.set('textId', name_text_id)
+            elif menu['name']:
+                # Fallback: reverse lookup from name (may match wrong textId)
                 cursor.execute("""
                     SELECT text_id FROM iodd_text
                     WHERE device_id = ? AND text_value = ? AND language_code = 'en'

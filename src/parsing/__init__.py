@@ -1544,7 +1544,8 @@ class IODDParser:
                 id=menu_id,
                 name=menu_name,
                 items=items,
-                sub_menus=sub_menus
+                sub_menus=sub_menus,
+                name_text_id=name_id  # PQA reconstruction
             ))
 
         # Extract role menu sets
@@ -1880,7 +1881,7 @@ class IODDParser:
                 subindex = ri_ref_elem.get('subindex')
                 ri_default = ri_ref_elem.get('defaultValue')
                 if subindex is not None:
-                    from models import StdRecordItemRef
+                    from src.models import StdRecordItemRef
                     record_item_refs.append(StdRecordItemRef(
                         subindex=int(subindex),
                         default_value=ri_default
