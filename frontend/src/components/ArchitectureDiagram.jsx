@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Server, Database, Globe, Monitor, MessageSquare, HardDrive,
   Workflow, BarChart3, Shield, Cloud, Users, Cpu, Radio,
   ArrowRight, ArrowDown, ArrowLeftRight, Zap, Activity,
-  Box, Layers, FileCode, Clock, Bell, Lock, Network
+  Box, Layers, FileCode, Clock, Bell, Lock, Network, X
 } from 'lucide-react';
 
 // Architecture layers and components
 const ARCHITECTURE = {
   clients: {
-    name: 'Client Layer',
+    name: 'Clients',
     color: '#8b5cf6',
     components: [
       { id: 'web', name: 'Web Browser', icon: Globe, desc: 'React SPA with real-time updates' },
@@ -19,380 +19,527 @@ const ARCHITECTURE = {
     ]
   },
   gateway: {
-    name: 'Gateway Layer',
+    name: 'Gateway',
     color: '#06b6d4',
     components: [
-      { id: 'nginx', name: 'Nginx Proxy', icon: Shield, desc: 'Reverse proxy & SSL termination' },
+      { id: 'nginx', name: 'Nginx', icon: Shield, desc: 'Reverse proxy & SSL termination' },
       { id: 'cors', name: 'CORS', icon: Lock, desc: 'Cross-origin protection' },
-      { id: 'rate-limit', name: 'Rate Limiter', icon: Activity, desc: 'SlowAPI rate limiting' },
+      { id: 'rate-limit', name: 'Rate Limit', icon: Activity, desc: 'SlowAPI rate limiting' },
     ]
   },
   application: {
-    name: 'Application Layer',
+    name: 'Application',
     color: '#10b981',
     components: [
-      { id: 'fastapi', name: 'FastAPI Server', icon: Zap, desc: 'Async REST API with OpenAPI' },
-      { id: 'celery', name: 'Celery Workers', icon: Clock, desc: 'Background task processing' },
-      { id: 'mqtt-bridge', name: 'MQTT Bridge', icon: MessageSquare, desc: 'MQTT-to-API bridge service' },
-      { id: 'device-shadow', name: 'Device Shadow', icon: Box, desc: 'Digital twin service' },
+      { id: 'fastapi', name: 'FastAPI', icon: Zap, desc: 'Async REST API with OpenAPI' },
+      { id: 'celery', name: 'Celery', icon: Clock, desc: 'Background task processing' },
+      { id: 'mqtt-bridge', name: 'MQTT Bridge', icon: MessageSquare, desc: 'MQTT-to-API bridge' },
+      { id: 'shadow', name: 'Shadow', icon: Box, desc: 'Digital twin service' },
     ]
   },
   processing: {
-    name: 'Processing Layer',
+    name: 'Processing',
     color: '#f59e0b',
     components: [
-      { id: 'iodd-parser', name: 'IODD Parser', icon: FileCode, desc: 'IO-Link XML parsing & validation' },
-      { id: 'eds-parser', name: 'EDS Parser', icon: FileCode, desc: 'EtherNet/IP EDS parsing' },
-      { id: 'pqa', name: 'PQA Engine', icon: BarChart3, desc: 'Parsing quality assessment' },
-      { id: 'flow-gen', name: 'Flow Generator', icon: Workflow, desc: 'Node-RED flow generation' },
+      { id: 'iodd', name: 'IODD Parser', icon: FileCode, desc: 'IO-Link XML parsing' },
+      { id: 'eds', name: 'EDS Parser', icon: FileCode, desc: 'EtherNet/IP parsing' },
+      { id: 'pqa', name: 'PQA Engine', icon: BarChart3, desc: 'Quality assessment' },
+      { id: 'flows', name: 'Flow Gen', icon: Workflow, desc: 'Node-RED generation' },
     ]
   },
   data: {
-    name: 'Data Layer',
+    name: 'Data',
     color: '#ef4444',
     components: [
-      { id: 'sqlite', name: 'SQLite/PostgreSQL', icon: Database, desc: 'Primary relational database' },
-      { id: 'redis', name: 'Redis Cache', icon: HardDrive, desc: 'Caching & message queue' },
-      { id: 'influxdb', name: 'InfluxDB', icon: Activity, desc: 'Time-series telemetry data' },
-      { id: 'file-storage', name: 'File Storage', icon: HardDrive, desc: 'IODD/EDS file storage' },
+      { id: 'sql', name: 'PostgreSQL', icon: Database, desc: 'Primary database' },
+      { id: 'redis', name: 'Redis', icon: HardDrive, desc: 'Cache & queue' },
+      { id: 'influx', name: 'InfluxDB', icon: Activity, desc: 'Time-series data' },
+      { id: 'files', name: 'Files', icon: HardDrive, desc: 'File storage' },
     ]
   },
   observability: {
-    name: 'Observability Layer',
+    name: 'Observability',
     color: '#ec4899',
     components: [
       { id: 'prometheus', name: 'Prometheus', icon: BarChart3, desc: 'Metrics collection' },
-      { id: 'grafana', name: 'Grafana', icon: Monitor, desc: 'Dashboards & visualization' },
-      { id: 'jaeger', name: 'Jaeger', icon: Network, desc: 'Distributed tracing' },
-      { id: 'sentry', name: 'Sentry', icon: Bell, desc: 'Error tracking & APM' },
+      { id: 'grafana', name: 'Grafana', icon: Monitor, desc: 'Dashboards' },
+      { id: 'jaeger', name: 'Jaeger', icon: Network, desc: 'Tracing' },
+      { id: 'sentry', name: 'Sentry', icon: Bell, desc: 'Error tracking' },
     ]
   },
 };
 
-// Data flow connections
+// Data flows between components
 const DATA_FLOWS = [
-  { from: 'web', to: 'nginx', label: 'HTTPS', type: 'request' },
-  { from: 'mqtt-client', to: 'mqtt-bridge', label: 'MQTT', type: 'event' },
-  { from: 'nginx', to: 'fastapi', label: 'HTTP', type: 'request' },
-  { from: 'fastapi', to: 'celery', label: 'Tasks', type: 'async' },
-  { from: 'fastapi', to: 'iodd-parser', label: 'Parse', type: 'process' },
-  { from: 'fastapi', to: 'sqlite', label: 'SQL', type: 'data' },
-  { from: 'fastapi', to: 'redis', label: 'Cache', type: 'data' },
-  { from: 'mqtt-bridge', to: 'influxdb', label: 'Write', type: 'data' },
-  { from: 'prometheus', to: 'fastapi', label: 'Scrape', type: 'metrics' },
-  { from: 'grafana', to: 'prometheus', label: 'Query', type: 'metrics' },
+  { from: 'web', to: 'nginx', color: '#8b5cf6' },
+  { from: 'api-client', to: 'nginx', color: '#8b5cf6' },
+  { from: 'mqtt-client', to: 'mqtt-bridge', color: '#f59e0b' },
+  { from: 'nginx', to: 'fastapi', color: '#06b6d4' },
+  { from: 'fastapi', to: 'celery', color: '#10b981' },
+  { from: 'fastapi', to: 'iodd', color: '#10b981' },
+  { from: 'fastapi', to: 'eds', color: '#10b981' },
+  { from: 'iodd', to: 'pqa', color: '#f59e0b' },
+  { from: 'eds', to: 'pqa', color: '#f59e0b' },
+  { from: 'fastapi', to: 'sql', color: '#ef4444' },
+  { from: 'fastapi', to: 'redis', color: '#ef4444' },
+  { from: 'mqtt-bridge', to: 'influx', color: '#ef4444' },
+  { from: 'celery', to: 'redis', color: '#ef4444' },
+  { from: 'prometheus', to: 'fastapi', color: '#ec4899' },
+  { from: 'grafana', to: 'prometheus', color: '#ec4899' },
 ];
 
-const LayerComponent = ({ component, layerColor, isSelected, onClick, index }) => {
-  const Icon = component.icon;
+// Component card
+const ComponentCard = ({ comp, color, x, y, width, height, isSelected, onClick, delay }) => {
+  const Icon = comp.icon;
+
+  return (
+    <motion.g
+      style={{ cursor: 'pointer' }}
+      onClick={() => onClick(comp)}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay, type: 'spring', stiffness: 200 }}
+    >
+      {/* Selection glow */}
+      {isSelected && (
+        <motion.rect
+          x={x - 3} y={y - 3}
+          width={width + 6} height={height + 6}
+          rx={10}
+          fill="none"
+          stroke={color}
+          strokeWidth={2}
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        />
+      )}
+
+      {/* Shadow */}
+      <rect
+        x={x + 2} y={y + 2}
+        width={width} height={height}
+        rx={8}
+        fill="rgba(0,0,0,0.3)"
+      />
+
+      {/* Background */}
+      <rect
+        x={x} y={y}
+        width={width} height={height}
+        rx={8}
+        fill={`${color}15`}
+        stroke={isSelected ? color : `${color}40`}
+        strokeWidth={isSelected ? 2 : 1}
+      />
+
+      {/* Shine overlay */}
+      <rect
+        x={x} y={y}
+        width={width} height={height}
+        rx={8}
+        fill="url(#cardShine)"
+        opacity={0.4}
+      />
+
+      {/* Icon */}
+      <foreignObject x={x + 6} y={y + (height - 16) / 2} width={16} height={16}>
+        <Icon style={{ color, width: 16, height: 16 }} />
+      </foreignObject>
+
+      {/* Name */}
+      <text
+        x={x + 26}
+        y={y + height / 2 + 4}
+        fill="white"
+        fontSize={9}
+        fontWeight={500}
+      >
+        {comp.name}
+      </text>
+    </motion.g>
+  );
+};
+
+// Layer row
+const LayerRow = ({ layer, layerId, y, width, componentPositions, selectedComponent, onComponentClick, index }) => {
+  const rowHeight = 50;
+
+  return (
+    <motion.g
+      initial={{ opacity: 0, x: -30 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.1 }}
+    >
+      {/* Layer background */}
+      <rect
+        x={0} y={y}
+        width={width}
+        height={rowHeight}
+        rx={6}
+        fill={`${layer.color}08`}
+        stroke={`${layer.color}20`}
+        strokeWidth={1}
+      />
+
+      {/* Layer label */}
+      <rect
+        x={8} y={y + 8}
+        width={70} height={34}
+        rx={6}
+        fill={`${layer.color}20`}
+      />
+      <text
+        x={43} y={y + 30}
+        textAnchor="middle"
+        fill={layer.color}
+        fontSize={9}
+        fontWeight={600}
+      >
+        {layer.name}
+      </text>
+
+      {/* Components */}
+      {layer.components.map((comp, compIndex) => {
+        const pos = componentPositions[comp.id];
+        if (!pos) return null;
+
+        return (
+          <ComponentCard
+            key={comp.id}
+            comp={comp}
+            color={layer.color}
+            x={pos.x}
+            y={pos.y}
+            width={pos.width}
+            height={pos.height}
+            isSelected={selectedComponent?.id === comp.id}
+            onClick={onComponentClick}
+            delay={index * 0.1 + compIndex * 0.03}
+          />
+        );
+      })}
+    </motion.g>
+  );
+};
+
+// Connection line
+const ConnectionLine = ({ x1, y1, x2, y2, color, animated, delay }) => {
+  // Bezier curve for smoother connections
+  const midY = (y1 + y2) / 2;
+  const pathD = `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
+
+  return (
+    <g>
+      {/* Glow */}
+      <path
+        d={pathD}
+        fill="none"
+        stroke={color}
+        strokeWidth={3}
+        opacity={0.15}
+        filter="url(#blur)"
+      />
+
+      {/* Main line */}
+      <motion.path
+        d={pathD}
+        fill="none"
+        stroke={`${color}50`}
+        strokeWidth={1}
+        strokeDasharray="3,3"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ delay, duration: 0.8 }}
+      />
+
+      {/* Animated dot */}
+      {animated && (
+        <circle r={2} fill={color}>
+          <animateMotion dur="2.5s" repeatCount="indefinite" path={pathD} />
+        </circle>
+      )}
+    </g>
+  );
+};
+
+// Details panel
+const DetailsPanel = ({ component, onClose }) => {
+  if (!component) return null;
 
   return (
     <motion.div
-      className={`relative p-3 rounded-xl border-2 cursor-pointer transition-all ${
-        isSelected ? 'ring-2 ring-offset-2 ring-offset-background' : ''
-      }`}
+      className="absolute top-3 right-3 w-56 rounded-xl border shadow-2xl backdrop-blur-xl overflow-hidden z-50"
       style={{
-        backgroundColor: `${layerColor}10`,
-        borderColor: isSelected ? layerColor : `${layerColor}40`,
-        '--ring-color': layerColor,
+        backgroundColor: 'rgba(15, 15, 20, 0.95)',
+        borderColor: 'rgba(16, 185, 129, 0.3)',
+        boxShadow: '0 0 30px rgba(16, 185, 129, 0.15), 0 15px 40px rgba(0,0,0,0.5)',
       }}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      whileHover={{
-        scale: 1.05,
-        borderColor: layerColor,
-        boxShadow: `0 4px 20px ${layerColor}30`
-      }}
-      onClick={() => onClick(component)}
+      initial={{ opacity: 0, x: 20, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 20, scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
     >
-      <div className="flex items-center gap-2">
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: `${layerColor}20` }}
+      <div className="p-3 bg-gradient-to-r from-brand-green/20 to-transparent relative">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
         >
-          <Icon className="w-4 h-4" style={{ color: layerColor }} />
+          <X className="w-3 h-3 text-white/60" />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-brand-green/30 flex items-center justify-center">
+            <component.icon className="w-4 h-4 text-brand-green" />
+          </div>
+          <div>
+            <h4 className="font-bold text-white text-sm">{component.name}</h4>
+            <p className="text-white/40 text-[10px]">{component.id}</p>
+          </div>
         </div>
-        <span className="font-medium text-sm text-foreground">{component.name}</span>
+      </div>
+      <div className="p-3">
+        <p className="text-white/60 text-xs leading-relaxed">{component.desc}</p>
+        <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
+          <span className="text-white/40 text-[10px]">Active</span>
+        </div>
       </div>
     </motion.div>
   );
 };
 
 const ArchitectureDiagram = () => {
+  const containerRef = useRef(null);
+  const [dimensions, setDimensions] = useState({ width: 900, height: 450 });
   const [selectedComponent, setSelectedComponent] = useState(null);
-  const [viewMode, setViewMode] = useState('layers'); // 'layers' or 'flow'
+  const [showFlows, setShowFlows] = useState(true);
 
   const layers = Object.entries(ARCHITECTURE);
 
-  return (
-    <div className="space-y-6">
-      {/* View Toggle */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold text-foreground">System Architecture</h3>
-          <span className="text-xs text-muted-foreground bg-surface px-2 py-1 rounded-full">
-            Interactive
-          </span>
-        </div>
-        <div className="flex items-center gap-2 p-1 bg-surface rounded-lg">
-          {['layers', 'flow'].map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                viewMode === mode
-                  ? 'bg-brand-green text-white'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {mode === 'layers' ? 'Layer View' : 'Data Flow'}
-            </button>
-          ))}
-        </div>
-      </div>
+  // Measure container
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setDimensions({
+          width: Math.max(rect.width, 600),
+          height: Math.max(380, Math.min(480, rect.width * 0.42))
+        });
+      }
+    };
 
-      {/* Main Diagram */}
-      <div className="relative bg-gradient-to-br from-surface/50 to-background rounded-2xl border border-border p-6 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <svg className="w-full h-full">
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
+  const { width, height } = dimensions;
+  const padding = { top: 35, right: 15, bottom: 40, left: 15 };
+  const contentWidth = width - padding.left - padding.right;
+  const contentHeight = height - padding.top - padding.bottom;
+  const rowHeight = contentHeight / layers.length;
+  const rowGap = 4;
+
+  // Calculate component positions
+  const componentPositions = useMemo(() => {
+    const positions = {};
+    const compWidth = Math.min(85, (contentWidth - 90) / 5);
+    const compHeight = rowHeight - rowGap * 2 - 10;
+    const compGap = 8;
+
+    layers.forEach(([layerId, layer], layerIndex) => {
+      const y = padding.top + layerIndex * rowHeight;
+      const startX = 90; // After layer label
+      const availableWidth = contentWidth - startX;
+
+      layer.components.forEach((comp, compIndex) => {
+        const x = padding.left + startX + compIndex * (compWidth + compGap);
+        positions[comp.id] = {
+          x,
+          y: y + rowGap + 5,
+          width: compWidth,
+          height: compHeight,
+          centerX: x + compWidth / 2,
+          centerY: y + rowGap + 5 + compHeight / 2,
+        };
+      });
+    });
+
+    return positions;
+  }, [layers, contentWidth, rowHeight, padding]);
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <div
+        className="relative bg-gradient-to-br from-[#0a0a0f] via-[#0d0d14] to-[#0a0a0f] rounded-2xl border border-white/10 overflow-hidden"
+        style={{ height }}
+      >
+        {/* Background */}
+        <div className="absolute inset-0 overflow-hidden rounded-2xl">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'radial-gradient(ellipse 70% 50% at 50% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 70%)',
+            }}
+          />
+
+          <svg className="absolute inset-0 w-full h-full opacity-10">
             <defs>
               <pattern id="arch-grid" width="30" height="30" patternUnits="userSpaceOnUse">
-                <circle cx="15" cy="15" r="1" fill="currentColor" />
+                <path d="M 30 0 L 0 0 0 30" fill="none" stroke="currentColor" strokeWidth="0.3" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#arch-grid)" />
           </svg>
+
+          {/* Particles */}
+          {[...Array(10)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 rounded-full"
+              style={{
+                left: `${15 + Math.random() * 70}%`,
+                top: `${15 + Math.random() * 70}%`,
+                backgroundColor: ['#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899'][i % 5],
+              }}
+              animate={{ y: [0, -12, 0], opacity: [0.2, 0.4, 0.2] }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
         </div>
 
-        {viewMode === 'layers' ? (
-          /* Layers View */
-          <div className="relative space-y-4">
-            {layers.map(([layerId, layer], layerIndex) => (
-              <motion.div
-                key={layerId}
-                className="relative"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: layerIndex * 0.1 }}
-              >
-                {/* Layer Label */}
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: layer.color }}
+        {/* Main SVG */}
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="relative z-10"
+          style={{ width: '100%', height: '100%' }}
+        >
+          <defs>
+            <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" />
+            </filter>
+            <linearGradient id="cardShine" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="white" stopOpacity="0.1" />
+              <stop offset="50%" stopColor="white" stopOpacity="0" />
+              <stop offset="100%" stopColor="white" stopOpacity="0.05" />
+            </linearGradient>
+          </defs>
+
+          {/* Connection lines (behind layers) */}
+          {showFlows && (
+            <g>
+              {DATA_FLOWS.map((flow, index) => {
+                const fromPos = componentPositions[flow.from];
+                const toPos = componentPositions[flow.to];
+                if (!fromPos || !toPos) return null;
+
+                return (
+                  <ConnectionLine
+                    key={`${flow.from}-${flow.to}`}
+                    x1={fromPos.centerX}
+                    y1={fromPos.centerY + fromPos.height / 2}
+                    x2={toPos.centerX}
+                    y2={toPos.centerY - toPos.height / 2}
+                    color={flow.color}
+                    animated={index % 4 === 0}
+                    delay={index * 0.05}
                   />
-                  <span
-                    className="text-sm font-semibold"
-                    style={{ color: layer.color }}
-                  >
-                    {layer.name}
-                  </span>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
+                );
+              })}
+            </g>
+          )}
 
-                {/* Layer Components */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pl-6">
-                  {layer.components.map((comp, compIndex) => (
-                    <LayerComponent
-                      key={comp.id}
-                      component={comp}
-                      layerColor={layer.color}
-                      isSelected={selectedComponent?.id === comp.id}
-                      onClick={setSelectedComponent}
-                      index={layerIndex * 4 + compIndex}
-                    />
-                  ))}
-                </div>
-
-                {/* Arrow to next layer */}
-                {layerIndex < layers.length - 1 && (
-                  <div className="flex justify-center my-2">
-                    <ArrowDown className="w-5 h-5 text-muted-foreground/50" />
-                  </div>
-                )}
-              </motion.div>
+          {/* Layer rows */}
+          <g transform={`translate(${padding.left}, 0)`}>
+            {layers.map(([layerId, layer], index) => (
+              <LayerRow
+                key={layerId}
+                layer={layer}
+                layerId={layerId}
+                y={padding.top + index * rowHeight}
+                width={contentWidth}
+                componentPositions={componentPositions}
+                selectedComponent={selectedComponent}
+                onComponentClick={setSelectedComponent}
+                index={index}
+              />
             ))}
-          </div>
-        ) : (
-          /* Data Flow View */
-          <div className="relative min-h-[500px]">
-            {/* Flow visualization with SVG connections */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none">
-              <defs>
-                <marker
-                  id="arrowhead"
-                  markerWidth="10"
-                  markerHeight="7"
-                  refX="9"
-                  refY="3.5"
-                  orient="auto"
-                >
-                  <polygon points="0 0, 10 3.5, 0 7" fill="#10b981" />
-                </marker>
-              </defs>
-              {/* Animated flow lines would go here */}
-            </svg>
+          </g>
 
-            {/* Simplified flow diagram */}
-            <div className="grid grid-cols-3 gap-8">
-              {/* Left Column - Inputs */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-muted-foreground mb-4">Inputs</h4>
-                {['clients', 'gateway'].map((layerId) => {
-                  const layer = ARCHITECTURE[layerId];
-                  return (
-                    <div key={layerId} className="space-y-2">
-                      {layer.components.map((comp, i) => (
-                        <motion.div
-                          key={comp.id}
-                          className="p-3 rounded-lg border"
-                          style={{
-                            backgroundColor: `${layer.color}10`,
-                            borderColor: `${layer.color}30`
-                          }}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.1 }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <comp.icon className="w-4 h-4" style={{ color: layer.color }} />
-                            <span className="text-sm font-medium">{comp.name}</span>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Center Column - Processing */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-muted-foreground mb-4">Processing</h4>
-                {['application', 'processing'].map((layerId) => {
-                  const layer = ARCHITECTURE[layerId];
-                  return (
-                    <div key={layerId} className="space-y-2">
-                      {layer.components.map((comp, i) => (
-                        <motion.div
-                          key={comp.id}
-                          className="p-3 rounded-lg border relative"
-                          style={{
-                            backgroundColor: `${layer.color}10`,
-                            borderColor: `${layer.color}30`
-                          }}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.3 + i * 0.1 }}
-                        >
-                          {/* Connection lines */}
-                          <div className="absolute -left-8 top-1/2 w-8 h-px bg-border" />
-                          <div className="absolute -right-8 top-1/2 w-8 h-px bg-border" />
-
-                          <div className="flex items-center gap-2">
-                            <comp.icon className="w-4 h-4" style={{ color: layer.color }} />
-                            <span className="text-sm font-medium">{comp.name}</span>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Right Column - Storage & Observability */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-muted-foreground mb-4">Storage & Monitoring</h4>
-                {['data', 'observability'].map((layerId) => {
-                  const layer = ARCHITECTURE[layerId];
-                  return (
-                    <div key={layerId} className="space-y-2">
-                      {layer.components.map((comp, i) => (
-                        <motion.div
-                          key={comp.id}
-                          className="p-3 rounded-lg border"
-                          style={{
-                            backgroundColor: `${layer.color}10`,
-                            borderColor: `${layer.color}30`
-                          }}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.6 + i * 0.1 }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <comp.icon className="w-4 h-4" style={{ color: layer.color }} />
-                            <span className="text-sm font-medium">{comp.name}</span>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Flow arrows */}
-            <div className="absolute top-1/2 left-1/3 transform -translate-y-1/2">
-              <motion.div
-                animate={{ x: [0, 10, 0] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-              >
-                <ArrowRight className="w-6 h-6 text-brand-green" />
-              </motion.div>
-            </div>
-            <div className="absolute top-1/2 right-1/3 transform -translate-y-1/2">
-              <motion.div
-                animate={{ x: [0, 10, 0] }}
-                transition={{ repeat: Infinity, duration: 1.5, delay: 0.5 }}
-              >
-                <ArrowRight className="w-6 h-6 text-brand-green" />
-              </motion.div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Selected Component Details */}
-      <AnimatePresence>
-        {selectedComponent && (
-          <motion.div
-            className="p-4 rounded-xl bg-surface/50 border border-border"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+          {/* Title */}
+          <text
+            x={width / 2}
+            y={20}
+            textAnchor="middle"
+            fill="white"
+            fontSize={13}
+            fontWeight={700}
+            opacity={0.8}
           >
-            <div className="flex items-center gap-3">
-              <selectedComponent.icon className="w-6 h-6 text-brand-green" />
-              <div>
-                <h4 className="font-semibold text-foreground">{selectedComponent.name}</h4>
-                <p className="text-sm text-muted-foreground">{selectedComponent.desc}</p>
-              </div>
-              <button
-                onClick={() => setSelectedComponent(null)}
-                className="ml-auto text-muted-foreground hover:text-foreground"
-              >
-                &times;
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            GreenStack Architecture
+          </text>
+        </svg>
 
-      {/* Architecture Legend */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {layers.map(([layerId, layer]) => (
-          <div
-            key={layerId}
-            className="flex items-center gap-2 p-2 rounded-lg bg-surface/30"
-          >
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: layer.color }}
+        {/* Details panel */}
+        <AnimatePresence>
+          {selectedComponent && (
+            <DetailsPanel
+              component={selectedComponent}
+              onClose={() => setSelectedComponent(null)}
             />
-            <span className="text-xs text-muted-foreground">{layer.name}</span>
+          )}
+        </AnimatePresence>
+
+        {/* Controls */}
+        <motion.div
+          className="absolute bottom-3 left-3"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <button
+            onClick={() => setShowFlows(!showFlows)}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+              showFlows
+                ? 'bg-brand-green/20 text-brand-green border border-brand-green/30'
+                : 'bg-white/5 text-white/50 border border-white/10'
+            }`}
+          >
+            {showFlows ? 'Hide' : 'Show'} Flows
+          </button>
+        </motion.div>
+
+        {/* Stats */}
+        <motion.div
+          className="absolute bottom-3 right-3 flex items-center gap-3"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+        >
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm border border-white/10">
+            <div className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
+            <span className="text-white/50 text-[10px]">{layers.length} Layers</span>
           </div>
-        ))}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm border border-white/10">
+            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+            <span className="text-white/50 text-[10px]">
+              {Object.values(ARCHITECTURE).reduce((acc, l) => acc + l.components.length, 0)} Components
+            </span>
+          </div>
+        </motion.div>
+
+        {/* Hint */}
+        <motion.div
+          className="absolute top-8 left-1/2 -translate-x-1/2 text-white/30 text-[10px]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2 }}
+        >
+          Click components for details
+        </motion.div>
       </div>
     </div>
   );
