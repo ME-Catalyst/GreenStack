@@ -280,6 +280,28 @@ losing the ".0" suffix that was in the original IODD.
 
 ---
 
+### Fix #12: Condition@subindex Missing (456 issues) - COMMITTED
+
+**Commit**: `51171bc` feat(pqa): add Condition@subindex extraction and reconstruction
+
+**Problem**: Condition elements in ProcessData can have a `subindex` attribute that was not being
+extracted, stored, or reconstructed. Affected 456 issues across 9 devices.
+
+**Sample Original**: `<Condition variableId="V_tankAndProduct_config" value="1" subindex="1" />`
+
+**Changes Made**:
+1. `src/models/__init__.py` - Add `subindex` field to ProcessDataCondition
+2. `src/parsing/__init__.py` - Extract subindex from Condition elements
+3. `src/storage/process_data.py` - Save condition_subindex to process_data_conditions
+4. `src/utils/forensic_reconstruction_v2.py` - Output subindex attribute when present
+5. `alembic/versions/052_add_condition_subindex.py` - Add condition_subindex column
+
+**Expected Impact**: ~456 issues resolved (requires re-import)
+
+**Status**: COMMITTED & PUSHED - Requires re-import to populate data
+
+---
+
 ## POST-REIMPORT RESULTS (CURRENT STATE)
 
 Re-import completed successfully with parser shadowing fix applied.
