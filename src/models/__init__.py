@@ -172,6 +172,9 @@ class ErrorType:
     additional_code: int
     name: Optional[str] = None
     description: Optional[str] = None
+    # PQA: Track whether code attribute was in original and element order
+    has_code_attr: bool = True  # Most have code, so default True
+    xml_order: Optional[int] = None
 
 
 @dataclass

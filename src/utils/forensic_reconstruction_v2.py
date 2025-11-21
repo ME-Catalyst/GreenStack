@@ -1633,9 +1633,9 @@ class IODDReconstructor:
         """Create ErrorTypeCollection from error_types table"""
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT code, additional_code FROM error_types
+            SELECT code, additional_code, has_code_attr, xml_order FROM error_types
             WHERE device_id = ?
-            ORDER BY additional_code
+            ORDER BY COALESCE(xml_order, additional_code)
         """, (device_id,))
         error_types = cursor.fetchall()
 
@@ -1645,9 +1645,12 @@ class IODDReconstructor:
         collection = ET.Element('ErrorTypeCollection')
 
         for error in error_types:
-            # StdErrorTypeRef has code (always 0x80 = 128 for standard errors) and additionalCode
+            # StdErrorTypeRef has code (optional) and additionalCode
             error_ref = ET.SubElement(collection, 'StdErrorTypeRef')
-            error_ref.set('code', str(error['code']))  # Usually 128 (0x80)
+            # PQA: Only output code attribute if it was in the original
+            has_code = error['has_code_attr'] if 'has_code_attr' in error.keys() else True
+            if has_code:
+                error_ref.set('code', str(error['code']))
             error_ref.set('additionalCode', str(error['additional_code']))
 
         return collection

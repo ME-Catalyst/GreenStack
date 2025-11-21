@@ -1060,8 +1060,11 @@ class IODDParser:
             return error_types
 
         # Extract standard error type references
-        for error_ref in error_collection.findall('.//iodd:StdErrorTypeRef', self.NAMESPACES):
-            code = int(error_ref.get('code', 0))
+        for idx, error_ref in enumerate(error_collection.findall('.//iodd:StdErrorTypeRef', self.NAMESPACES)):
+            # PQA: Check if code attribute exists (not just has value)
+            code_attr = error_ref.get('code')
+            has_code_attr = code_attr is not None
+            code = int(code_attr) if code_attr else 128  # Default 0x80 if not present
             additional_code = int(error_ref.get('additionalCode', 0))
 
             # Try to get descriptive name based on standard error codes
@@ -1071,7 +1074,9 @@ class IODDParser:
                 code=code,
                 additional_code=additional_code,
                 name=error_name,
-                description=self._get_standard_error_description(code, additional_code)
+                description=self._get_standard_error_description(code, additional_code),
+                has_code_attr=has_code_attr,
+                xml_order=idx
             ))
 
         # Also check for custom error types (ErrorType elements)
