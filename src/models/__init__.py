@@ -129,6 +129,10 @@ class RecordItem:
     max_value: Optional[str] = None
     value_range_xsi_type: Optional[str] = None
     access_right_restriction: Optional[str] = None  # RecordItem@accessRightRestriction (PQA)
+    # SimpleDatatype attributes (PQA reconstruction)
+    fixed_length: Optional[int] = None  # SimpleDatatype@fixedLength
+    encoding: Optional[str] = None  # SimpleDatatype@encoding
+    datatype_id: Optional[str] = None  # SimpleDatatype@id
 
 
 @dataclass

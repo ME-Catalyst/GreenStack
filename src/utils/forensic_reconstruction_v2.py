@@ -647,6 +647,16 @@ class IODDReconstructor:
                     # Float32T is always 32 bits, so bitLength is typically omitted
                     if item['bit_length'] and item['data_type'] not in ('BooleanT', 'Float32T'):
                         simple_dt.set('bitLength', str(item['bit_length']))
+                    # PQA: Add optional SimpleDatatype attributes
+                    fixed_len = item['fixed_length'] if 'fixed_length' in item.keys() else None
+                    if fixed_len:
+                        simple_dt.set('fixedLength', str(fixed_len))
+                    encoding = item['encoding'] if 'encoding' in item.keys() else None
+                    if encoding:
+                        simple_dt.set('encoding', encoding)
+                    dt_id = item['datatype_id'] if 'datatype_id' in item.keys() else None
+                    if dt_id:
+                        simple_dt.set('id', dt_id)
 
                     # Add SingleValue elements for this SimpleDatatype (PQA reconstruction)
                     cursor.execute("""
@@ -755,6 +765,16 @@ class IODDReconstructor:
                 simple_dt.set('{http://www.w3.org/2001/XMLSchema-instance}type', item['simple_datatype'])
                 if item['bit_length']:
                     simple_dt.set('bitLength', str(item['bit_length']))
+                # PQA: Add optional SimpleDatatype attributes
+                fixed_len = item['fixed_length'] if 'fixed_length' in item.keys() else None
+                if fixed_len:
+                    simple_dt.set('fixedLength', str(fixed_len))
+                encoding = item['encoding'] if 'encoding' in item.keys() else None
+                if encoding:
+                    simple_dt.set('encoding', encoding)
+                dt_id = item['datatype_id'] if 'datatype_id' in item.keys() else None
+                if dt_id:
+                    simple_dt.set('id', dt_id)
 
                 # Add SingleValue children for this RecordItem's SimpleDatatype
                 cursor.execute("""

@@ -686,6 +686,10 @@ class IODDParser:
             min_value = None
             max_value = None
             value_range_xsi_type = None
+            # SimpleDatatype attributes (PQA reconstruction)
+            fixed_length = None
+            encoding = None
+            datatype_id = None
 
             if datatype_ref is not None:
                 data_type = datatype_ref.get('datatypeId', 'Unknown')
@@ -694,6 +698,10 @@ class IODDParser:
                 data_type = simple_dt.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'UIntegerT')
                 # PQA: Only store bitLength if explicitly present in original IODD
                 bit_length = int(simple_dt.get('bitLength')) if simple_dt.get('bitLength') else None
+                # PQA: Extract additional SimpleDatatype attributes
+                fixed_length = int(simple_dt.get('fixedLength')) if simple_dt.get('fixedLength') else None
+                encoding = simple_dt.get('encoding')
+                datatype_id = simple_dt.get('id')
 
                 # Extract SingleValues from SimpleDatatype
                 for sv_elem in simple_dt.findall('iodd:SingleValue', self.NAMESPACES):
@@ -733,6 +741,9 @@ class IODDParser:
                 max_value=max_value,
                 value_range_xsi_type=value_range_xsi_type,
                 access_right_restriction=access_right_restriction,  # PQA
+                fixed_length=fixed_length,  # PQA: SimpleDatatype@fixedLength
+                encoding=encoding,  # PQA: SimpleDatatype@encoding
+                datatype_id=datatype_id,  # PQA: SimpleDatatype@id
             ))
 
         return record_items
