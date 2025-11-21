@@ -83,6 +83,29 @@ which found SingleValue/Name descendants instead of direct child Name element.
 
 ---
 
+### Fix #4: Extra SimpleDatatype@bitLength (385 issues) - COMMITTED
+
+**Commit**: `979bf89` fix(pqa): store None for bitLength when not in original IODD
+
+**Problem**: `SimpleDatatype@bitLength` attribute was being added to RecordItem/SimpleDatatype
+when it wasn't present in the original IODD. Parser defaulted to `8` when bitLength was absent.
+
+**Root Cause**: Parser stored a default value (8) instead of None when bitLength wasn't present.
+Reconstruction then output bitLength for all RecordItems, even when not in original.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Changed `bit_length: int` to `bit_length: Optional[int]` in RecordItem
+2. `src/parsing/__init__.py` - Multiple locations updated:
+   - `_extract_variable_record_items()` - Store None when bitLength not present
+   - ProcessDataIn/Out RecordItem parsing - Store None when bitLength not present
+   - `_extract_custom_datatypes()` - Get bitLength from SimpleDatatype child, not RecordItem
+
+**Expected Impact**: ~385 issues resolved (requires re-import)
+
+**Status**: COMMITTED - Requires re-import to populate data
+
+---
+
 ## POST-REIMPORT RESULTS (CURRENT STATE)
 
 Re-import completed successfully with parser shadowing fix applied.
