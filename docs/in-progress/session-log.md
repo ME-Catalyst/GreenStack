@@ -227,6 +227,34 @@ sioSupported attributes, plus Connection with wire configurations, and Test sect
 
 ---
 
+### Fix #10: CommNetworkProfile/Stamp Location (644 issues) - COMMITTED
+
+**Commit**: `18a0f43` fix(pqa): move CommNetworkProfile and Stamp to correct XML location
+
+**Problem**: CommNetworkProfile and Stamp elements were being placed under `/IODevice/ProfileBody/`
+but IODD schema requires them to be direct children of `/IODevice/`. This caused:
+- 322 extra_element issues for `/IODevice/ProfileBody/CommNetworkProfile`
+- 322 missing_element issues for `/IODevice/CommNetworkProfile`
+- Same pattern for Stamp element
+
+**Changes Made**:
+1. `src/utils/forensic_reconstruction_v2.py`:
+   - Removed `_create_comm_network_profile()` and `_create_stamp()` calls from `_create_profile_body()`
+   - Added them to `reconstruct_iodd()` so they are appended to `root` (IODevice) directly
+   - Elements now appear after ProfileBody and before ExternalTextCollection
+
+**Expected Impact**: ~644 issues resolved (no re-import needed)
+
+**Actual Results**:
+- Location issues (ProfileBody/CommNetworkProfile): 0 (was 322)
+- Location issues (ProfileBody/Stamp): 0 (was 322)
+- Total issues reduced from 9,915 to 9,792
+- Average score improved from 98.36% to 98.45%
+
+**Status**: COMMITTED & PUSHED
+
+---
+
 ## POST-REIMPORT RESULTS (CURRENT STATE)
 
 Re-import completed successfully with parser shadowing fix applied.
