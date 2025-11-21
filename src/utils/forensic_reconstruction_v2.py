@@ -629,6 +629,32 @@ class IODDReconstructor:
                     # Float32T is always 32 bits, so bitLength is typically omitted
                     if item['bit_length'] and item['data_type'] not in ('BooleanT', 'Float32T'):
                         simple_dt.set('bitLength', str(item['bit_length']))
+
+                    # Add SingleValue elements for this SimpleDatatype (PQA reconstruction)
+                    cursor.execute("""
+                        SELECT value, name, name_text_id
+                        FROM process_data_single_values
+                        WHERE record_item_id = ?
+                    """, (item['id'],))
+                    single_values = cursor.fetchall()
+                    for sv in single_values:
+                        sv_elem = ET.SubElement(simple_dt, 'SingleValue')
+                        sv_elem.set('value', str(sv['value']))
+                        sv_name_text_id = sv['name_text_id'] if 'name_text_id' in sv.keys() else None
+                        if sv_name_text_id:
+                            sv_name_elem = ET.SubElement(sv_elem, 'Name')
+                            sv_name_elem.set('textId', sv_name_text_id)
+                        elif sv['name'] and device_id:
+                            # Fallback: lookup text_id from iodd_text
+                            cursor.execute("""
+                                SELECT text_id FROM iodd_text
+                                WHERE device_id = ? AND text_value = ?
+                                LIMIT 1
+                            """, (device_id, sv['name']))
+                            tid_row = cursor.fetchone()
+                            if tid_row:
+                                sv_name_elem = ET.SubElement(sv_elem, 'Name')
+                                sv_name_elem.set('textId', tid_row['text_id'])
                 else:
                     # Custom datatype reference
                     dt_ref = ET.SubElement(record_elem, 'DatatypeRef')
@@ -1288,6 +1314,8 @@ class IODDReconstructor:
                             simple_dt.set('bitLength', str(param['array_element_bit_length']))
                         if param['array_element_fixed_length']:
                             simple_dt.set('fixedLength', str(param['array_element_fixed_length']))
+                        # Add SingleValues to SimpleDatatype for ArrayT (PQA reconstruction)
+                        self._add_variable_single_values(conn, param['id'], simple_dt)
 
                 # Handle RecordT specific attributes
                 elif param['data_type'] == 'RecordT':

@@ -134,8 +134,8 @@ class ProcessDataSaver(BaseSaver):
         """Save single values for a record item"""
         query = """
             INSERT INTO process_data_single_values (
-                record_item_id, value, name, description
-            ) VALUES (?, ?, ?, ?)
+                record_item_id, value, name, description, name_text_id
+            ) VALUES (?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -145,6 +145,7 @@ class ProcessDataSaver(BaseSaver):
                 getattr(single_val, 'value', None),
                 getattr(single_val, 'name', None),
                 getattr(single_val, 'description', None),
+                getattr(single_val, 'text_id', None),  # PQA: Store original textId
             ))
 
         if params_list:

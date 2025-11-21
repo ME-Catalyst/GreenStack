@@ -818,7 +818,8 @@ class IODDParser:
                                     single_values.append(SingleValue(
                                         value=value,
                                         name=text_value,
-                                        description=description
+                                        description=description,
+                                        text_id=text_id  # PQA: Store original textId for reconstruction
                                     ))
                     else:
                         # Check for DatatypeRef
@@ -935,7 +936,8 @@ class IODDParser:
                                     single_values.append(SingleValue(
                                         value=value,
                                         name=text_value,
-                                        description=description
+                                        description=description,
+                                        text_id=text_id  # PQA: Store original textId for reconstruction
                                     ))
                     else:
                         # Check for DatatypeRef
