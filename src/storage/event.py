@@ -28,11 +28,12 @@ class EventSaver(BaseSaver):
         # Delete existing
         self._delete_existing('events', device_id)
 
-        # Prepare bulk insert
+        # Prepare bulk insert with textId columns for PQA reconstruction
         query = """
             INSERT INTO events (
-                device_id, code, name, description, event_type
-            ) VALUES (?, ?, ?, ?, ?)
+                device_id, code, name, description, event_type,
+                name_text_id, description_text_id, order_index
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -43,6 +44,9 @@ class EventSaver(BaseSaver):
                 getattr(event, 'name', None),
                 getattr(event, 'description', None),
                 getattr(event, 'event_type', None),
+                getattr(event, 'name_text_id', None),
+                getattr(event, 'description_text_id', None),
+                getattr(event, 'order_index', None),
             ))
 
         if params_list:

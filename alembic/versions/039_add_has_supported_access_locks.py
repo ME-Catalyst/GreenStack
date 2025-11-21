@@ -1,7 +1,7 @@
 """Add has_supported_access_locks column to device_features table
 
-Revision ID: 039_add_has_supported_access_locks
-Revises: 038_add_parameter_datatype_ref
+Revision ID: 039
+Revises: 038
 Create Date: 2025-11-21
 
 This migration adds a flag to track whether the SupportedAccessLocks element
@@ -13,8 +13,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers
-revision = '039_add_has_supported_access_locks'
-down_revision = '038_add_parameter_datatype_ref'
+revision = '039'
+down_revision = '038'
 branch_labels = None
 depends_on = None
 

@@ -832,7 +832,8 @@ class IODDParser:
                         bit_offset=bit_offset,
                         bit_length=item_bit_length,
                         data_type=item_type,
-                        single_values=single_values
+                        single_values=single_values,
+                        name_text_id=item_name_id  # Preserve original textId for PQA
                     ))
 
             process_data = ProcessData(
@@ -934,7 +935,8 @@ class IODDParser:
                         bit_offset=bit_offset,
                         bit_length=item_bit_length,
                         data_type=item_type,
-                        single_values=single_values
+                        single_values=single_values,
+                        name_text_id=item_name_id  # Preserve original textId for PQA
                     ))
 
             process_data = ProcessData(
@@ -999,7 +1001,7 @@ class IODDParser:
         return error_types
 
     def _extract_events(self) -> List[Event]:
-        """Extract events from EventCollection"""
+        """Extract events from EventCollection preserving original order and textIds"""
         events = []
 
         # Find EventCollection
@@ -1007,40 +1009,53 @@ class IODDParser:
         if event_collection is None:
             return events
 
-        # Extract standard event references
-        for event_ref in event_collection.findall('.//iodd:StdEventRef', self.NAMESPACES):
-            code = int(event_ref.get('code', 0))
+        # Process all children in original XML order (StdEventRef and Event mixed)
+        order_index = 0
+        for child in event_collection:
+            # Get local name without namespace
+            tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
 
-            # Try to get descriptive name based on standard event codes
-            event_name = self._get_standard_event_name(code)
+            if tag == 'StdEventRef':
+                # Standard event reference - no textIds, just code
+                code = int(child.get('code', 0))
+                event_name = self._get_standard_event_name(code)
 
-            events.append(Event(
-                code=code,
-                name=event_name,
-                description=self._get_standard_event_description(code)
-            ))
+                events.append(Event(
+                    code=code,
+                    name=event_name,
+                    description=self._get_standard_event_description(code),
+                    event_type=None,  # StdEventRef has no type
+                    name_text_id=None,
+                    description_text_id=None,
+                    order_index=order_index
+                ))
+                order_index += 1
 
-        # Also check for custom events (Event elements)
-        for event_elem in event_collection.findall('.//iodd:Event', self.NAMESPACES):
-            code = int(event_elem.get('code', 0))
-            event_type = event_elem.get('type')  # Notification, Warning, Error
+            elif tag == 'Event':
+                # Custom event - preserve textIds
+                code = int(child.get('code', 0))
+                event_type = child.get('type')  # Notification, Warning, Error
 
-            # Get name from textId
-            name_elem = event_elem.find('.//iodd:Name', self.NAMESPACES)
-            name_id = name_elem.get('textId') if name_elem is not None else None
-            name = self._resolve_text(name_id)
+                # Get name and its textId
+                name_elem = child.find('iodd:Name', self.NAMESPACES)
+                name_text_id = name_elem.get('textId') if name_elem is not None else None
+                name = self._resolve_text(name_text_id)
 
-            # Get description from textId
-            desc_elem = event_elem.find('.//iodd:Description', self.NAMESPACES)
-            desc_id = desc_elem.get('textId') if desc_elem is not None else None
-            description = self._resolve_text(desc_id)
+                # Get description and its textId
+                desc_elem = child.find('iodd:Description', self.NAMESPACES)
+                desc_text_id = desc_elem.get('textId') if desc_elem is not None else None
+                description = self._resolve_text(desc_text_id)
 
-            events.append(Event(
-                code=code,
-                name=name,
-                description=description,
-                event_type=event_type
-            ))
+                events.append(Event(
+                    code=code,
+                    name=name,
+                    description=description,
+                    event_type=event_type,
+                    name_text_id=name_text_id,
+                    description_text_id=desc_text_id,
+                    order_index=order_index
+                ))
+                order_index += 1
 
         return events
 

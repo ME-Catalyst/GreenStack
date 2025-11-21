@@ -567,23 +567,24 @@ class IODDReconstructor:
                     dt_ref = ET.SubElement(record_elem, 'DatatypeRef')
                     dt_ref.set('datatypeId', item['data_type'])
 
-            # Add Name element with textId
-            if item['name'] and device_id:
+            # Add Name element with textId (use stored textId directly for PQA accuracy)
+            name_text_id = item['name_text_id'] if 'name_text_id' in item.keys() else None
+            if name_text_id:
                 name_elem = ET.SubElement(record_elem, 'Name')
-                # Try to find text ID from stored data or iodd_text
-                name_text_id = item.get('name_text_id') if isinstance(item, dict) else None
-                if not name_text_id:
-                    cursor.execute("""
-                        SELECT text_id FROM iodd_text
-                        WHERE device_id = ? AND text_value = ? AND language_code = 'en'
-                        LIMIT 1
-                    """, (device_id, item['name']))
-                    text_row = cursor.fetchone()
-                    name_text_id = text_row['text_id'] if text_row else None
-                if name_text_id:
-                    name_elem.set('textId', name_text_id)
+                name_elem.set('textId', name_text_id)
+            elif item['name'] and device_id:
+                # Fallback: try reverse-lookup from iodd_text (less accurate)
+                name_elem = ET.SubElement(record_elem, 'Name')
+                cursor.execute("""
+                    SELECT text_id FROM iodd_text
+                    WHERE device_id = ? AND text_value = ? AND language_code = 'en'
+                    LIMIT 1
+                """, (device_id, item['name']))
+                text_row = cursor.fetchone()
+                if text_row:
+                    name_elem.set('textId', text_row['text_id'])
                 else:
-                    # Generate text ID from name
+                    # Last resort: generate text ID from name
                     clean_name = item['name'].replace(' ', '_').replace(',', '').replace('(', '').replace(')', '')
                     name_elem.set('textId', f'TN_RI_{clean_name[:20]}')
 
@@ -1302,14 +1303,17 @@ class IODDReconstructor:
 
         Distinguishes between StdEventRef (standard IO-Link events) and
         Event (device-specific events) based on event_type being NULL.
-        Preserves original insertion order using id column.
+        Preserves original order using order_index column (or id as fallback).
+        Uses stored textIds directly instead of reverse-lookup for accuracy.
         """
         cursor = conn.cursor()
-        # Order by id preserves original XML order
+        # Order by order_index (if available) or id to preserve original XML order
         cursor.execute("""
-            SELECT code, name, description, event_type FROM events
+            SELECT code, name, description, event_type,
+                   name_text_id, description_text_id, order_index
+            FROM events
             WHERE device_id = ?
-            ORDER BY id
+            ORDER BY COALESCE(order_index, id)
         """, (device_id,))
         events = cursor.fetchall()
 
@@ -1319,12 +1323,13 @@ class IODDReconstructor:
         collection = ET.Element('EventCollection')
 
         for event in events:
-            # StdEventRef: standard IO-Link events have no type, and name is auto-generated
-            # Parser generates names like "Event 16928" for StdEventRef elements
-            is_std_event = (event['event_type'] is None and
-                           (event['name'] is None or
-                            (event['name'] and event['name'].startswith('Event ') and
-                             event['name'][6:].isdigit())))
+            # Check for stored textIds - if name_text_id is NULL, this is a StdEventRef
+            name_text_id = event['name_text_id'] if 'name_text_id' in event.keys() else None
+
+            # StdEventRef: standard IO-Link events have no type and no name_text_id
+            # (Parser stores NULL for name_text_id on StdEventRef elements)
+            is_std_event = (event['event_type'] is None and name_text_id is None)
+
             if is_std_event:
                 std_ref = ET.SubElement(collection, 'StdEventRef')
                 std_ref.set('code', str(event['code']))
@@ -1335,28 +1340,15 @@ class IODDReconstructor:
                 if event['event_type']:
                     event_elem.set('type', event['event_type'])
 
-                # Lookup text IDs for name and description
-                if event['name']:
-                    cursor.execute("""
-                        SELECT text_id FROM iodd_text
-                        WHERE device_id = ? AND text_value = ? AND language_code = 'en'
-                        LIMIT 1
-                    """, (device_id, event['name']))
-                    name_text_id_row = cursor.fetchone()
-                    if name_text_id_row:
-                        name_elem = ET.SubElement(event_elem, 'Name')
-                        name_elem.set('textId', name_text_id_row['text_id'])
+                # Use stored textIds directly (no reverse-lookup needed)
+                if name_text_id:
+                    name_elem = ET.SubElement(event_elem, 'Name')
+                    name_elem.set('textId', name_text_id)
 
-                if event['description']:
-                    cursor.execute("""
-                        SELECT text_id FROM iodd_text
-                        WHERE device_id = ? AND text_value = ? AND language_code = 'en'
-                        LIMIT 1
-                    """, (device_id, event['description']))
-                    desc_text_id_row = cursor.fetchone()
-                    if desc_text_id_row:
-                        desc_elem = ET.SubElement(event_elem, 'Description')
-                        desc_elem.set('textId', desc_text_id_row['text_id'])
+                desc_text_id = event['description_text_id'] if 'description_text_id' in event.keys() else None
+                if desc_text_id:
+                    desc_elem = ET.SubElement(event_elem, 'Description')
+                    desc_elem.set('textId', desc_text_id)
 
         return collection
 

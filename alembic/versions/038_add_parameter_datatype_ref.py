@@ -1,7 +1,7 @@
 """Add datatype_ref column to parameters table
 
-Revision ID: 038_add_parameter_datatype_ref
-Revises: 037_add_iodd_build_format
+Revision ID: 038
+Revises: 037
 Create Date: 2025-11-21
 
 This migration adds a datatype_ref column to store the custom datatype ID
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers
-revision = '038_add_parameter_datatype_ref'
-down_revision = '037_add_iodd_build_format'
+revision = '038'
+down_revision = '037'
 branch_labels = None
 depends_on = None
 

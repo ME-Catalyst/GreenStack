@@ -168,6 +168,10 @@ class Event:
     name: Optional[str] = None
     description: Optional[str] = None
     event_type: Optional[str] = None  # Notification, Warning, Error
+    # PQA: Store original textIds for accurate reconstruction
+    name_text_id: Optional[str] = None
+    description_text_id: Optional[str] = None
+    order_index: Optional[int] = None  # Preserve original order in IODD
 
 
 @dataclass
