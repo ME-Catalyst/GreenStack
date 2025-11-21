@@ -65,6 +65,8 @@ class SingleValue:
     value: str
     name: str
     description: Optional[str] = None
+    text_id: Optional[str] = None  # Original textId from IODD for PQA reconstruction
+    xsi_type: Optional[str] = None  # xsi:type attribute (e.g., BooleanValueT) for PQA
 
 
 @dataclass
@@ -102,6 +104,7 @@ class RecordItem:
     data_type: str
     default_value: Optional[str] = None
     single_values: List[SingleValue] = field(default_factory=list)
+    name_text_id: Optional[str] = None  # Original textId for Name element (PQA)
 
 
 @dataclass
@@ -247,6 +250,8 @@ class DeviceVariant:
     device_icon: Optional[str] = None
     name: Optional[str] = None
     description: Optional[str] = None
+    name_text_id: Optional[str] = None  # Original textId for Name element (PQA)
+    description_text_id: Optional[str] = None  # Original textId for Description element (PQA)
 
 
 @dataclass

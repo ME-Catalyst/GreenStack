@@ -106,8 +106,8 @@ class DeviceVariantsSaver(BaseSaver):
         query = """
             INSERT INTO device_variants (
                 device_id, product_id, device_symbol, device_icon,
-                name, description
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                name, description, name_text_id, description_text_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -119,6 +119,8 @@ class DeviceVariantsSaver(BaseSaver):
                 getattr(variant, 'device_icon', None),
                 getattr(variant, 'name', None),
                 getattr(variant, 'description', None),
+                getattr(variant, 'name_text_id', None),  # PQA: preserve original textId
+                getattr(variant, 'description_text_id', None),  # PQA: preserve original textId
             ))
 
         if params_list:

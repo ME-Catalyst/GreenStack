@@ -196,10 +196,11 @@ class IODDReconstructor:
         # DeviceVariantCollection - device variants/models
         device_variant_coll = ET.SubElement(device_identity, 'DeviceVariantCollection')
 
-        # Query variant data from database
+        # Query variant data from database (including PQA textId fields)
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT product_id, device_symbol, device_icon, name, description
+            SELECT product_id, device_symbol, device_icon, name, description,
+                   name_text_id, description_text_id
             FROM device_variants
             WHERE device_id = ?
             LIMIT 1
@@ -220,16 +221,22 @@ class IODDReconstructor:
         if variant_row and variant_row['device_icon']:
             device_variant.set('deviceIcon', variant_row['device_icon'])
 
-        # Add variant name with proper text ID (Phase 2 Task 8)
+        # Add variant name with proper text ID (PQA improvement - use stored textId)
         variant_name = ET.SubElement(device_variant, 'Name')
-        if variant_row and variant_row['product_id']:
+        name_text_id = variant_row['name_text_id'] if variant_row and 'name_text_id' in variant_row.keys() and variant_row['name_text_id'] else None
+        if name_text_id:
+            variant_name.set('textId', name_text_id)
+        elif variant_row and variant_row['product_id']:
             variant_name.set('textId', f"TN_Variant_{variant_row['product_id']}")
         else:
             variant_name.set('textId', 'TN_Variant')
 
-        # Add variant description with proper text ID (Phase 2 Task 8)
+        # Add variant description with proper text ID (PQA improvement - use stored textId)
         variant_desc = ET.SubElement(device_variant, 'Description')
-        if variant_row and variant_row['product_id']:
+        desc_text_id = variant_row['description_text_id'] if variant_row and 'description_text_id' in variant_row.keys() and variant_row['description_text_id'] else None
+        if desc_text_id:
+            variant_desc.set('textId', desc_text_id)
+        elif variant_row and variant_row['product_id']:
             variant_desc.set('textId', f"TD_Variant_{variant_row['product_id']}")
         else:
             variant_desc.set('textId', 'TD_Variant')
@@ -448,25 +455,35 @@ class IODDReconstructor:
         # Add SingleValue elements directly to parent (no wrapper list)
         for val in values:
             value_elem = ET.SubElement(parent, 'SingleValue')
+
+            # Add xsi:type attribute if stored (PQA improvement)
+            xsi_type = val['xsi_type'] if 'xsi_type' in val.keys() else None
+            if xsi_type:
+                value_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', xsi_type)
+
             value_elem.set('value', str(val['value']))
 
             if val['name']:
                 name = ET.SubElement(value_elem, 'Name')
-                # Try to find the original text ID from iodd_text table
-                cursor2 = conn.cursor()
-                cursor2.execute("""
-                    SELECT text_id FROM iodd_text
-                    WHERE device_id = (SELECT device_id FROM custom_datatypes WHERE id = ?)
-                    AND text_value = ?
-                    AND text_id LIKE 'TN_SV_%'
-                    LIMIT 1
-                """, (datatype_id, val['name']))
-                text_id_row = cursor2.fetchone()
-                if text_id_row:
-                    name.set('textId', text_id_row['text_id'])
+                # Use stored text_id if available (PQA improvement)
+                stored_text_id = val['text_id'] if 'text_id' in val.keys() else None
+                if stored_text_id:
+                    name.set('textId', stored_text_id)
                 else:
-                    # Fallback: generate a text ID from the name
-                    name.set('textId', 'TN_SV_' + val['name'].replace(' ', '').replace('-', '_'))
+                    # Fallback: try to find from iodd_text table
+                    cursor2 = conn.cursor()
+                    cursor2.execute("""
+                        SELECT text_id FROM iodd_text
+                        WHERE device_id = (SELECT device_id FROM custom_datatypes WHERE id = ?)
+                        AND text_value = ?
+                        LIMIT 1
+                    """, (datatype_id, val['name']))
+                    text_id_row = cursor2.fetchone()
+                    if text_id_row:
+                        name.set('textId', text_id_row['text_id'])
+                    else:
+                        # Final fallback: generate a text ID from the name
+                        name.set('textId', 'TN_SV_' + val['name'].replace(' ', '').replace('-', '_'))
 
     def _add_record_items(self, conn: sqlite3.Connection, parent: ET.Element,
                          datatype_id: int) -> None:
@@ -490,23 +507,26 @@ class IODDReconstructor:
 
             if item['name']:
                 name = ET.SubElement(record_elem, 'Name')
-                # Try to find the original text ID from iodd_text table
-                cursor2 = conn.cursor()
-                cursor2.execute("""
-                    SELECT text_id FROM iodd_text
-                    WHERE device_id = (SELECT device_id FROM custom_datatypes WHERE id = ?)
-                    AND text_value = ?
-                    AND text_id LIKE 'TN_RI_%'
-                    LIMIT 1
-                """, (datatype_id, item['name']))
-                text_id_row = cursor2.fetchone()
-                if text_id_row:
-                    name.set('textId', text_id_row['text_id'])
+                # Use stored name_text_id if available (PQA improvement)
+                stored_text_id = item['name_text_id'] if 'name_text_id' in item.keys() else None
+                if stored_text_id:
+                    name.set('textId', stored_text_id)
                 else:
-                    # Try by subindex pattern for known record item structures
-                    # Some record items have special naming conventions
-                    clean_name = item['name'].replace(' ', '').replace('-', '_')
-                    name.set('textId', 'TN_RI_' + clean_name)
+                    # Fallback: try to find from iodd_text table
+                    cursor2 = conn.cursor()
+                    cursor2.execute("""
+                        SELECT text_id FROM iodd_text
+                        WHERE device_id = (SELECT device_id FROM custom_datatypes WHERE id = ?)
+                        AND text_value = ?
+                        LIMIT 1
+                    """, (datatype_id, item['name']))
+                    text_id_row = cursor2.fetchone()
+                    if text_id_row:
+                        name.set('textId', text_id_row['text_id'])
+                    else:
+                        # Final fallback: generate a text ID from the name
+                        clean_name = item['name'].replace(' ', '').replace('-', '_')
+                        name.set('textId', 'TN_RI_' + clean_name)
 
             # Determine whether to use DatatypeRef or SimpleDatatype
             # Base types (ending in 'T' like UIntegerT, IntegerT, StringT) use SimpleDatatype

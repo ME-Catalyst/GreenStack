@@ -65,8 +65,8 @@ class CustomDatatypeSaver(BaseSaver):
 
         query = """
             INSERT INTO custom_datatype_single_values (
-                datatype_id, value, name
-            ) VALUES (?, ?, ?)
+                datatype_id, value, name, text_id, xsi_type
+            ) VALUES (?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -75,6 +75,8 @@ class CustomDatatypeSaver(BaseSaver):
                 datatype_db_id,
                 getattr(single_val, 'value', None),
                 getattr(single_val, 'name', None),
+                getattr(single_val, 'text_id', None),  # PQA: preserve original textId
+                getattr(single_val, 'xsi_type', None),  # PQA: preserve xsi:type
             ))
 
         if params_list:
@@ -88,8 +90,8 @@ class CustomDatatypeSaver(BaseSaver):
         query = """
             INSERT INTO custom_datatype_record_items (
                 datatype_id, subindex, bit_offset, bit_length,
-                datatype_ref, name
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                datatype_ref, name, name_text_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -101,6 +103,7 @@ class CustomDatatypeSaver(BaseSaver):
                 getattr(record_item, 'bit_length', None),
                 getattr(record_item, 'data_type', getattr(record_item, 'datatype_ref', None)),
                 getattr(record_item, 'name', None),
+                getattr(record_item, 'name_text_id', None),  # PQA: preserve original textId
             ))
 
         if params_list:

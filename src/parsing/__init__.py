@@ -1402,7 +1402,9 @@ class IODDParser:
                 device_symbol=variant_elem.get('deviceSymbol'),
                 device_icon=variant_elem.get('deviceIcon'),
                 name=name,
-                description=description
+                description=description,
+                name_text_id=name_text_id,  # Preserve original textId for PQA
+                description_text_id=desc_text_id  # Preserve original textId for PQA
             ))
 
         logger.info(f"Extracted {len(variants)} device variants")
@@ -1506,10 +1508,14 @@ class IODDParser:
                 if name_elem is not None and value is not None:
                     text_id = name_elem.get('textId')
                     text_value = self._resolve_text(text_id)
+                    # Get xsi:type attribute for PQA reconstruction (e.g., BooleanValueT)
+                    sv_xsi_type = single_val.get('{http://www.w3.org/2001/XMLSchema-instance}type')
                     if text_value:
                         single_values.append(SingleValue(
                             value=value,
-                            name=text_value
+                            name=text_value,
+                            text_id=text_id,  # Preserve original textId for PQA
+                            xsi_type=sv_xsi_type  # Preserve xsi:type for PQA
                         ))
 
             # Extract record items (for RecordT types)
@@ -1541,7 +1547,8 @@ class IODDParser:
                         name=item_name,
                         bit_offset=int(bit_offset),
                         bit_length=int(record_item_elem.get('bitLength', 0)),
-                        data_type=datatype_ref or 'Unknown'
+                        data_type=datatype_ref or 'Unknown',
+                        name_text_id=name_text_id  # Preserve original textId for PQA
                     ))
 
             datatypes.append(CustomDatatype(
