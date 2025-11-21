@@ -86,6 +86,49 @@ class DiffAnalyzer:
         'value': 0.25        # Values important but less critical
     }
 
+    @staticmethod
+    def _normalize_whitespace(text: Optional[str]) -> Optional[str]:
+        """
+        Normalize whitespace for comparison purposes.
+
+        IODD files may use tabs or spaces for indentation, but this has no
+        semantic meaning. This function normalizes:
+        - Strips leading/trailing whitespace
+        - Collapses multiple whitespace characters to single space
+        - Returns None for whitespace-only strings
+
+        Args:
+            text: The text to normalize
+
+        Returns:
+            Normalized text or None if text is only whitespace
+        """
+        if text is None:
+            return None
+        # Collapse all whitespace to single spaces and strip
+        normalized = ' '.join(text.split())
+        # Return None for empty/whitespace-only strings
+        return normalized if normalized else None
+
+    @staticmethod
+    def _is_whitespace_only_diff(original: Optional[str], reconstructed: Optional[str]) -> bool:
+        """
+        Check if the difference between two strings is only whitespace.
+
+        This is used to downgrade severity of whitespace-only differences
+        since they have no semantic impact on IODD functionality.
+
+        Args:
+            original: Original text value
+            reconstructed: Reconstructed text value
+
+        Returns:
+            True if the only difference is whitespace formatting
+        """
+        orig_normalized = DiffAnalyzer._normalize_whitespace(original)
+        recon_normalized = DiffAnalyzer._normalize_whitespace(reconstructed)
+        return orig_normalized == recon_normalized
+
     # Critical elements that must not be lost
     CRITICAL_ELEMENTS = {
         'DeviceIdentity', 'DeviceFunction', 'ProcessData',
@@ -225,9 +268,13 @@ class DiffAnalyzer:
                     description=f"Extra attribute '{attr_name}' not in original"
                 ))
 
-        # Check text content
-        if original.text != reconstructed.text:
-            if original.text and not reconstructed.text:
+        # Check text content (with whitespace normalization)
+        orig_text_normalized = self._normalize_whitespace(original.text)
+        recon_text_normalized = self._normalize_whitespace(reconstructed.text)
+
+        if orig_text_normalized != recon_text_normalized:
+            # Only report if there's a semantic difference (not just whitespace)
+            if orig_text_normalized and not recon_text_normalized:
                 diffs.append(DiffItem(
                     diff_type=DiffType.VALUE_CHANGED,
                     severity=DiffSeverity.MEDIUM,
@@ -236,7 +283,7 @@ class DiffAnalyzer:
                     actual_value=None,
                     description="Text content missing"
                 ))
-            elif original.text != reconstructed.text:
+            elif orig_text_normalized != recon_text_normalized:
                 diffs.append(DiffItem(
                     diff_type=DiffType.VALUE_CHANGED,
                     severity=DiffSeverity.MEDIUM,
@@ -245,6 +292,7 @@ class DiffAnalyzer:
                     actual_value=reconstructed.text,
                     description="Text content differs"
                 ))
+        # Note: Whitespace-only differences are now ignored as they have no semantic impact
 
         # Compare children
         orig_children = list(original)

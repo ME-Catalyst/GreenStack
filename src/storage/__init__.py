@@ -24,6 +24,7 @@ from .text import TextSaver
 from .custom_datatype import CustomDatatypeSaver
 from .test_config import TestConfigSaver
 from .std_variable_ref import StdVariableRefSaver
+from .build_format import BuildFormatSaver
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ class StorageManager:
             custom_datatype_saver = CustomDatatypeSaver(cursor)
             test_config_saver = TestConfigSaver(cursor)
             std_variable_ref_saver = StdVariableRefSaver(cursor)
+            build_format_saver = BuildFormatSaver(cursor)
 
             # Save core device info (may return existing device ID)
             # The save method returns existing ID if device already exists
@@ -118,6 +120,10 @@ class StorageManager:
             test_config_saver.save(device_id, getattr(profile, 'test_configurations', []))
             std_variable_ref_saver.save(device_id, getattr(profile, 'std_variable_refs', []))
 
+            # Extract and save build format metadata from raw XML
+            if hasattr(profile, 'raw_xml') and profile.raw_xml:
+                build_format_saver.extract_and_save(device_id, profile.raw_xml)
+
             conn.commit()
             logger.info(f"Successfully saved device profile with ID: {device_id}")
             return device_id
@@ -150,4 +156,5 @@ __all__ = [
     'CustomDatatypeSaver',
     'TestConfigSaver',
     'StdVariableRefSaver',
+    'BuildFormatSaver',
 ]
