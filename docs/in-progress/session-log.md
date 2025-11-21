@@ -4,37 +4,66 @@
 
 ---
 
-## SUMMARY: READY FOR RE-IMPORT
+## POST-REIMPORT RESULTS (CURRENT STATE)
 
-All the issues identified have been analyzed and the code fixes are either:
-1. **Migration 044** - Boolean attribute defaults fixed
-2. **Already implemented** - Parser, storage, and reconstruction code already works correctly
+Re-import completed successfully with parser shadowing fix applied.
 
-The existing data was imported before these features were fully operational. A re-import will:
-- Populate `name_text_id` columns correctly
-- Store `StdVariableRef` elements
-- Store proper NULL values for missing boolean attributes
-- All textId issues will be resolved
+### Improvement Summary
 
-### Single Device Test Results (Device 1)
+| Metric | Before Reimport | After Reimport | Change |
+|--------|-----------------|----------------|--------|
+| **Average Score** | 89.43% | **96.58%** | +7.15% |
+| **Min Score** | 80.21% | **86.26%** | +6.05% |
+| **Max Score** | 96.84% | **99.76%** | +2.92% |
+| **Devices Analyzed** | 149 | 161 | +12 |
 
-After manually re-populating one device's data:
-| Metric | Before Manual Fix | After Manual Fix |
-|--------|-------------------|------------------|
-| Overall Score | 89.43% | **97.38%** |
-| Total Diffs | ~94 | **24** |
-| StdVariableRef issues | ~16 | **0** |
-| textId issues | ~10 | **3** (only DeviceVariant) |
+### Score Distribution
 
-### Expected Results After Full Re-Import
+| Range | Before | After |
+|-------|--------|-------|
+| 99-100% | 0 | **35** |
+| 95-99% | 4 | **83** |
+| 90-95% | 66 | 38 |
+| 85-90% | 66 | **5** |
+| 80-85% | 13 | **0** |
 
-| Category | Current Issues | Expected After | Reduction |
-|----------|---------------|----------------|-----------|
-| Boolean attributes (extra) | 3,084 | ~100 | -2,984 |
-| StdVariableRef (missing) | 2,278 | ~0 | -2,278 |
-| textId (incorrect) | 2,181 | ~300 | -1,881 |
-| Other improvements | - | - | ~1,000 |
-| **TOTAL** | **14,052** | **~6,000-7,000** | **~50-55%** |
+**73% of devices now score 95%+** (118 out of 161)
+
+### Remaining Issues to Fix
+
+| Priority | Category | Count | Status |
+|----------|----------|-------|--------|
+| 1 | ProcessDataIn/Out Name | 1,534 | TODO |
+| 2 | Variable/Datatype missing element | 1,362 | TODO |
+| 3 | Variable/Datatype extra element | 794 | TODO |
+| 4 | Variable/Datatype incorrect attr | 623 | TODO |
+| 5 | ErrorType issues | 343 | TODO |
+| 6 | UserInterface issues | 256 | TODO |
+| 7 | CommNetworkProfile (missing) | 128 | TODO |
+| 8 | Stamp (missing) | 119 | TODO |
+
+### Worst Performing Devices
+
+| ID | Score | Product |
+|----|-------|---------|
+| 154 | 86.26% | VEGAPULS 42 IO-Link |
+| 139 | 86.80% | TiM100 |
+| 134 | 86.82% | DT50-2 |
+| 136 | 88.10% | KTS/KTX |
+| 130 | 88.94% | SL-x-TRIO IOLINK |
+
+---
+
+## PREVIOUS STATE (Before Reimport)
+
+### Expected vs Actual Results
+
+| Category | Expected After | Actual After | Notes |
+|----------|---------------|--------------|-------|
+| Boolean attributes | ~100 | Resolved | Migration 044 worked |
+| StdVariableRef | ~0 | Resolved | Parser fix worked |
+| textId issues | ~300 | Resolved | Parser fix worked |
+| **Overall** | 50-55% reduction | **+7.15% avg score** | Exceeded expectations |
 
 ---
 
@@ -123,7 +152,40 @@ After manually re-populating one device's data:
 
 ---
 
-## COMPLETED THIS SESSION
+## COMPLETED THIS SESSION (Continued)
+
+### New Fixes Applied (Post-Reimport)
+
+#### FIX #2: ProcessData Name and subindexAccessSupported (Migration 045)
+
+**Problem**: ProcessDataIn/Out elements missing Name child element and subindexAccessSupported attribute.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `name_text_id` and `subindex_access_supported` to ProcessData model
+2. `src/parsing/__init__.py` - Extract name_text_id and subindexAccessSupported for both inputs and outputs
+3. `src/storage/process_data.py` - Save both new fields
+4. `src/utils/forensic_reconstruction_v2.py` - Generate Name element with textId and subindexAccessSupported attribute
+5. `alembic/versions/045_add_process_data_name_text_id.py` - Add columns to process_data table
+
+**Expected Impact**: ~1,700+ issues resolved (ProcessDataIn/Out Name + subindexAccessSupported)
+
+---
+
+### Known Issues (Future Work)
+
+These issues require more significant changes and are deferred:
+
+| Issue | Count | Root Cause | Fix Required |
+|-------|-------|------------|--------------|
+| ValueRange in RecordItem | ~345 | Not stored for RecordItems | Add min/max columns, update parser/reconstruction |
+| CommNetworkProfile missing | ~128 | Not reconstructed | Add reconstruction logic |
+| Stamp missing | ~119 | Not reconstructed | Add reconstruction logic |
+| Extra SimpleDatatype attrs | ~434 | Adding bitLength when not in original | Conditional attribute generation |
+| UserInterface issues | ~256 | Complex nested structure | Further investigation needed |
+
+---
+
+## PREVIOUS SESSION FIXES
 
 ### Code Fixes
 - [x] Migration 044: Fix boolean column defaults
@@ -141,35 +203,40 @@ After manually re-populating one device's data:
 
 ---
 
-## FILES CHANGED
+## ALL FILES CHANGED
 
+### This Session
+1. `alembic/versions/045_add_process_data_name_text_id.py` - NEW
+   - Adds name_text_id and subindex_access_supported columns to process_data
+
+2. `src/models/__init__.py` - UPDATED
+   - Added name_text_id and subindex_access_supported to ProcessData
+
+3. `src/parsing/__init__.py` - UPDATED
+   - Extract ProcessData name_text_id and subindexAccessSupported
+
+4. `src/storage/process_data.py` - UPDATED
+   - Save name_text_id and subindex_access_supported
+
+5. `src/utils/forensic_reconstruction_v2.py` - UPDATED
+   - Generate Name element and subindexAccessSupported attribute for ProcessData
+
+### Previous Session
 1. `alembic/versions/044_fix_boolean_column_defaults.py` - NEW
-   - Removes DEFAULT 0 from boolean columns
-   - Fixes parameters and variable_record_item_info tables
 
-2. `docs/in-progress/session-log.md` - UPDATED
-   - Progress tracking
-
-3. `src/greenstack.py` - CRITICAL FIX
-   - Renamed deprecated `IODDParser` class to `_DeprecatedIODDParser`
-   - Added deprecation notice marking class for removal
-   - Fixed `_parse_xml_content()` to use enhanced parser from `src.parsing`
-   - **Problem**: The local class was shadowing the import, causing GUI to use deprecated parser
-   - **Impact**: GUI imports now use the enhanced parser with all PQA improvements
+2. `src/greenstack.py` - CRITICAL FIX
+   - Parser shadowing fix
 
 ---
 
 ## NEXT STEPS
 
-1. **RE-IMPORT ALL 149 IODD DEVICES** via GUI
-   - Now uses enhanced parser from `src.parsing`
-   - This will populate all the missing data
-   - Expected to reduce issues by ~50-55%
+1. **RE-IMPORT DEVICES** to populate new ProcessData fields
+   - Required for ProcessData Name and subindexAccessSupported
 
-2. After re-import, remaining issues will likely be:
-   - Event Name/Description elements
-   - Some xsi:type attributes
-   - Some subindexAccessSupported attributes
-   - Minor edge cases
+2. **Run PQA analysis** to verify improvement
 
-3. Run PQA analysis to verify improvements
+3. **Future Improvements** (lower priority):
+   - ValueRange for RecordItems
+   - CommNetworkProfile reconstruction
+   - Stamp reconstruction

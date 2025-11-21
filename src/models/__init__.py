@@ -141,6 +141,10 @@ class ProcessData:
     description: Optional[str] = None
     # Phase 2: Conditional process data
     condition: Optional[ProcessDataCondition] = None
+    # PQA: Store original textId for accurate reconstruction
+    name_text_id: Optional[str] = None
+    # PQA: Store subindexAccessSupported attribute from Datatype
+    subindex_access_supported: Optional[bool] = None
 
 
 @dataclass

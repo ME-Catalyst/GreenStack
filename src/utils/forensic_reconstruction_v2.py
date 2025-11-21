@@ -513,6 +513,11 @@ class IODDReconstructor:
                     if pd['bit_length']:
                         direction_elem.set('bitLength', str(pd['bit_length']))
 
+                    # Add Name element with textId (PQA accuracy)
+                    if pd.get('name_text_id'):
+                        name_elem = ET.SubElement(direction_elem, 'Name')
+                        name_elem.set('textId', pd['name_text_id'])
+
                     # Datatype goes inside ProcessDataIn
                     if pd['data_type']:
                         datatype = ET.SubElement(direction_elem, 'Datatype')
@@ -520,6 +525,9 @@ class IODDReconstructor:
                         # Add bitLength to Datatype element as well
                         if pd['bit_length']:
                             datatype.set('bitLength', str(pd['bit_length']))
+                        # Add subindexAccessSupported attribute (PQA accuracy)
+                        if pd.get('subindex_access_supported') is not None:
+                            datatype.set('subindexAccessSupported', 'true' if pd['subindex_access_supported'] else 'false')
                         # Add RecordItem elements for RecordT types
                         if pd['data_type'] == 'RecordT':
                             self._add_process_data_record_items(conn, datatype, pd['id'])
@@ -529,6 +537,11 @@ class IODDReconstructor:
                     if pd['bit_length']:
                         direction_elem.set('bitLength', str(pd['bit_length']))
 
+                    # Add Name element with textId (PQA accuracy)
+                    if pd.get('name_text_id'):
+                        name_elem = ET.SubElement(direction_elem, 'Name')
+                        name_elem.set('textId', pd['name_text_id'])
+
                     # Datatype goes inside ProcessDataOut
                     if pd['data_type']:
                         datatype = ET.SubElement(direction_elem, 'Datatype')
@@ -536,6 +549,9 @@ class IODDReconstructor:
                         # Add bitLength to Datatype element
                         if pd['bit_length']:
                             datatype.set('bitLength', str(pd['bit_length']))
+                        # Add subindexAccessSupported attribute (PQA accuracy)
+                        if pd.get('subindex_access_supported') is not None:
+                            datatype.set('subindexAccessSupported', 'true' if pd['subindex_access_supported'] else 'false')
                         # Add RecordItem elements for RecordT types
                         if pd['data_type'] == 'RecordT':
                             self._add_process_data_record_items(conn, datatype, pd['id'])

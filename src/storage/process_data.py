@@ -77,8 +77,9 @@ class ProcessDataSaver(BaseSaver):
         """Save main process data entry"""
         query = """
             INSERT INTO process_data (
-                device_id, pd_id, name, direction, bit_length, data_type, description
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                device_id, pd_id, name, direction, bit_length, data_type, description,
+                name_text_id, subindex_access_supported
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -89,6 +90,8 @@ class ProcessDataSaver(BaseSaver):
             getattr(pd, 'bit_length', None),
             getattr(pd, 'data_type', None),
             getattr(pd, 'description', None),
+            getattr(pd, 'name_text_id', None),  # PQA: Store original textId
+            getattr(pd, 'subindex_access_supported', None),  # PQA: Store subindexAccessSupported
         )
 
         self._execute(query, params)

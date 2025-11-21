@@ -763,9 +763,14 @@ class IODDParser:
             datatype_elem = pd_in.find('.//iodd:Datatype', self.NAMESPACES)
             data_type = 'Unknown'
             record_items = []
+            subindex_access_supported = None  # PQA: Track subindexAccessSupported attribute
 
             if datatype_elem is not None:
                 data_type = datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'RecordT')
+                # PQA: Extract subindexAccessSupported attribute (store as bool or None)
+                subindex_attr = datatype_elem.get('subindexAccessSupported')
+                if subindex_attr is not None:
+                    subindex_access_supported = subindex_attr.lower() == 'true'
 
                 # Extract record items if it's a RecordT
                 for record_item in datatype_elem.findall('.//iodd:RecordItem', self.NAMESPACES):
@@ -845,7 +850,9 @@ class IODDParser:
                 bit_length=bit_length,
                 data_type=data_type,
                 record_items=record_items,
-                condition=condition_lookup.get(pd_id)  # Apply condition if exists (Phase 2)
+                condition=condition_lookup.get(pd_id),  # Apply condition if exists (Phase 2)
+                name_text_id=name_id,  # PQA: Store original textId for accurate reconstruction
+                subindex_access_supported=subindex_access_supported  # PQA: Store subindexAccessSupported
             )
             collection.inputs.append(process_data)
             collection.total_input_bits += bit_length
@@ -866,9 +873,14 @@ class IODDParser:
             datatype_elem = pd_out.find('.//iodd:Datatype', self.NAMESPACES)
             data_type = 'Unknown'
             record_items = []
+            subindex_access_supported = None  # PQA: Track subindexAccessSupported attribute
 
             if datatype_elem is not None:
                 data_type = datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'RecordT')
+                # PQA: Extract subindexAccessSupported attribute (store as bool or None)
+                subindex_attr = datatype_elem.get('subindexAccessSupported')
+                if subindex_attr is not None:
+                    subindex_access_supported = subindex_attr.lower() == 'true'
 
                 # Extract record items if it's a RecordT
                 for record_item in datatype_elem.findall('.//iodd:RecordItem', self.NAMESPACES):
@@ -948,7 +960,9 @@ class IODDParser:
                 bit_length=bit_length,
                 data_type=data_type,
                 record_items=record_items,
-                condition=condition_lookup.get(pd_id)  # Apply condition if exists (Phase 2)
+                condition=condition_lookup.get(pd_id),  # Apply condition if exists (Phase 2)
+                name_text_id=name_id,  # PQA: Store original textId for accurate reconstruction
+                subindex_access_supported=subindex_access_supported  # PQA: Store subindexAccessSupported
             )
             collection.outputs.append(process_data)
             collection.total_output_bits += bit_length
