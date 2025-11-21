@@ -514,9 +514,10 @@ class IODDReconstructor:
                         direction_elem.set('bitLength', str(pd['bit_length']))
 
                     # Add Name element with textId (PQA accuracy)
-                    if pd.get('name_text_id'):
+                    name_text_id = pd['name_text_id'] if 'name_text_id' in pd.keys() else None
+                    if name_text_id:
                         name_elem = ET.SubElement(direction_elem, 'Name')
-                        name_elem.set('textId', pd['name_text_id'])
+                        name_elem.set('textId', name_text_id)
 
                     # Datatype goes inside ProcessDataIn
                     if pd['data_type']:
@@ -526,8 +527,9 @@ class IODDReconstructor:
                         if pd['bit_length']:
                             datatype.set('bitLength', str(pd['bit_length']))
                         # Add subindexAccessSupported attribute (PQA accuracy)
-                        if pd.get('subindex_access_supported') is not None:
-                            datatype.set('subindexAccessSupported', 'true' if pd['subindex_access_supported'] else 'false')
+                        subindex_access = pd['subindex_access_supported'] if 'subindex_access_supported' in pd.keys() else None
+                        if subindex_access is not None:
+                            datatype.set('subindexAccessSupported', 'true' if subindex_access else 'false')
                         # Add RecordItem elements for RecordT types
                         if pd['data_type'] == 'RecordT':
                             self._add_process_data_record_items(conn, datatype, pd['id'])
@@ -538,9 +540,10 @@ class IODDReconstructor:
                         direction_elem.set('bitLength', str(pd['bit_length']))
 
                     # Add Name element with textId (PQA accuracy)
-                    if pd.get('name_text_id'):
+                    name_text_id = pd['name_text_id'] if 'name_text_id' in pd.keys() else None
+                    if name_text_id:
                         name_elem = ET.SubElement(direction_elem, 'Name')
-                        name_elem.set('textId', pd['name_text_id'])
+                        name_elem.set('textId', name_text_id)
 
                     # Datatype goes inside ProcessDataOut
                     if pd['data_type']:
@@ -550,8 +553,9 @@ class IODDReconstructor:
                         if pd['bit_length']:
                             datatype.set('bitLength', str(pd['bit_length']))
                         # Add subindexAccessSupported attribute (PQA accuracy)
-                        if pd.get('subindex_access_supported') is not None:
-                            datatype.set('subindexAccessSupported', 'true' if pd['subindex_access_supported'] else 'false')
+                        subindex_access = pd['subindex_access_supported'] if 'subindex_access_supported' in pd.keys() else None
+                        if subindex_access is not None:
+                            datatype.set('subindexAccessSupported', 'true' if subindex_access else 'false')
                         # Add RecordItem elements for RecordT types
                         if pd['data_type'] == 'RecordT':
                             self._add_process_data_record_items(conn, datatype, pd['id'])
@@ -939,8 +943,9 @@ class IODDReconstructor:
                 datatype = ET.SubElement(record_elem, 'SimpleDatatype')
                 if item['bit_length']:
                     datatype.set('bitLength', str(item['bit_length']))
-                if item.get('xsi_type'):
-                    datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', item['xsi_type'])
+                xsi_type = item['xsi_type'] if 'xsi_type' in item.keys() else None
+                if xsi_type:
+                    datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', xsi_type)
 
     def _create_user_interface(self, conn: sqlite3.Connection,
                               device_id: int) -> Optional[ET.Element]:
