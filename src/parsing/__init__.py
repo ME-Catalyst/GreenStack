@@ -765,6 +765,7 @@ class IODDParser:
             if condition_elem is not None:
                 var_id = condition_elem.get('variableId')
                 value = condition_elem.get('value')
+                subindex = condition_elem.get('subindex')  # PQA: Extract subindex attribute
                 if var_id and value:
                     # Find the ProcessDataIn or ProcessDataOut ID inside this wrapper
                     pd_in = pd_wrapper.find('.//iodd:ProcessDataIn', self.NAMESPACES)
@@ -773,7 +774,7 @@ class IODDParser:
                     if pd_elem is not None:
                         pd_id = pd_elem.get('id')
                         if pd_id:
-                            condition_lookup[pd_id] = ProcessDataCondition(variable_id=var_id, value=value)
+                            condition_lookup[pd_id] = ProcessDataCondition(variable_id=var_id, value=value, subindex=subindex)
 
         # Extract input process data
         pd_in_elems = self.root.findall('.//iodd:ProcessDataIn', self.NAMESPACES)

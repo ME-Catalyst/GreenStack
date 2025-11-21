@@ -160,14 +160,15 @@ class ProcessDataSaver(BaseSaver):
         """Save process data condition"""
         query = """
             INSERT INTO process_data_conditions (
-                process_data_id, condition_variable_id, condition_value
-            ) VALUES (?, ?, ?)
+                process_data_id, condition_variable_id, condition_value, condition_subindex
+            ) VALUES (?, ?, ?, ?)
         """
 
         params = (
             process_data_db_id,
             getattr(condition, 'variable_id', None),
             getattr(condition, 'value', None),
+            getattr(condition, 'subindex', None),  # PQA: Save subindex attribute
         )
 
         self._execute(query, params)

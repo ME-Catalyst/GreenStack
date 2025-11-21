@@ -478,7 +478,7 @@ class IODDReconstructor:
 
             # Check for Condition element (goes first in ProcessData)
             cursor.execute("""
-                SELECT condition_variable_id, condition_value
+                SELECT condition_variable_id, condition_value, condition_subindex
                 FROM process_data_conditions
                 WHERE process_data_id = ?
             """, (pd['id'],))
@@ -487,6 +487,10 @@ class IODDReconstructor:
                 condition_elem = ET.SubElement(pd_elem, 'Condition')
                 condition_elem.set('variableId', condition['condition_variable_id'])
                 condition_elem.set('value', str(condition['condition_value']))
+                # PQA: Add subindex attribute if present
+                cond_subindex = condition['condition_subindex'] if 'condition_subindex' in condition.keys() else None
+                if cond_subindex:
+                    condition_elem.set('subindex', cond_subindex)
 
             # Convert ProcessData ID format:
             # The outer ProcessData element uses a generic ID without direction suffix

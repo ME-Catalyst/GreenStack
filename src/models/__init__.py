@@ -136,6 +136,7 @@ class ProcessDataCondition:
     """Conditional process data definition"""
     variable_id: str
     value: str
+    subindex: Optional[str] = None  # PQA: Condition element can have subindex attribute
 
 
 @dataclass
