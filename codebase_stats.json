@@ -1,19 +1,19 @@
 {
-  "generated_at": "2025-11-21T09:59:03.155332",
+  "generated_at": "2025-11-21T12:48:54.428932",
   "project_name": "GreenStack",
   "language_stats": {
     "Python": {
-      "files": 169,
-      "lines": 43925,
-      "blank": 7215,
-      "comments": 2995,
+      "files": 173,
+      "lines": 44721,
+      "blank": 7351,
+      "comments": 3071,
       "is_doc": false
     },
     "JSX": {
-      "files": 117,
-      "lines": 49400,
-      "blank": 3825,
-      "comments": 496,
+      "files": 119,
+      "lines": 50602,
+      "blank": 3913,
+      "comments": 514,
       "is_doc": false
     },
     "JavaScript": {
@@ -32,15 +32,15 @@
     },
     "JSON": {
       "files": 10,
-      "lines": 14935,
+      "lines": 14938,
       "blank": 0,
       "comments": 0,
       "is_doc": false
     },
     "Markdown": {
-      "files": 90,
-      "lines": 59325,
-      "blank": 12964,
+      "files": 92,
+      "lines": 60320,
+      "blank": 13190,
       "comments": 0,
       "is_doc": true
     },
@@ -74,12 +74,54 @@
     }
   },
   "git_stats": {
-    "total_commits": 241,
+    "total_commits": 247,
     "contributors": 3,
     "branches": 4,
     "days_active": 10,
-    "recent_commits_30d": 241,
+    "recent_commits_30d": 247,
     "recent_commit_details": [
+      {
+        "hash": "7394d5b",
+        "author": "sys_eng",
+        "email": "sys_eng@example.com",
+        "timestamp": 1763746838,
+        "message": "docs: add comprehensive PQA system documentation"
+      },
+      {
+        "hash": "2a620f7",
+        "author": "sys_eng",
+        "email": "sys_eng@example.com",
+        "timestamp": 1763746224,
+        "message": "feat: enhance IODD parser and reconstruction for PQA accuracy"
+      },
+      {
+        "hash": "35e9bf1",
+        "author": "sys_eng",
+        "email": "sys_eng@example.com",
+        "timestamp": 1763745090,
+        "message": "fix: improve IODD RecordItem and SingleValue extraction for PQA"
+      },
+      {
+        "hash": "f3f9523",
+        "author": "sys_eng",
+        "email": "sys_eng@example.com",
+        "timestamp": 1763743637,
+        "message": "feat: improve IODD PQA system with whitespace handling and data backfill"
+      },
+      {
+        "hash": "4a13af2",
+        "author": "sys_eng",
+        "email": "sys_eng@example.com",
+        "timestamp": 1763737614,
+        "message": "feat: add interactive tech stack mind map and architecture diagrams"
+      },
+      {
+        "hash": "e5c05d7",
+        "author": "sys_eng",
+        "email": "sys_eng@example.com",
+        "timestamp": 1763737153,
+        "message": "fix: correct days_active calculation in codebase stats"
+      },
       {
         "hash": "5e8b940",
         "author": "sys_eng",
@@ -107,61 +149,19 @@
         "email": "sys_eng@example.com",
         "timestamp": 1763729692,
         "message": "feat: improve IODD PQA reconstruction with RecordT support"
-      },
-      {
-        "hash": "f93d8a0",
-        "author": "sys_eng",
-        "email": "sys_eng@example.com",
-        "timestamp": 1763701556,
-        "message": "docs: finalize PQA improvement log with results"
-      },
-      {
-        "hash": "ec6b884",
-        "author": "sys_eng",
-        "email": "sys_eng@example.com",
-        "timestamp": 1763701503,
-        "message": "feat: improve IODD PQA reconstruction accuracy"
-      },
-      {
-        "hash": "9452609",
-        "author": "sys_eng",
-        "email": "sys_eng@example.com",
-        "timestamp": 1763701002,
-        "message": "fix: correct PrimaryLanguage/Language structure in text collection"
-      },
-      {
-        "hash": "0f48aae",
-        "author": "sys_eng",
-        "email": "sys_eng@example.com",
-        "timestamp": 1763700867,
-        "message": "feat: add StdVariableRef storage for accurate PQA reconstruction"
-      },
-      {
-        "hash": "127dc05",
-        "author": "sys_eng",
-        "email": "sys_eng@example.com",
-        "timestamp": 1763700064,
-        "message": "feat: preserve original textId and xsi:type for PQA accuracy"
-      },
-      {
-        "hash": "9555e63",
-        "author": "sys_eng",
-        "email": "sys_eng@example.com",
-        "timestamp": 1763696060,
-        "message": "feat: improve IODD PQA reconstruction from 85.7% to 89.4%"
       }
     ]
   },
   "file_counts": {
-    "total_files": 494,
+    "total_files": 502,
     "total_directories": 84
   },
   "project_structure": {
-    "backend": 63,
-    "frontend": 137,
-    "docs": 91,
+    "backend": 64,
+    "frontend": 139,
+    "docs": 93,
     "tests": 31,
-    "scripts": 17,
+    "scripts": 18,
     "config": 28
   },
   "package_stats": {
@@ -171,22 +171,22 @@
     "npm_dev_dependencies": 10
   },
   "database_stats": {
-    "iodd_devices": 0,
-    "iodd_files": 0,
+    "iodd_devices": 56,
+    "iodd_files": 56,
     "eds_files": 0,
     "eds_variants": 0,
-    "total_parameters": 0,
+    "total_parameters": 781,
     "total_assemblies": 0,
-    "pqa_analyses": 0
+    "pqa_analyses": 56
   },
   "totals": {
-    "total_code_lines": 102597,
-    "total_doc_lines": 46361,
-    "total_lines": 148958,
-    "total_code_files": 345,
-    "total_doc_files": 90,
-    "total_files_counted": 435,
-    "total_blank_lines": 25196,
-    "total_comment_lines": 3700
+    "total_code_lines": 104280,
+    "total_doc_lines": 47130,
+    "total_lines": 151410,
+    "total_code_files": 351,
+    "total_doc_files": 92,
+    "total_files_counted": 443,
+    "total_blank_lines": 25646,
+    "total_comment_lines": 3794
   }
 }
