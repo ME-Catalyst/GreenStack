@@ -2,6 +2,7 @@
 Parameter storage handler
 
 Manages device parameters including access rights, data types, and constraints.
+Also handles record_items for RecordT datatypes.
 """
 
 import logging
@@ -26,28 +27,30 @@ class ParameterSaver(BaseSaver):
             logger.debug(f"No parameters to save for device {device_id}")
             return
 
-        # Delete existing parameters
+        # Delete existing parameters (cascade will delete parameter_record_items)
         self._delete_existing('parameters', device_id)
 
-        # Prepare bulk insert
-        query = """
-            INSERT INTO parameters (
-                device_id, param_index, name, data_type,
-                access_rights, default_value, min_value,
-                max_value, unit, description, enumeration_values, bit_length,
-                dynamic, excluded_from_data_storage, modifies_other_variables,
-                unit_code, value_range_name, variable_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """
+        # Track parameters with record_items for later insertion
+        params_with_record_items = []
 
-        params_list = []
         for param in parameters:
             # Serialize enumeration values as JSON
             enum_json = None
             if hasattr(param, 'enumeration_values') and param.enumeration_values:
                 enum_json = json.dumps(param.enumeration_values)
 
-            params_list.append((
+            # Insert parameter one at a time to get the ID for record_items
+            query = """
+                INSERT INTO parameters (
+                    device_id, param_index, name, data_type,
+                    access_rights, default_value, min_value,
+                    max_value, unit, description, enumeration_values, bit_length,
+                    dynamic, excluded_from_data_storage, modifies_other_variables,
+                    unit_code, value_range_name, variable_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+
+            self._execute(query, (
                 device_id,
                 getattr(param, 'index', None),
                 getattr(param, 'name', None),
@@ -68,6 +71,93 @@ class ParameterSaver(BaseSaver):
                 getattr(param, 'id', None),  # variable_id is stored as param.id
             ))
 
-        # Bulk insert
-        self._execute_many(query, params_list)
-        logger.info(f"Saved {len(params_list)} parameters for device {device_id}")
+            parameter_id = self._get_lastrowid()
+
+            # Save record_items if present
+            record_items = getattr(param, 'record_items', [])
+            if record_items:
+                self._save_record_items(parameter_id, record_items)
+                params_with_record_items.append(param.id)
+
+            # Save single_values if present
+            single_values = getattr(param, 'single_values', [])
+            if single_values:
+                self._save_single_values(parameter_id, single_values)
+
+        logger.info(f"Saved {len(parameters)} parameters for device {device_id}")
+        if params_with_record_items:
+            logger.info(f"Saved record_items for {len(params_with_record_items)} RecordT parameters")
+
+    def _save_record_items(self, parameter_id: int, record_items: list) -> None:
+        """
+        Save RecordItem elements for a RecordT parameter
+
+        Args:
+            parameter_id: Database ID of the parent parameter
+            record_items: List of RecordItem objects
+        """
+        query = """
+            INSERT INTO parameter_record_items (
+                parameter_id, subindex, bit_offset, bit_length,
+                datatype_ref, simple_datatype, name, name_text_id,
+                description, description_text_id, default_value, order_index
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+
+        items_list = []
+        for idx, ri in enumerate(record_items):
+            # Determine if datatype is a reference or simple
+            data_type = getattr(ri, 'data_type', None)
+            datatype_ref = None
+            simple_datatype = None
+
+            # If data_type looks like a custom datatype ID (e.g., DT_xxx), it's a ref
+            # Otherwise it's a simple type (e.g., UIntegerT)
+            if data_type and data_type.startswith('DT_'):
+                datatype_ref = data_type
+            elif data_type:
+                simple_datatype = data_type
+
+            items_list.append((
+                parameter_id,
+                getattr(ri, 'subindex', 0),
+                getattr(ri, 'bit_offset', 0),
+                getattr(ri, 'bit_length', 8),
+                datatype_ref,
+                simple_datatype,
+                getattr(ri, 'name', None),
+                getattr(ri, 'name_text_id', None),
+                getattr(ri, 'description', None),
+                None,  # description_text_id - not currently extracted
+                getattr(ri, 'default_value', None),
+                idx  # order_index
+            ))
+
+        self._execute_many(query, items_list)
+
+    def _save_single_values(self, parameter_id: int, single_values: list) -> None:
+        """
+        Save SingleValue elements for a parameter
+
+        Args:
+            parameter_id: Database ID of the parent parameter
+            single_values: List of SingleValue objects
+        """
+        query = """
+            INSERT INTO parameter_single_values (
+                parameter_id, value, name, text_id, xsi_type, order_index
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        """
+
+        values_list = []
+        for idx, sv in enumerate(single_values):
+            values_list.append((
+                parameter_id,
+                getattr(sv, 'value', ''),
+                getattr(sv, 'name', None),
+                getattr(sv, 'text_id', None),
+                getattr(sv, 'xsi_type', None),
+                idx  # order_index
+            ))
+
+        self._execute_many(query, values_list)

@@ -329,7 +329,8 @@ class IODDParser:
             modifies_other_variables=modifies_other_variables,
             unit_code=datatype_info.get('unit_code'),
             value_range_name=datatype_info.get('value_range_name'),
-            single_values=datatype_info.get('single_values', [])
+            single_values=datatype_info.get('single_values', []),
+            record_items=datatype_info.get('record_items', [])
         )
 
         return param
@@ -442,14 +443,15 @@ class IODDParser:
     def _parse_variable_datatype(self, var_elem) -> Dict[str, Any]:
         """Parse datatype information from a Variable element
 
-        Returns dict with keys: data_type, min_value, max_value, enumeration_values, bit_length
+        Returns dict with keys: data_type, min_value, max_value, enumeration_values, bit_length, record_items
         """
         result = {
             'data_type': IODDDataType.OCTET_STRING,
             'min_value': None,
             'max_value': None,
             'enumeration_values': {},
-            'bit_length': None
+            'bit_length': None,
+            'record_items': []
         }
 
         # Check for DatatypeRef (reference to custom datatype)
@@ -482,16 +484,28 @@ class IODDParser:
 
             # Extract single value enumerations (inline)
             enumeration_values = {}
-            for single_val in datatype_elem.findall('.//iodd:SingleValue', self.NAMESPACES):
+            single_values = []
+            for idx, single_val in enumerate(datatype_elem.findall('.//iodd:SingleValue', self.NAMESPACES)):
                 value = single_val.get('value')
+                xsi_type = single_val.get('{http://www.w3.org/2001/XMLSchema-instance}type')
                 name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
-                if name_elem is not None and value is not None:
-                    text_id = name_elem.get('textId')
-                    text_value = self._resolve_text(text_id)
+                text_id = name_elem.get('textId') if name_elem is not None else None
+                text_value = self._resolve_text(text_id) if text_id else None
+
+                if value is not None:
                     if text_value:
                         enumeration_values[value] = text_value
+                    # Store full SingleValue data for reconstruction
+                    single_values.append(SingleValue(
+                        value=value,
+                        name=text_value or '',
+                        description=None,
+                        text_id=text_id,
+                        xsi_type=xsi_type
+                    ))
 
             result['enumeration_values'] = enumeration_values
+            result['single_values'] = single_values
 
             # Extract value range (inline)
             value_range = datatype_elem.find('.//iodd:ValueRange', self.NAMESPACES)
@@ -499,7 +513,49 @@ class IODDParser:
                 result['min_value'] = value_range.get('lowerValue')
                 result['max_value'] = value_range.get('upperValue')
 
+            # Extract RecordItems for RecordT types
+            if type_str == 'RecordT':
+                result['record_items'] = self._extract_variable_record_items(datatype_elem)
+
         return result
+
+    def _extract_variable_record_items(self, datatype_elem) -> List[RecordItem]:
+        """Extract RecordItem elements from Variable/Datatype/RecordT"""
+        record_items = []
+
+        for idx, ri_elem in enumerate(datatype_elem.findall('iodd:RecordItem', self.NAMESPACES)):
+            subindex = int(ri_elem.get('subindex', 0))
+            bit_offset = int(ri_elem.get('bitOffset', 0))
+
+            # Get name from textId
+            name_elem = ri_elem.find('iodd:Name', self.NAMESPACES)
+            name_text_id = name_elem.get('textId') if name_elem is not None else None
+            name = self._resolve_text(name_text_id) or f'RecordItem_{subindex}'
+
+            # Determine datatype - could be DatatypeRef or SimpleDatatype
+            datatype_ref = ri_elem.find('iodd:DatatypeRef', self.NAMESPACES)
+            simple_dt = ri_elem.find('iodd:SimpleDatatype', self.NAMESPACES)
+
+            if datatype_ref is not None:
+                data_type = datatype_ref.get('datatypeId', 'Unknown')
+                bit_length = None
+            elif simple_dt is not None:
+                data_type = simple_dt.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'UIntegerT')
+                bit_length = int(simple_dt.get('bitLength', 8)) if simple_dt.get('bitLength') else 8
+            else:
+                data_type = 'Unknown'
+                bit_length = 8
+
+            record_items.append(RecordItem(
+                subindex=subindex,
+                name=name,
+                bit_offset=bit_offset,
+                bit_length=bit_length or 8,
+                data_type=data_type,
+                name_text_id=name_text_id
+            ))
+
+        return record_items
 
     def _map_xsi_type_to_iodd_type(self, xsi_type: str) -> IODDDataType:
         """Map XML xsi:type to IODDDataType enum"""

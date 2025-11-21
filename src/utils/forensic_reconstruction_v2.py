@@ -513,6 +513,112 @@ class IODDReconstructor:
                     clean_name = item['name'].replace(' ', '_').replace(',', '').replace('(', '').replace(')', '')
                     name_elem.set('textId', f'TN_RI_{clean_name[:20]}')
 
+    def _add_variable_record_items(self, conn: sqlite3.Connection, parameter_id: int,
+                                   datatype_elem: ET.Element, device_id: int) -> None:
+        """Add RecordItem elements to Variable/Datatype for RecordT types
+
+        Queries parameter_record_items table and creates RecordItem child elements.
+        """
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT * FROM parameter_record_items
+            WHERE parameter_id = ? ORDER BY order_index
+        """, (parameter_id,))
+        items = cursor.fetchall()
+
+        if not items:
+            return
+
+        for item in items:
+            record_elem = ET.SubElement(datatype_elem, 'RecordItem')
+            record_elem.set('subindex', str(item['subindex']))
+            if item['bit_offset'] is not None:
+                record_elem.set('bitOffset', str(item['bit_offset']))
+
+            # Add SimpleDatatype or DatatypeRef based on stored data
+            if item['datatype_ref']:
+                # Custom datatype reference (e.g., DT_xxx)
+                dt_ref = ET.SubElement(record_elem, 'DatatypeRef')
+                dt_ref.set('datatypeId', item['datatype_ref'])
+            elif item['simple_datatype']:
+                # Simple datatype (e.g., UIntegerT)
+                simple_dt = ET.SubElement(record_elem, 'SimpleDatatype')
+                simple_dt.set('{http://www.w3.org/2001/XMLSchema-instance}type', item['simple_datatype'])
+                if item['bit_length']:
+                    simple_dt.set('bitLength', str(item['bit_length']))
+
+            # Add Name element with textId
+            if item['name']:
+                name_elem = ET.SubElement(record_elem, 'Name')
+                # Use stored text_id if available
+                if item['name_text_id']:
+                    name_elem.set('textId', item['name_text_id'])
+                else:
+                    # Try to find text ID from iodd_text
+                    cursor.execute("""
+                        SELECT text_id FROM iodd_text
+                        WHERE device_id = ? AND text_value = ? AND language_code = 'en'
+                        LIMIT 1
+                    """, (device_id, item['name']))
+                    text_row = cursor.fetchone()
+                    if text_row:
+                        name_elem.set('textId', text_row['text_id'])
+                    else:
+                        # Generate text ID from name
+                        clean_name = item['name'].replace(' ', '_').replace(',', '').replace('(', '').replace(')', '')
+                        name_elem.set('textId', f'TN_RI_{clean_name[:20]}')
+
+    def _add_variable_single_values(self, conn: sqlite3.Connection, parameter_id: int,
+                                    datatype_elem: ET.Element) -> None:
+        """Add SingleValue elements to Variable/Datatype
+
+        Queries parameter_single_values table and creates SingleValue child elements.
+        """
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT * FROM parameter_single_values
+            WHERE parameter_id = ? ORDER BY order_index
+        """, (parameter_id,))
+        items = cursor.fetchall()
+
+        if not items:
+            return
+
+        for item in items:
+            sv_elem = ET.SubElement(datatype_elem, 'SingleValue')
+            sv_elem.set('value', str(item['value']))
+
+            # Add xsi:type if present
+            if item['xsi_type']:
+                sv_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', item['xsi_type'])
+
+            # Add Name element with textId
+            if item['text_id']:
+                name_elem = ET.SubElement(sv_elem, 'Name')
+                name_elem.set('textId', item['text_id'])
+
+    def _add_variable_record_item_info(self, conn: sqlite3.Connection, parameter_id: int,
+                                       variable_elem: ET.Element) -> None:
+        """Add RecordItemInfo elements to Variable
+
+        Queries variable_record_item_info table and creates RecordItemInfo child elements.
+        """
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT * FROM variable_record_item_info
+            WHERE parameter_id = ? ORDER BY order_index
+        """, (parameter_id,))
+        items = cursor.fetchall()
+
+        if not items:
+            return
+
+        for item in items:
+            ri_info_elem = ET.SubElement(variable_elem, 'RecordItemInfo')
+            ri_info_elem.set('subindex', str(item['subindex']))
+            if item['default_value'] is not None:
+                ri_info_elem.set('defaultValue', str(item['default_value']))
+
     def _create_datatype_collection(self, conn: sqlite3.Connection,
                                    device_id: int) -> Optional[ET.Element]:
         """Create DatatypeCollection for custom datatypes"""
@@ -927,6 +1033,13 @@ class IODDReconstructor:
                     else:
                         datatype_elem.set('fixedLength', '32')
 
+                # Add RecordItems for RecordT types
+                if param['data_type'] == 'RecordT':
+                    self._add_variable_record_items(conn, param['id'], datatype_elem, device_id)
+
+                # Add SingleValues for enumerated types
+                self._add_variable_single_values(conn, param['id'], datatype_elem)
+
             # Add ValueRange if min/max defined and we created a Datatype element (not DatatypeRef)
             if var_id not in custom_datatype_map:
                 if param['min_value'] is not None or param['max_value'] is not None:
@@ -967,6 +1080,10 @@ class IODDReconstructor:
                 if desc_text_row:
                     desc_elem = ET.SubElement(variable, 'Description')
                     desc_elem.set('textId', desc_text_row['text_id'])
+
+            # Add RecordItemInfo elements for RecordT types
+            if param['data_type'] == 'RecordT':
+                self._add_variable_record_item_info(conn, param['id'], variable)
 
         return collection
 
