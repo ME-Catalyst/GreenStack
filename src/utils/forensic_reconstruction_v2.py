@@ -972,34 +972,63 @@ class IODDReconstructor:
 
     def _create_text_collection(self, conn: sqlite3.Connection,
                                device_id: int) -> Optional[ET.Element]:
-        """Create ExternalTextCollection with multi-language texts"""
+        """Create ExternalTextCollection with multi-language texts
+
+        IODD structure:
+        - PrimaryLanguage (usually English) - only ONE
+        - Language (secondary languages) - zero or more
+        """
         cursor = conn.cursor()
         cursor.execute("""
             SELECT DISTINCT language_code FROM iodd_text WHERE device_id = ?
         """, (device_id,))
-        languages = cursor.fetchall()
+        languages = [row['language_code'] for row in cursor.fetchall()]
 
         if not languages:
             return None
 
         collection = ET.Element('ExternalTextCollection')
 
-        for lang_row in languages:
-            lang = lang_row['language_code']
-            primary_lang = ET.SubElement(collection, 'PrimaryLanguage')
-            primary_lang.set('xml:lang', lang)
+        # Determine primary language: prefer 'en', otherwise use first
+        if 'en' in languages:
+            primary_lang_code = 'en'
+        else:
+            primary_lang_code = languages[0]
 
-            # Get all texts for this language
-            # ORDER BY id preserves original XML order (insertion order)
+        # Create PrimaryLanguage element
+        primary_elem = ET.SubElement(collection, 'PrimaryLanguage')
+        primary_elem.set('{http://www.w3.org/XML/1998/namespace}lang', primary_lang_code)
+
+        # Get all texts for primary language
+        cursor.execute("""
+            SELECT text_id, text_value FROM iodd_text
+            WHERE device_id = ? AND language_code = ?
+            ORDER BY id
+        """, (device_id, primary_lang_code))
+        texts = cursor.fetchall()
+
+        for text in texts:
+            text_elem = ET.SubElement(primary_elem, 'Text')
+            text_elem.set('id', text['text_id'])
+            text_elem.set('value', text['text_value'] or '')
+
+        # Create Language elements for secondary languages
+        for lang_code in languages:
+            if lang_code == primary_lang_code:
+                continue  # Skip primary language
+
+            lang_elem = ET.SubElement(collection, 'Language')
+            lang_elem.set('{http://www.w3.org/XML/1998/namespace}lang', lang_code)
+
             cursor.execute("""
                 SELECT text_id, text_value FROM iodd_text
                 WHERE device_id = ? AND language_code = ?
                 ORDER BY id
-            """, (device_id, lang))
+            """, (device_id, lang_code))
             texts = cursor.fetchall()
 
             for text in texts:
-                text_elem = ET.SubElement(primary_lang, 'Text')
+                text_elem = ET.SubElement(lang_elem, 'Text')
                 text_elem.set('id', text['text_id'])
                 text_elem.set('value', text['text_value'] or '')
 
