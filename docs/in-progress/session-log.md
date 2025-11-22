@@ -409,6 +409,39 @@ extracted, stored, or reconstructed. This is different from ProcessData Conditio
 
 ---
 
+### Fix #17: Name@textId incorrect (296 issues) - COMMITTED
+
+**Commit**: `f3be9a4` fix(pqa): fix Name@textId extraction and add DeviceName textId storage
+
+**Problem**: Name@textId values were incorrect in two areas:
+1. ProcessDataIn/Out Name elements: Parser used `.//iodd:Name` (recursive search) which found
+   nested SingleValue/Name elements instead of the direct child Name element.
+2. DeviceName@textId: No storage - reconstruction was guessing using `_lookup_textid()`.
+
+**Root Cause Analysis**:
+- Original XML: ProcessDataIn has `<Name textId="TN_PI"/>` as direct child
+- Parser found first descendant Name which was inside RecordItem/SingleValue
+- Result: wrong textId like `TN_for_overrun_message` instead of `TN_PI`
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Changed ProcessDataIn/Out Name selectors:
+   - `.//iodd:Name` -> `iodd:Name` (direct child only)
+   - Added `device_name_text_id` to DeviceInfo extraction
+2. `src/models/__init__.py` - Added `device_name_text_id` field to DeviceInfo
+3. `src/storage/device.py` - Save device_name_text_id to devices table
+4. `src/utils/forensic_reconstruction_v2.py` - Use stored textId for DeviceName, fallback to lookup
+5. `alembic/versions/058_add_device_name_text_id.py` - Add device_name_text_id column
+
+**Actual Results After Re-import**:
+- Name@textId issues: 296 -> 48 (248 fixed, 84% reduction)
+- Remaining 48 issues are all DatatypeCollection/SingleValue ordering (different issue)
+- Total issues: 2,683 -> 2,287 (396 fewer)
+- Average score: 99.18% -> 99.26%
+
+**Status**: COMMITTED & PUSHED - Re-import completed
+
+---
+
 ## CURRENT SESSION SUMMARY (2025-11-21)
 
 ### Progress Summary
@@ -418,9 +451,9 @@ Starting stats:
 - Total issues: 9,915
 
 Current stats:
-- Average score: 99.18%
-- Total issues: 2,683
-- Issues fixed: 7,232 (73% reduction!)
+- Average score: 99.26%
+- Total issues: 2,287
+- Issues fixed: 7,628 (77% reduction!)
 
 ### Fixes Completed This Session
 
@@ -433,19 +466,23 @@ Current stats:
 | #14 | SimpleDatatype attributes | 295 | COMMITTED |
 | #15 | Text/Language ordering | 4,063 | COMMITTED |
 | #16 | MenuRef Condition@subindex | 450 | COMMITTED |
+| #17 | Name@textId incorrect | 248 | COMMITTED |
 
-### Remaining Top Issues
+### Remaining Top Issues (After Fix #17)
 
 | Count | Issue Pattern |
 |-------|---------------|
-| 296 | incorrect_attribute:Name@textId |
-| 197 | missing_element:Name[unknown] |
 | 169 | incorrect_attribute:Datatype@fixedLength |
 | 165 | incorrect_attribute:ProcessData@id |
-| 135 | missing_element:SingleValue[unknown] |
-| 114 | missing_attribute:xsi:type |
 | 112 | extra_element:xsi:type |
 | 109 | missing_attribute:Connection@connectionSymbol |
+| 98 | extra_element:SingleValue[unknown] |
+| 98 | missing_element:SingleValue[unknown] |
+| 67 | missing_element:ValueRange[unknown] |
+| 63 | missing_element:Description[unknown] |
+| 61 | incorrect_attribute:DeviceFamily@textId |
+| 61 | incorrect_attribute:VendorText@textId |
+| 48 | incorrect_attribute:Name@textId (DatatypeCollection/SingleValue ordering) |
 
 ---
 
