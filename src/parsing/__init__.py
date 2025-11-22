@@ -425,6 +425,9 @@ class IODDParser:
             array_element_bit_length=datatype_info.get('array_element_bit_length'),
             array_element_fixed_length=datatype_info.get('array_element_fixed_length'),
             subindex_access_supported=datatype_info.get('subindex_access_supported'),
+            # StringT/OctetStringT specific fields (PQA Fix #20)
+            string_fixed_length=datatype_info.get('string_fixed_length'),
+            string_encoding=datatype_info.get('string_encoding'),
             # PQA reconstruction fields
             name_text_id=name_text_id,
             description_text_id=description_text_id,
@@ -564,6 +567,9 @@ class IODDParser:
             'array_element_bit_length': None,
             'array_element_fixed_length': None,
             'subindex_access_supported': None,
+            # StringT/OctetStringT specific (PQA Fix #20)
+            'string_fixed_length': None,
+            'string_encoding': None,
         }
 
         # Check for inline Datatype element FIRST (before DatatypeRef)
@@ -577,6 +583,14 @@ class IODDParser:
             type_str = datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'OctetStringT')
             result['data_type'] = self._map_xsi_type_to_iodd_type(type_str)
             result['bit_length'] = datatype_elem.get('bitLength')
+
+            # PQA Fix #20: Extract fixedLength and encoding for StringT/OctetStringT
+            fixed_length = datatype_elem.get('fixedLength')
+            if fixed_length:
+                result['string_fixed_length'] = int(fixed_length)
+            encoding = datatype_elem.get('encoding')
+            if encoding:
+                result['string_encoding'] = encoding
 
             # Extract single value enumerations (inline)
             enumeration_values = {}

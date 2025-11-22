@@ -1582,14 +1582,18 @@ class IODDReconstructor:
                     if param['bit_length']:
                         datatype_elem.set('bitLength', str(param['bit_length']))
 
-                    # Add string encoding/fixedLength for StringT
-                    if param['data_type'] == 'StringT':
-                        datatype_elem.set('encoding', 'UTF-8')
-                        # Determine fixedLength based on variable ID
-                        if var_id == 'V_FU_HW_ID_Key':
-                            datatype_elem.set('fixedLength', '16')
-                        else:
-                            datatype_elem.set('fixedLength', '32')
+                    # PQA Fix #20: Add string encoding/fixedLength for StringT/OctetStringT from stored values
+                    if param['data_type'] in ('StringT', 'OctetStringT'):
+                        # Use stored encoding if available
+                        encoding = param['string_encoding'] if 'string_encoding' in param.keys() and param['string_encoding'] else None
+                        if encoding:
+                            datatype_elem.set('encoding', encoding)
+                        elif param['data_type'] == 'StringT':
+                            datatype_elem.set('encoding', 'UTF-8')  # Default for StringT only if not stored
+                        # Use stored fixedLength if available
+                        fixed_length = param['string_fixed_length'] if 'string_fixed_length' in param.keys() and param['string_fixed_length'] else None
+                        if fixed_length:
+                            datatype_elem.set('fixedLength', str(fixed_length))
 
                     # Add SingleValues for enumerated types
                     self._add_variable_single_values(conn, param['id'], datatype_elem)

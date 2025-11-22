@@ -50,8 +50,9 @@ class ParameterSaver(BaseSaver):
                     array_count, array_element_type, subindex_access_supported,
                     array_element_bit_length, array_element_fixed_length,
                     name_text_id, description_text_id, datatype_ref,
-                    value_range_xsi_type, value_range_name_text_id, xml_order
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    value_range_xsi_type, value_range_name_text_id, xml_order,
+                    string_fixed_length, string_encoding
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
             self._execute(query, (
@@ -88,6 +89,9 @@ class ParameterSaver(BaseSaver):
                 getattr(param, 'value_range_xsi_type', None),  # ValueRange xsi:type
                 getattr(param, 'value_range_name_text_id', None),  # ValueRange Name textId
                 getattr(param, 'xml_order', None),  # Original XML order for PQA reconstruction
+                # PQA Fix #20: StringT/OctetStringT specific fields
+                getattr(param, 'string_fixed_length', None),
+                getattr(param, 'string_encoding', None),
             ))
 
             parameter_id = self._get_lastrowid()

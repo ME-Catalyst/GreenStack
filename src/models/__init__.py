@@ -103,6 +103,9 @@ class Parameter:
     array_element_bit_length: Optional[int] = None  # SimpleDatatype bitLength
     array_element_fixed_length: Optional[int] = None  # OctetStringT/StringT fixedLength
     subindex_access_supported: Optional[bool] = None  # ArrayT/RecordT subindexAccessSupported
+    # StringT/OctetStringT specific fields (PQA Fix #20)
+    string_fixed_length: Optional[int] = None  # Datatype@fixedLength for StringT/OctetStringT
+    string_encoding: Optional[str] = None  # Datatype@encoding for StringT
     # PQA reconstruction fields
     name_text_id: Optional[str] = None  # Original textId for Name element
     description_text_id: Optional[str] = None  # Original textId for Description element
