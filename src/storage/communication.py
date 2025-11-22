@@ -38,8 +38,8 @@ class CommunicationSaver(BaseSaver):
             INSERT INTO communication_profile (
                 device_id, iolink_revision, compatible_with, bitrate,
                 min_cycle_time, msequence_capability, sio_supported,
-                connection_type, wire_config
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                connection_type, wire_config, connection_symbol
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -52,6 +52,7 @@ class CommunicationSaver(BaseSaver):
             1 if getattr(communication_profile, 'sio_supported', False) else 0,
             getattr(communication_profile, 'connection_type', None),
             wire_config_json,
+            getattr(communication_profile, 'connection_symbol', None),  # PQA Fix #19b
         )
 
         self._execute(query, params)
@@ -79,8 +80,8 @@ class WireConfigSaver(BaseSaver):
         query = """
             INSERT INTO wire_configurations (
                 device_id, connection_type, wire_number, wire_color,
-                wire_function, wire_description
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                wire_function, wire_description, connection_symbol
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -92,6 +93,7 @@ class WireConfigSaver(BaseSaver):
                 getattr(wire, 'wire_color', None),
                 getattr(wire, 'wire_function', None),
                 getattr(wire, 'wire_description', None),
+                getattr(wire, 'connection_symbol', None),  # PQA Fix #19
             ))
 
         if params_list:

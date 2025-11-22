@@ -230,6 +230,7 @@ class CommunicationProfile:
     sio_supported: bool = False
     connection_type: Optional[str] = None
     wire_config: Dict[str, str] = field(default_factory=dict)
+    connection_symbol: Optional[str] = None  # PQA: Connection@connectionSymbol attribute
 
 
 @dataclass
@@ -319,6 +320,7 @@ class WireConfiguration:
     wire_color: Optional[str] = None
     wire_function: Optional[str] = None
     wire_description: Optional[str] = None
+    connection_symbol: Optional[str] = None  # PQA: Connection@connectionSymbol attribute
 
 
 @dataclass

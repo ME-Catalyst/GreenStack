@@ -1580,10 +1580,12 @@ class IODDParser:
         # Get connection info
         connection_elem = comm_profile_elem.find('.//iodd:Connection', self.NAMESPACES)
         connection_type = None
+        connection_symbol = None  # PQA Fix #19b: Store connectionSymbol
         wire_config = {}
 
         if connection_elem is not None:
             connection_type = connection_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type', '').replace('T', '')
+            connection_symbol = connection_elem.get('connectionSymbol')  # PQA Fix #19b
 
             # Extract wire configuration
             for i in range(1, 5):
@@ -1600,7 +1602,8 @@ class IODDParser:
             msequence_capability=msequence_capability,
             sio_supported=sio_supported,
             connection_type=connection_type,
-            wire_config=wire_config
+            wire_config=wire_config,
+            connection_symbol=connection_symbol  # PQA Fix #19b
         )
 
     def _extract_ui_menus(self) -> Optional[UserInterfaceMenus]:
@@ -1822,6 +1825,9 @@ class IODDParser:
             if not connection_type:
                 continue
 
+            # PQA Fix #19: Extract connectionSymbol attribute
+            connection_symbol = connection.get('connectionSymbol')
+
             # Extract wire information (Wire1, Wire2, Wire3, Wire4, Wire5)
             for wire_num in range(1, 6):
                 wire_elem = connection.find(f'.//iodd:Wire{wire_num}', self.NAMESPACES)
@@ -1836,7 +1842,8 @@ class IODDParser:
                         wire_number=wire_num,
                         wire_color=wire_elem.get('color'),
                         wire_function=wire_elem.get('function'),
-                        wire_description=wire_description
+                        wire_description=wire_description,
+                        connection_symbol=connection_symbol  # PQA Fix #19
                     ))
 
         logger.info(f"Extracted {len(wires)} wire configurations")

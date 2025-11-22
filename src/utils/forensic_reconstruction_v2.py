@@ -1307,6 +1307,16 @@ class IODDReconstructor:
                     conn_type = conn_type + 'T'
                 connection.set('{http://www.w3.org/2001/XMLSchema-instance}type', conn_type)
 
+            # PQA Fix #19: Add connectionSymbol attribute if present
+            # First check wire_configurations, then fallback to communication_profile
+            conn_symbol = None
+            if wire_configs and 'connection_symbol' in wire_configs[0].keys() and wire_configs[0]['connection_symbol']:
+                conn_symbol = wire_configs[0]['connection_symbol']
+            elif 'connection_symbol' in comm_profile.keys() and comm_profile['connection_symbol']:
+                conn_symbol = comm_profile['connection_symbol']  # PQA Fix #19b: Fallback
+            if conn_symbol:
+                connection.set('connectionSymbol', conn_symbol)
+
             # Get device variant for ProductRef
             cursor.execute("SELECT product_id FROM device_variants WHERE device_id = ? LIMIT 1", (device_id,))
             variant_row = cursor.fetchone()
