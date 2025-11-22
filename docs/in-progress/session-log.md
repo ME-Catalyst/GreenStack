@@ -470,6 +470,7 @@ Current stats:
 | #18 | ProcessData@id incorrect | 164 | COMMITTED |
 | #19 | Connection@connectionSymbol | 108 | COMMITTED |
 | #20 | Variable/Datatype@fixedLength | 162 | COMMITTED |
+| #21 | RecordItem/SingleValue duplication | 98 | COMMITTED |
 
 ### Fix #20: Variable/Datatype@fixedLength Incorrect (169 issues) - COMMITTED
 
@@ -532,22 +533,51 @@ elements have no Wire children, so connectionSymbol wasn't stored at all.
 
 ---
 
-### Remaining Top Issues (After Fix #20)
+### Fix #21: RecordItem/SimpleDatatype/SingleValue Duplication (98 issues) - COMMITTED
+
+**Commit**: `19a0091` fix(pqa): Fix #21 - correct RecordItem/SimpleDatatype/SingleValue extraction
+
+**Problem**: SingleValue elements inside DatatypeCollection RecordItem/SimpleDatatype were being:
+1. Incorrectly extracted at BOTH Datatype level AND RecordItem level (duplication)
+2. Result: 98 extra SingleValue elements in reconstruction
+
+**Root Cause**: Parser used `.//iodd:SingleValue` XPath which found ALL descendant SingleValues
+including those nested inside RecordItem/SimpleDatatype. These were stored in both:
+- `custom_datatype_single_values` (wrong - Datatype level)
+- `custom_datatype_record_item_single_values` (correct - RecordItem level)
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Changed XPath from `.//iodd:SingleValue` to `iodd:SingleValue`
+   to extract only direct children, preventing duplication in custom datatypes
+2. `src/storage/custom_datatype.py` - Store RecordItem-level SingleValues separately
+3. `src/utils/forensic_reconstruction_v2.py` - Reconstruct SingleValues in correct location
+4. `alembic/versions/062_add_custom_datatype_record_item_single_values.py` - New table
+
+**Result**: 98 extra_element:SingleValue issues resolved (1900 -> 1802 total issues)
+
+**Status**: COMMITTED & PUSHED
+
+---
+
+### Remaining Top Issues (After Fix #21)
 
 | Count | Issue Pattern |
 |-------|---------------|
-| 121 | missing_element:RecordItem/SimpleDatatype/SingleValue |
+| 197 | missing_element:Name |
 | 114 | missing_attribute:xsi:type |
 | 112 | extra_element:xsi:type |
-| 100 | extra_element:DatatypeCollection/Datatype/SingleValue |
-| 67 | missing_element:DatatypeCollection/ValueRange |
-| 63 | missing_element:Connection/Description |
+| 97 | missing_element:ValueRange |
+| 64 | extra_element:RecordItem@bitOffset |
+| 63 | missing_element:Description |
 | 61 | incorrect_attribute:VendorText@textId |
 | 61 | incorrect_attribute:VendorUrl@textId |
 | 61 | incorrect_attribute:DeviceFamily@textId |
-| 58 | incorrect_attribute:RecordItemInfo@subindex |
+| 56 | missing_element:ProcessDataRefCollection |
+| 48 | incorrect_attribute:SingleValue@value |
+| 48 | incorrect_attribute:Name@textId |
+| 37 | missing_element:SingleValue |
 
-**Total Issues**: 2,023 (down from 2,330 - 307 fixed this session)
+**Total Issues**: 1,802 (down from 1,900 - 98 fixed with Fix #21)
 
 ---
 
