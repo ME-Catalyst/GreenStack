@@ -349,6 +349,39 @@ extracted, stored, or reconstructed. Affected 456 issues across 9 devices.
 
 ---
 
+### Fix #15: Text/Language Element Ordering (4,063 issues) - COMMITTED
+
+**Commit**: `598aa81` feat(pqa): fix Text and Language element ordering in ExternalTextCollection
+
+**Problem**: Text elements in ExternalTextCollection were in wrong order:
+- incorrect_attribute:Text@id (4,063 issues) - Text elements out of order
+- Language elements in wrong order - secondary languages not preserving order
+
+**Root Cause**:
+- Text element order tracked per text_id but different languages have different orderings
+- Language element order not preserved at all
+- Reconstruction used database `id` for ordering instead of original XML order
+
+**Changes Made**:
+1. `src/models/__init__.py` - Add `text_xml_order` (per language) and `language_order` fields
+2. `src/parsing/__init__.py` - Track Text order per language, track Language element order
+3. `src/storage/text.py` - Save xml_order and language_order per text entry
+4. `src/storage/__init__.py` - Pass language_order to TextSaver
+5. `src/utils/forensic_reconstruction_v2.py` - Order Languages by language_order, Text by xml_order
+6. `alembic/versions/055_add_text_xml_order.py` - Add xml_order column
+7. `alembic/versions/056_add_language_order.py` - Add language_order column
+
+**Expected Impact**: ~4,063 issues resolved (requires re-import)
+
+**Actual Results After Re-import**:
+- ExternalTextCollection issues: 0 (was 4,063)
+- Total issues: 5,725 (was 9,915 at session start)
+- Average score: 98.94% (was 98.36%)
+
+**Status**: COMMITTED & PUSHED - Re-import completed
+
+---
+
 ## POST-REIMPORT RESULTS (CURRENT STATE)
 
 Re-import completed successfully with parser shadowing fix applied.
