@@ -471,6 +471,7 @@ Current stats:
 | #19 | Connection@connectionSymbol | 108 | COMMITTED |
 | #20 | Variable/Datatype@fixedLength | 162 | COMMITTED |
 | #21 | RecordItem/SingleValue duplication | 98 | COMMITTED |
+| #22 | Wire/Name element | 140 | COMMITTED |
 
 ### Fix #20: Variable/Datatype@fixedLength Incorrect (169 issues) - COMMITTED
 
@@ -559,11 +560,33 @@ including those nested inside RecordItem/SimpleDatatype. These were stored in bo
 
 ---
 
-### Remaining Top Issues (After Fix #21)
+### Fix #22: Wire/Name Element Missing (140 issues) - COMMITTED
+
+**Commit**: `d3a8ec8` feat(pqa): Fix #22 - add Wire/Name element reconstruction
+
+**Problem**: Wire1-Wire5 elements inside CommNetworkProfile/Connection have Name children
+with textId attributes that were not being stored or reconstructed.
+
+**Root Cause**: Parser extracted name_text_id from Wire/Name element to resolve wire_description,
+but didn't store the textId itself for reconstruction.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `name_text_id` to WireConfiguration model
+2. `src/parsing/__init__.py` - Pass name_text_id to WireConfiguration (already extracted)
+3. `src/storage/communication.py` - Save name_text_id to wire_configurations table
+4. `src/utils/forensic_reconstruction_v2.py` - Add Name element with textId to Wire elements
+5. `alembic/versions/063_add_wire_name_text_id.py` - Add name_text_id column
+
+**Result**: 140 issues resolved (1802 → 1662 total issues)
+
+**Status**: COMMITTED & PUSHED
+
+---
+
+### Remaining Top Issues (After Fix #22)
 
 | Count | Issue Pattern |
 |-------|---------------|
-| 197 | missing_element:Name |
 | 114 | missing_attribute:xsi:type |
 | 112 | extra_element:xsi:type |
 | 97 | missing_element:ValueRange |
@@ -572,12 +595,13 @@ including those nested inside RecordItem/SimpleDatatype. These were stored in bo
 | 61 | incorrect_attribute:VendorText@textId |
 | 61 | incorrect_attribute:VendorUrl@textId |
 | 61 | incorrect_attribute:DeviceFamily@textId |
+| 57 | missing_element:Name |
 | 56 | missing_element:ProcessDataRefCollection |
 | 48 | incorrect_attribute:SingleValue@value |
 | 48 | incorrect_attribute:Name@textId |
 | 37 | missing_element:SingleValue |
 
-**Total Issues**: 1,802 (down from 1,900 - 98 fixed with Fix #21)
+**Total Issues**: 1,662 (down from 1,802 - 140 fixed with Fix #22)
 
 ---
 
