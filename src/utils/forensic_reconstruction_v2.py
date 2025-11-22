@@ -332,9 +332,11 @@ class IODDReconstructor:
             # Use manufacturer name to create logo filename
             vendor_logo.set('name', f"{device['manufacturer'].replace(' ', '-')}-logo.png" if device['manufacturer'] else 'vendor-logo.png')
 
-        # DeviceName - look up actual textId (some IODDs use TI_Device instead of TN_DeviceName)
+        # DeviceName - use stored textId (PQA Fix #17), fallback to lookup
         device_name_elem = ET.SubElement(device_identity, 'DeviceName')
-        device_name_id = self._lookup_textid(conn, device_id, None, ['TI_Device', 'TN_DeviceName', 'TN_Device'])
+        device_name_id = device['device_name_text_id'] if 'device_name_text_id' in device.keys() else None
+        if not device_name_id:
+            device_name_id = self._lookup_textid(conn, device_id, None, ['TI_Device', 'TN_DeviceName', 'TN_Device'])
         device_name_elem.set('textId', device_name_id)
 
         # DeviceFamily - look up actual textId

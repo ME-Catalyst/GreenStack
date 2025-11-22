@@ -50,6 +50,7 @@ class DeviceInfo:
     hardware_revision: Optional[str] = None
     firmware_revision: Optional[str] = None
     software_revision: Optional[str] = None
+    device_name_text_id: Optional[str] = None  # PQA: Store original DeviceName@textId
 
 
 @dataclass

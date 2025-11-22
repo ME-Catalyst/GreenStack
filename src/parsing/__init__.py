@@ -304,7 +304,8 @@ class IODDParser:
                 product_text=None,
                 hardware_revision=device_identity.get('hardwareRevision'),
                 firmware_revision=device_identity.get('firmwareRevision'),
-                software_revision=device_identity.get('softwareRevision')
+                software_revision=device_identity.get('softwareRevision'),
+                device_name_text_id=device_name_id  # PQA: Store original textId
             )
         return DeviceInfo(vendor_id=0, device_id=0, product_name='Unknown')
 
@@ -812,8 +813,8 @@ class IODDParser:
             pd_id = pd_in.get('id', 'ProcessDataIn')
             bit_length = int(pd_in.get('bitLength', 0))
 
-            # Get name from textId reference
-            name_elem = pd_in.find('.//iodd:Name', self.NAMESPACES)
+            # Get name from textId reference (direct child only, not recursive)
+            name_elem = pd_in.find('iodd:Name', self.NAMESPACES)
             name_id = name_elem.get('textId') if name_elem is not None else None
             name = self._resolve_text(name_id) or 'Input'
 
@@ -948,8 +949,8 @@ class IODDParser:
             pd_id = pd_out.get('id', 'ProcessDataOut')
             bit_length = int(pd_out.get('bitLength', 0))
 
-            # Get name from textId reference
-            name_elem = pd_out.find('.//iodd:Name', self.NAMESPACES)
+            # Get name from textId reference (direct child only, not recursive)
+            name_elem = pd_out.find('iodd:Name', self.NAMESPACES)
             name_id = name_elem.get('textId') if name_elem is not None else None
             name = self._resolve_text(name_id) or 'Output'
 
