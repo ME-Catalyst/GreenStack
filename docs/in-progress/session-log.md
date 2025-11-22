@@ -382,7 +382,74 @@ extracted, stored, or reconstructed. Affected 456 issues across 9 devices.
 
 ---
 
-## POST-REIMPORT RESULTS (CURRENT STATE)
+### Fix #16: MenuRef/Condition@subindex (450 issues) - COMMITTED
+
+**Commit**: `74065e0` feat(pqa): add MenuRef/Condition@subindex extraction and reconstruction
+
+**Problem**: Condition elements inside MenuRef have a `subindex` attribute that was not being
+extracted, stored, or reconstructed. This is different from ProcessData Condition subindex (Fix #12).
+
+**Sample Original**: `<MenuRef menuId="M_Level"><Condition variableId="V_Mode" value="0" subindex="1"/></MenuRef>`
+
+**Changes Made**:
+1. `src/models/__init__.py` - Add `condition_subindex` field to MenuItem
+2. `src/parsing/__init__.py` - Extract subindex from MenuRef Condition elements
+3. `src/storage/menu.py` - Save condition_subindex to ui_menu_items
+4. `src/utils/forensic_reconstruction_v2.py` - Output subindex attribute when present
+5. `alembic/versions/057_add_menu_condition_subindex.py` - Add condition_subindex column
+
+**Expected Impact**: ~450 issues resolved (requires re-import)
+
+**Actual Results After Re-import**:
+- Condition@subindex issues: 0 (was 450)
+- Total issues: 2,683 (was 3,133)
+- Average score: 99.18%
+
+**Status**: COMMITTED & PUSHED - Re-import completed
+
+---
+
+## CURRENT SESSION SUMMARY (2025-11-21)
+
+### Progress Summary
+
+Starting stats:
+- Average score: 98.36%
+- Total issues: 9,915
+
+Current stats:
+- Average score: 99.18%
+- Total issues: 2,683
+- Issues fixed: 7,232 (73% reduction!)
+
+### Fixes Completed This Session
+
+| Fix | Issue | Count | Status |
+|-----|-------|-------|--------|
+| #10 | CommNetworkProfile/Stamp location | 644 | COMMITTED |
+| #11 | Float formatting gradient/offset | 1,782 | COMMITTED |
+| #12 | ProcessData Condition@subindex | 456 | COMMITTED |
+| #13 | StdErrorTypeRef code/ordering | 305 | COMMITTED |
+| #14 | SimpleDatatype attributes | 295 | COMMITTED |
+| #15 | Text/Language ordering | 4,063 | COMMITTED |
+| #16 | MenuRef Condition@subindex | 450 | COMMITTED |
+
+### Remaining Top Issues
+
+| Count | Issue Pattern |
+|-------|---------------|
+| 296 | incorrect_attribute:Name@textId |
+| 197 | missing_element:Name[unknown] |
+| 169 | incorrect_attribute:Datatype@fixedLength |
+| 165 | incorrect_attribute:ProcessData@id |
+| 135 | missing_element:SingleValue[unknown] |
+| 114 | missing_attribute:xsi:type |
+| 112 | extra_element:xsi:type |
+| 109 | missing_attribute:Connection@connectionSymbol |
+
+---
+
+## POST-REIMPORT RESULTS (HISTORICAL)
 
 Re-import completed successfully with parser shadowing fix applied.
 
