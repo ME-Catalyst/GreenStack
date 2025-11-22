@@ -95,9 +95,9 @@ class CustomDatatypeSaver(BaseSaver):
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
-        params_list = []
+        # PQA Fix #21: Save one at a time to get record_item_id for SingleValues
         for record_item in datatype.record_items:
-            params_list.append((
+            params = (
                 datatype_db_id,
                 getattr(record_item, 'subindex', None),
                 getattr(record_item, 'bit_offset', None),
@@ -110,6 +110,33 @@ class CustomDatatypeSaver(BaseSaver):
                 getattr(record_item, 'max_value', None),  # PQA: ValueRange
                 getattr(record_item, 'value_range_xsi_type', None),  # PQA: ValueRange
                 getattr(record_item, 'access_right_restriction', None),  # PQA: RecordItem attribute
+            )
+            self._execute(query, params)
+            record_item_id = self._get_lastrowid()
+
+            # PQA Fix #21: Save SingleValues for this RecordItem
+            self._save_record_item_single_values(record_item_id, record_item)
+
+    def _save_record_item_single_values(self, record_item_id: int, record_item):
+        """PQA Fix #21: Save single values inside RecordItem/SimpleDatatype"""
+        single_values = getattr(record_item, 'single_values', [])
+        if not single_values:
+            return
+
+        query = """
+            INSERT INTO custom_datatype_record_item_single_values (
+                record_item_id, value, name, name_text_id, xsi_type
+            ) VALUES (?, ?, ?, ?, ?)
+        """
+
+        params_list = []
+        for sv in single_values:
+            params_list.append((
+                record_item_id,
+                getattr(sv, 'value', None),
+                getattr(sv, 'name', None),
+                getattr(sv, 'text_id', None),
+                getattr(sv, 'xsi_type', None),
             ))
 
         if params_list:

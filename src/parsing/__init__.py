@@ -1923,9 +1923,10 @@ class IODDParser:
             bit_length = datatype_elem.get('bitLength')
             subindex_access = datatype_elem.get('subindexAccessSupported', 'false').lower() == 'true'
 
-            # Extract single values
+            # Extract single values (direct children only, not those inside RecordItem/SimpleDatatype)
+            # PQA Fix #21b: Changed from .//iodd:SingleValue to iodd:SingleValue to prevent duplication
             single_values = []
-            for single_val in datatype_elem.findall('.//iodd:SingleValue', self.NAMESPACES):
+            for single_val in datatype_elem.findall('iodd:SingleValue', self.NAMESPACES):
                 value = single_val.get('value')
                 name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
                 if name_elem is not None and value is not None:
@@ -1985,6 +1986,24 @@ class IODDParser:
                         item_vr_xsi_type = vr_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
                 else:
                     datatype_ref = 'Unknown'
+                    simple_datatype_elem = None  # Ensure it's None for SingleValue extraction
+
+                # PQA Fix #21: Extract SingleValue elements from RecordItem/SimpleDatatype
+                item_single_values = []
+                if simple_datatype_elem is not None:
+                    for sv_elem in simple_datatype_elem.findall('iodd:SingleValue', self.NAMESPACES):
+                        sv_value = sv_elem.get('value')
+                        sv_xsi_type = sv_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                        sv_name_elem = sv_elem.find('iodd:Name', self.NAMESPACES)
+                        sv_text_id = sv_name_elem.get('textId') if sv_name_elem is not None else None
+                        sv_name = self._resolve_text(sv_text_id) if sv_text_id else None
+                        if sv_value is not None:
+                            item_single_values.append(SingleValue(
+                                value=sv_value,
+                                name=sv_name or '',
+                                text_id=sv_text_id,
+                                xsi_type=sv_xsi_type
+                            ))
 
                 if subindex and bit_offset:
                     record_items.append(RecordItem(
@@ -1993,6 +2012,7 @@ class IODDParser:
                         bit_offset=int(bit_offset),
                         bit_length=item_bit_length,  # PQA: None if not in original
                         data_type=datatype_ref or 'Unknown',
+                        single_values=item_single_values,  # PQA Fix #21: SingleValue in SimpleDatatype
                         name_text_id=name_text_id,  # Preserve original textId for PQA
                         description=description,
                         description_text_id=description_text_id,  # PQA reconstruction

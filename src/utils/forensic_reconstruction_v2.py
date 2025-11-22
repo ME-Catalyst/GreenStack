@@ -1047,6 +1047,8 @@ class IODDReconstructor:
                     datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', item['datatype_ref'])
                     if item['bit_length']:
                         datatype.set('bitLength', str(item['bit_length']))
+                    # PQA Fix #21: Add SingleValue elements inside SimpleDatatype
+                    self._add_custom_datatype_record_item_single_values(conn, item['id'], datatype)
                     # Add ValueRange element if present (PQA reconstruction)
                     min_val = item['min_value'] if 'min_value' in item.keys() else None
                     max_val = item['max_value'] if 'max_value' in item.keys() else None
@@ -1071,6 +1073,8 @@ class IODDReconstructor:
                 xsi_type = item['xsi_type'] if 'xsi_type' in item.keys() else None
                 if xsi_type:
                     datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', xsi_type)
+                # PQA Fix #21: Add SingleValue elements inside SimpleDatatype
+                self._add_custom_datatype_record_item_single_values(conn, item['id'], datatype)
                 # Add ValueRange element if present (PQA reconstruction)
                 min_val = item['min_value'] if 'min_value' in item.keys() else None
                 max_val = item['max_value'] if 'max_value' in item.keys() else None
@@ -1083,6 +1087,30 @@ class IODDReconstructor:
                         vr_elem.set('lowerValue', str(min_val))
                     if max_val is not None:
                         vr_elem.set('upperValue', str(max_val))
+
+    def _add_custom_datatype_record_item_single_values(self, conn: sqlite3.Connection,
+                                                       record_item_id: int,
+                                                       parent: ET.Element) -> None:
+        """PQA Fix #21: Add SingleValue elements to RecordItem/SimpleDatatype for custom datatypes"""
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT value, name, name_text_id, xsi_type
+            FROM custom_datatype_record_item_single_values
+            WHERE record_item_id = ?
+            ORDER BY id
+        """, (record_item_id,))
+        single_values = cursor.fetchall()
+
+        for sv in single_values:
+            sv_elem = ET.SubElement(parent, 'SingleValue')
+            # Add xsi:type attribute if present
+            if sv['xsi_type']:
+                sv_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', sv['xsi_type'])
+            sv_elem.set('value', str(sv['value']))
+            # Add Name element with textId
+            if sv['name_text_id']:
+                name_elem = ET.SubElement(sv_elem, 'Name')
+                name_elem.set('textId', sv['name_text_id'])
 
     def _create_user_interface(self, conn: sqlite3.Connection,
                               device_id: int) -> Optional[ET.Element]:
