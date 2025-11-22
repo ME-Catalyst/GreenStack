@@ -788,18 +788,31 @@ class IODDParser:
         """Extract process data configuration"""
         collection = ProcessDataCollection()
 
-        # Build a condition lookup for process data (Phase 2)
+        # Build condition lookup and wrapper_id lookup for process data
         condition_lookup = {}
+        wrapper_id_lookup = {}  # PQA Fix #18: Map child ID to wrapper ID
         for pd_wrapper in self.root.findall('.//iodd:ProcessDataCollection/iodd:ProcessData', self.NAMESPACES):
+            wrapper_id = pd_wrapper.get('id')  # PQA: Get wrapper ProcessData ID
+
+            # Build wrapper ID lookup for all children
+            pd_in = pd_wrapper.find('.//iodd:ProcessDataIn', self.NAMESPACES)
+            pd_out = pd_wrapper.find('.//iodd:ProcessDataOut', self.NAMESPACES)
+            if pd_in is not None:
+                child_id = pd_in.get('id')
+                if child_id:
+                    wrapper_id_lookup[child_id] = wrapper_id
+            if pd_out is not None:
+                child_id = pd_out.get('id')
+                if child_id:
+                    wrapper_id_lookup[child_id] = wrapper_id
+
+            # Build condition lookup
             condition_elem = pd_wrapper.find('.//iodd:Condition', self.NAMESPACES)
             if condition_elem is not None:
                 var_id = condition_elem.get('variableId')
                 value = condition_elem.get('value')
                 subindex = condition_elem.get('subindex')  # PQA: Extract subindex attribute
                 if var_id and value:
-                    # Find the ProcessDataIn or ProcessDataOut ID inside this wrapper
-                    pd_in = pd_wrapper.find('.//iodd:ProcessDataIn', self.NAMESPACES)
-                    pd_out = pd_wrapper.find('.//iodd:ProcessDataOut', self.NAMESPACES)
                     pd_elem = pd_in if pd_in is not None else pd_out
                     if pd_elem is not None:
                         pd_id = pd_elem.get('id')
@@ -937,7 +950,8 @@ class IODDParser:
                 record_items=record_items,
                 condition=condition_lookup.get(pd_id),  # Apply condition if exists (Phase 2)
                 name_text_id=name_id,  # PQA: Store original textId for accurate reconstruction
-                subindex_access_supported=subindex_access_supported  # PQA: Store subindexAccessSupported
+                subindex_access_supported=subindex_access_supported,  # PQA: Store subindexAccessSupported
+                wrapper_id=wrapper_id_lookup.get(pd_id)  # PQA Fix #18: Store wrapper ProcessData ID
             )
             collection.inputs.append(process_data)
             collection.total_input_bits += bit_length
@@ -1073,7 +1087,8 @@ class IODDParser:
                 record_items=record_items,
                 condition=condition_lookup.get(pd_id),  # Apply condition if exists (Phase 2)
                 name_text_id=name_id,  # PQA: Store original textId for accurate reconstruction
-                subindex_access_supported=subindex_access_supported  # PQA: Store subindexAccessSupported
+                subindex_access_supported=subindex_access_supported,  # PQA: Store subindexAccessSupported
+                wrapper_id=wrapper_id_lookup.get(pd_id)  # PQA Fix #18: Store wrapper ProcessData ID
             )
             collection.outputs.append(process_data)
             collection.total_output_bits += bit_length

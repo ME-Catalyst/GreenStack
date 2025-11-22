@@ -494,32 +494,27 @@ class IODDReconstructor:
                 if cond_subindex:
                     condition_elem.set('subindex', cond_subindex)
 
-            # Convert ProcessData ID format:
-            # The outer ProcessData element uses a generic ID without direction suffix
-            # PI_ProcessDataIn -> P_ProcessData (strip I indicator and In suffix)
-            # PO_ProcessDataOut -> P_ProcessData (strip O indicator and Out suffix)
-            # PI_ProcessDataIn1 -> P_ProcessData1 (preserve numeric suffix)
-            # PD_Modlight_OUT -> PD_Modlight (strip _OUT suffix)
-            pd_id = pd['pd_id']
+            # PQA Fix #18: Use stored wrapper_id if available, otherwise derive it
+            wrapper_id = pd['wrapper_id'] if 'wrapper_id' in pd.keys() and pd['wrapper_id'] else None
+            if wrapper_id:
+                pd_elem.set('id', wrapper_id)
+            else:
+                # Fallback: Convert ProcessData ID format (legacy logic)
+                # PI_ProcessDataIn -> P_ProcessData, PO_ProcessDataOut -> P_ProcessData
+                pd_id = pd['pd_id']
 
-            # First, handle PI_/PO_ prefix (convert to P_)
-            if pd_id.startswith('PI_'):
-                pd_id = 'P_' + pd_id[3:]  # PI_ProcessDataIn -> P_ProcessDataIn
-            elif pd_id.startswith('PO_'):
-                pd_id = 'P_' + pd_id[3:]  # PO_ProcessDataOut -> P_ProcessDataOut
+                # First, handle PI_/PO_ prefix (convert to P_)
+                if pd_id.startswith('PI_'):
+                    pd_id = 'P_' + pd_id[3:]
+                elif pd_id.startswith('PO_'):
+                    pd_id = 'P_' + pd_id[3:]
 
-            # Then, strip direction suffixes (In/Out/_IN/_OUT)
-            # Be careful to preserve numeric suffixes like "_1", "_2", etc.
-            # Examples:
-            #   P_ProcessDataIn -> P_ProcessData
-            #   P_ProcessDataIn_1 -> P_ProcessData_1
-            #   P_ProcessDataOut -> P_ProcessData
-            #   PD_Modlight_IN -> PD_Modlight
-            pd_id = re.sub(r'In(_?\d*)$', r'\1', pd_id)  # ProcessDataIn -> ProcessData, ProcessDataIn_1 -> ProcessData_1
-            pd_id = re.sub(r'Out(_?\d*)$', r'\1', pd_id)  # ProcessDataOut -> ProcessData
-            pd_id = re.sub(r'_IN(_?\d*)$', r'\1', pd_id)  # _IN suffix
-            pd_id = re.sub(r'_OUT(_?\d*)$', r'\1', pd_id)  # _OUT suffix
-            pd_elem.set('id', pd_id)
+                # Strip direction suffixes (In/Out/_IN/_OUT), preserve numeric suffixes
+                pd_id = re.sub(r'In(_?\d*)$', r'\1', pd_id)
+                pd_id = re.sub(r'Out(_?\d*)$', r'\1', pd_id)
+                pd_id = re.sub(r'_IN(_?\d*)$', r'\1', pd_id)
+                pd_id = re.sub(r'_OUT(_?\d*)$', r'\1', pd_id)
+                pd_elem.set('id', pd_id)
 
             # Direction (ProcessDataIn or ProcessDataOut) - create child element
             if pd['direction']:

@@ -159,6 +159,8 @@ class ProcessData:
     name_text_id: Optional[str] = None
     # PQA: Store subindexAccessSupported attribute from Datatype
     subindex_access_supported: Optional[bool] = None
+    # PQA: Store wrapper ProcessData element ID for accurate reconstruction
+    wrapper_id: Optional[str] = None
 
 
 @dataclass
