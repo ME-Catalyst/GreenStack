@@ -1739,8 +1739,12 @@ class IODDReconstructor:
         - Language (secondary languages) - zero or more
         """
         cursor = conn.cursor()
+        # Get languages ordered by language_order (PQA: preserve original Language element order)
         cursor.execute("""
-            SELECT DISTINCT language_code FROM iodd_text WHERE device_id = ?
+            SELECT DISTINCT language_code, MIN(language_order) as lang_order
+            FROM iodd_text WHERE device_id = ?
+            GROUP BY language_code
+            ORDER BY lang_order, language_code
         """, (device_id,))
         languages = [row['language_code'] for row in cursor.fetchall()]
 
@@ -1749,8 +1753,15 @@ class IODDReconstructor:
 
         collection = ET.Element('ExternalTextCollection')
 
-        # Determine primary language: prefer 'en', otherwise use first
-        if 'en' in languages:
+        # Determine primary language: the one with language_order=0, or 'en', or first
+        cursor.execute("""
+            SELECT DISTINCT language_code FROM iodd_text
+            WHERE device_id = ? AND language_order = 0
+        """, (device_id,))
+        primary_row = cursor.fetchone()
+        if primary_row:
+            primary_lang_code = primary_row['language_code']
+        elif 'en' in languages:
             primary_lang_code = 'en'
         else:
             primary_lang_code = languages[0]
@@ -1763,7 +1774,7 @@ class IODDReconstructor:
         cursor.execute("""
             SELECT text_id, text_value FROM iodd_text
             WHERE device_id = ? AND language_code = ?
-            ORDER BY id
+            ORDER BY xml_order, id
         """, (device_id, primary_lang_code))
         texts = cursor.fetchall()
 
@@ -1783,7 +1794,7 @@ class IODDReconstructor:
             cursor.execute("""
                 SELECT text_id, text_value FROM iodd_text
                 WHERE device_id = ? AND language_code = ?
-                ORDER BY id
+                ORDER BY xml_order, id
             """, (device_id, lang_code))
             texts = cursor.fetchall()
 

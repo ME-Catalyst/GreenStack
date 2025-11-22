@@ -63,7 +63,7 @@ class IODDParser:
         self.NAMESPACES = self._detect_namespace()
         self.detected_schema_version = self._detected_schema_version
         self.text_lookup = self._build_text_lookup()
-        self.all_text_data = self._build_all_text_data()
+        self.all_text_data, self.text_xml_order, self.language_order = self._build_all_text_data()
 
     def _detect_namespace(self) -> Dict[str, str]:
         """Detect the IODD namespace from the root element
@@ -110,42 +110,58 @@ class IODDParser:
 
         return text_map
 
-    def _build_all_text_data(self) -> Dict[str, Dict[str, str]]:
+    def _build_all_text_data(self) -> tuple:
         """Build complete text lookup for ALL languages from ExternalTextCollection
 
         Returns:
-            Dict[text_id, Dict[language_code, text_value]]
-            Example: {
-                'TN_DeviceName': {'en': 'CALIS Level Sensor', 'de': 'CALIS Füllstandssensor'},
-                'TN_M_Ident': {'en': 'Identification', 'de': 'Identifikation'}
-            }
+            Tuple of:
+            - Dict[text_id, Dict[language_code, text_value]]
+            - Dict[text_id, Dict[language_code, int]] for xml_order per language
+            - Dict[language_code, int] for language_order (order of Language elements)
+            Example: (
+                {'TN_DeviceName': {'en': 'CALIS Level Sensor', 'de': 'CALIS Füllstandssensor'}},
+                {'TN_DeviceName': {'en': 0, 'de': 1}, 'TN_M_Ident': {'en': 1, 'de': 0}},
+                {'en': 0, 'de': 1, 'fr': 2}
+            )
         """
         all_text = {}
+        xml_order = {}  # PQA: Track original XML order of Text elements per language
+        language_order = {}  # PQA: Track order of Language elements
 
-        # Extract primary language (usually English)
+        # Extract primary language (usually English) - language_order 0
         primary_lang = self.root.find('.//iodd:ExternalTextCollection/iodd:PrimaryLanguage', self.NAMESPACES)
         if primary_lang is not None:
             lang_code = primary_lang.get('{http://www.w3.org/XML/1998/namespace}lang', 'en')
-            for text_elem in primary_lang.findall('.//iodd:Text', self.NAMESPACES):
+            language_order[lang_code] = 0  # Primary is always first
+            for order_idx, text_elem in enumerate(primary_lang.findall('.//iodd:Text', self.NAMESPACES)):
                 text_id = text_elem.get('id')
                 text_value = text_elem.get('value', '')
                 if text_id:
                     if text_id not in all_text:
                         all_text[text_id] = {}
                     all_text[text_id][lang_code] = text_value
+                    # PQA: Track order per language
+                    if text_id not in xml_order:
+                        xml_order[text_id] = {}
+                    xml_order[text_id][lang_code] = order_idx
 
-        # Extract all secondary languages
-        for language_elem in self.root.findall('.//iodd:ExternalTextCollection/iodd:Language', self.NAMESPACES):
+        # Extract all secondary languages - language_order starts at 1
+        for lang_idx, language_elem in enumerate(self.root.findall('.//iodd:ExternalTextCollection/iodd:Language', self.NAMESPACES)):
             lang_code = language_elem.get('{http://www.w3.org/XML/1998/namespace}lang', 'unknown')
-            for text_elem in language_elem.findall('.//iodd:Text', self.NAMESPACES):
+            language_order[lang_code] = lang_idx + 1  # +1 because primary is 0
+            for order_idx, text_elem in enumerate(language_elem.findall('.//iodd:Text', self.NAMESPACES)):
                 text_id = text_elem.get('id')
                 text_value = text_elem.get('value', '')
                 if text_id:
                     if text_id not in all_text:
                         all_text[text_id] = {}
                     all_text[text_id][lang_code] = text_value
+                    # PQA: Track order per language
+                    if text_id not in xml_order:
+                        xml_order[text_id] = {}
+                    xml_order[text_id][lang_code] = order_idx
 
-        return all_text
+        return all_text, xml_order, language_order
 
     def _resolve_text(self, text_id: Optional[str]) -> Optional[str]:
         """Resolve a textId reference to its actual text value (English only for backwards compatibility)"""
@@ -218,6 +234,8 @@ class IODDParser:
             schema_version=self._get_schema_version(),
             raw_xml=self.xml_content,
             all_text_data=self.all_text_data,  # Include all multi-language text data
+            text_xml_order=self.text_xml_order,  # PQA: Original XML order of Text elements
+            language_order=self.language_order,  # PQA: Order of Language elements
             # Phase 1: UI Rendering metadata
             process_data_ui_info=self._extract_process_data_ui_info(),
             # Phase 2: Device Variants and Conditions

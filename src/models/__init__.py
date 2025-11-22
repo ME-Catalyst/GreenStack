@@ -390,6 +390,8 @@ class DeviceProfile:
     import_date: datetime = field(default_factory=datetime.now)
     raw_xml: Optional[str] = None
     all_text_data: Dict[str, Dict[str, str]] = field(default_factory=dict)  # Multi-language text data
+    text_xml_order: Dict[str, Dict[str, int]] = field(default_factory=dict)  # PQA: Original XML order of Text elements per language
+    language_order: Dict[str, int] = field(default_factory=dict)  # PQA: Order of Language elements
 
     # Phase 1: UI Rendering metadata
     process_data_ui_info: List[ProcessDataUIInfo] = field(default_factory=list)

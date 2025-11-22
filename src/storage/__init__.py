@@ -115,7 +115,7 @@ class StorageManager:
             communication_saver.save(device_id, getattr(profile, 'communication_profile', None))
             wire_config_saver.save(device_id, getattr(profile, 'wire_configurations', []))
             menu_saver.save(device_id, getattr(profile, 'ui_menus', None))
-            text_saver.save(device_id, getattr(profile, 'all_text_data', {}))
+            text_saver.save(device_id, getattr(profile, 'all_text_data', {}), getattr(profile, 'text_xml_order', {}), getattr(profile, 'language_order', {}))
             custom_datatype_saver.save(device_id, getattr(profile, 'custom_datatypes', []))
             test_config_saver.save(device_id, getattr(profile, 'test_configurations', []))
             std_variable_ref_saver.save(device_id, getattr(profile, 'std_variable_refs', []))
