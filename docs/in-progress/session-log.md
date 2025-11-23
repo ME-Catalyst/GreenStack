@@ -746,6 +746,26 @@ full namespace prefix, and reconstruction couldn't match element names.
 
 ---
 
+### Fix #29: VariableRef@buttonValue Missing (23 issues) - COMMITTED
+
+**Commit**: `d73b3d2`
+
+**Problem**: VariableRef elements inside MenuCollection/Menu missing `buttonValue` attribute.
+Expected values like 128, 160, 130, etc. Affected 23 issues.
+
+**Root Cause**: Parser didn't extract buttonValue from VariableRef element. Reconstruction didn't output it.
+Note: This is the buttonValue attribute directly ON VariableRef, not on nested Button children.
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Extract buttonValue from VariableRef elements
+2. `src/utils/forensic_reconstruction_v2.py` - Output buttonValue attribute when present
+
+**Expected Impact**: ~23 issues resolved (requires re-import)
+
+**Status**: COMMITTED & PUSHED - Requires re-import to populate data
+
+---
+
 ## POST-REIMPORT RESULTS (HISTORICAL)
 
 Re-import completed successfully with parser shadowing fix applied.
