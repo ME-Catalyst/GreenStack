@@ -27,7 +27,19 @@ class ParameterSaver(BaseSaver):
             logger.debug(f"No parameters to save for device {device_id}")
             return
 
-        # Delete existing parameters (cascade will delete parameter_record_items)
+        # Delete existing - must delete child tables first (FK cascade is disabled)
+        # Get existing parameter IDs for this device
+        self._execute("SELECT id FROM parameters WHERE device_id = ?", (device_id,))
+        existing_ids = [row[0] for row in self._fetch_all()]
+
+        if existing_ids:
+            # Delete child tables first
+            placeholders = ','.join('?' * len(existing_ids))
+            self._execute(f"DELETE FROM variable_record_item_info WHERE parameter_id IN ({placeholders})", existing_ids)
+            self._execute(f"DELETE FROM parameter_single_values WHERE parameter_id IN ({placeholders})", existing_ids)
+            self._execute(f"DELETE FROM parameter_record_items WHERE parameter_id IN ({placeholders})", existing_ids)
+
+        # Now delete the parent table
         self._delete_existing('parameters', device_id)
 
         # Track parameters with record_items for later insertion
