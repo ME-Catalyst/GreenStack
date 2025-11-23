@@ -766,6 +766,34 @@ Note: This is the buttonValue attribute directly ON VariableRef, not on nested B
 
 ---
 
+### Fix #30a: RecordItem ValueRange/Name Missing (47 issues) - COMMITTED
+
+**Commit**: `74c360f`
+
+**Problem**: RecordItem/SimpleDatatype/ValueRange elements missing Name child element with textId.
+Affected 42 issues in VariableCollection, 3 in DatatypeCollection, 2 in ProcessDataCollection.
+
+**Root Cause**: Parser extracted ValueRange min/max/xsi:type but not the Name child element.
+RecordItem model lacked value_range_name_text_id field.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `value_range_name_text_id` to RecordItem model
+2. `src/parsing/__init__.py` - Extract ValueRange/Name@textId in all 3 contexts:
+   - `_extract_variable_record_items()` (Variable RecordItems)
+   - ProcessDataIn/Out RecordItem parsing
+   - `_extract_custom_datatypes()` (DatatypeCollection RecordItems)
+3. `src/storage/parameter.py` - Save value_range_name_text_id to parameter_record_items
+4. `src/storage/process_data.py` - Save value_range_name_text_id to process_data_record_items
+5. `src/storage/custom_datatype.py` - Save value_range_name_text_id to custom_datatype_record_items
+6. `src/utils/forensic_reconstruction_v2.py` - Output ValueRange/Name with textId in all contexts
+7. `alembic/versions/069_add_value_range_name_text_id.py` - Add column to all 3 tables
+
+**Expected Impact**: ~47 issues resolved (requires re-import)
+
+**Status**: COMMITTED & PUSHED - Requires re-import to populate data
+
+---
+
 ## POST-REIMPORT RESULTS (HISTORICAL)
 
 Re-import completed successfully with parser shadowing fix applied.
