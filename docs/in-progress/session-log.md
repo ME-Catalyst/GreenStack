@@ -703,7 +703,7 @@ which may have a different productId than what's in Connection/ProductRef.
 
 ### Fix #27: Menu xsi:type UIMenuRefT (78 issues) - COMMITTED
 
-**Commit**: (pending)
+**Commit**: `85c4292`
 
 **Problem**: Role menu elements (IdentificationMenu, ParameterMenu, DiagnosisMenu, ObservationMenu)
 inside RoleMenuSets were missing `xsi:type="UIMenuRefT"` attribute. Affected 78 issues across 13 devices.
@@ -718,6 +718,29 @@ inside RoleMenuSets were missing `xsi:type="UIMenuRefT"` attribute. Affected 78 
 5. `alembic/versions/068_add_role_menu_xsi_type.py` - Add has_xsi_type column
 
 **Expected Impact**: ~78 issues resolved (requires re-import)
+
+**Status**: COMMITTED & PUSHED - Requires re-import to populate data
+
+---
+
+### Fix #28: Menu Structure Namespace Handling (63 issues) - COMMITTED
+
+**Commit**: `3be75fb`
+
+**Problem**: Role menu elements (IdentificationMenu, ParameterMenu, DiagnosisMenu, ObservationMenu)
+were not matching during reconstruction because the menu_type was stored with full namespace prefix
+like `{http://www.io-link.com/IODD/2009/11}IdentificationMenu` instead of just `IdentificationMenu`.
+Affected 63 issues across 7 devices.
+
+**Root Cause**: Parser used `replace('{http://www.io-link.com/IODD/2010/10}', '')` to strip namespace
+from tag names, but some IODDs use the 2009/11 namespace. This caused menu_type to include the
+full namespace prefix, and reconstruction couldn't match element names.
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Added `get_local_name()` helper function that splits on '}' to handle any namespace
+2. `src/utils/forensic_reconstruction_v2.py` - Handle legacy data with namespace prefix using `if '}' in menu_type`
+
+**Expected Impact**: ~63 issues resolved (no migration needed - code fix only, requires re-import)
 
 **Status**: COMMITTED & PUSHED - Requires re-import to populate data
 
