@@ -475,13 +475,20 @@ class IODDReconstructor:
         appear as children of the same ProcessData element.
         """
         cursor = conn.cursor()
-        # Order by wrapper_id to group related entries, then by direction (input before output)
+        # Order by original XML order (min id per wrapper), then direction (input before output)
+        # PQA Fix #34b: Use MIN(id) per wrapper_id to preserve original document order
         cursor.execute("""
-            SELECT * FROM process_data WHERE device_id = ?
-            ORDER BY COALESCE(wrapper_id, pd_id),
-                     CASE direction WHEN 'input' THEN 0 ELSE 1 END,
-                     id
-        """, (device_id,))
+            SELECT pd.*, w.min_id FROM process_data pd
+            JOIN (
+                SELECT COALESCE(wrapper_id, pd_id) as wid, MIN(id) as min_id
+                FROM process_data WHERE device_id = ?
+                GROUP BY COALESCE(wrapper_id, pd_id)
+            ) w ON COALESCE(pd.wrapper_id, pd.pd_id) = w.wid
+            WHERE pd.device_id = ?
+            ORDER BY w.min_id,
+                     CASE pd.direction WHEN 'input' THEN 0 ELSE 1 END,
+                     pd.id
+        """, (device_id, device_id))
         process_data_rows = cursor.fetchall()
 
         if not process_data_rows:
