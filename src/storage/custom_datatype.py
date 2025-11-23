@@ -25,9 +25,28 @@ class CustomDatatypeSaver(BaseSaver):
             logger.debug(f"No custom datatypes to save for device {device_id}")
             return
 
-        # Delete existing (only delete from tables with device_id)
+        # Delete existing - must delete child tables first (FK cascade is disabled)
+        # Get existing datatype IDs for this device
+        self._execute("SELECT id FROM custom_datatypes WHERE device_id = ?", (device_id,))
+        existing_ids = [row[0] for row in self._fetch_all()]
+
+        if existing_ids:
+            # Delete child tables first (record_item_single_values, record_items, single_values)
+            placeholders = ','.join('?' * len(existing_ids))
+
+            # Get record_item IDs for single value deletion
+            self._execute(f"SELECT id FROM custom_datatype_record_items WHERE datatype_id IN ({placeholders})", existing_ids)
+            record_item_ids = [row[0] for row in self._fetch_all()]
+
+            if record_item_ids:
+                ri_placeholders = ','.join('?' * len(record_item_ids))
+                self._execute(f"DELETE FROM custom_datatype_record_item_single_values WHERE record_item_id IN ({ri_placeholders})", record_item_ids)
+
+            self._execute(f"DELETE FROM custom_datatype_record_items WHERE datatype_id IN ({placeholders})", existing_ids)
+            self._execute(f"DELETE FROM custom_datatype_single_values WHERE datatype_id IN ({placeholders})", existing_ids)
+
+        # Now delete the parent table
         self._delete_existing('custom_datatypes', device_id)
-        # Note: Child tables will be recreated when we save new data
 
         # Save each custom datatype
         for datatype in custom_datatypes:
