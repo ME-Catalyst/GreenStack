@@ -724,7 +724,7 @@ class IODDParser:
 
         for idx, ri_elem in enumerate(datatype_elem.findall('iodd:RecordItem', self.NAMESPACES)):
             subindex = int(ri_elem.get('subindex', 0))
-            bit_offset = int(ri_elem.get('bitOffset', 0))
+            bit_offset = int(ri_elem.get('bitOffset')) if ri_elem.get('bitOffset') is not None else None  # PQA Fix #32
             access_right_restriction = ri_elem.get('accessRightRestriction')  # PQA: extract attribute
 
             # Get name from textId
@@ -893,7 +893,7 @@ class IODDParser:
                 # Extract record items if it's a RecordT
                 for record_item in datatype_elem.findall('.//iodd:RecordItem', self.NAMESPACES):
                     subindex = int(record_item.get('subindex', 0))
-                    bit_offset = int(record_item.get('bitOffset', 0))
+                    bit_offset = int(record_item.get('bitOffset')) if record_item.get('bitOffset') is not None else None  # PQA Fix #32
                     item_access_right_restriction = record_item.get('accessRightRestriction')  # PQA
 
                     # Get record item name (direct child only, not SingleValue/Name)
@@ -1035,7 +1035,7 @@ class IODDParser:
                 # Extract record items if it's a RecordT
                 for record_item in datatype_elem.findall('.//iodd:RecordItem', self.NAMESPACES):
                     subindex = int(record_item.get('subindex', 0))
-                    bit_offset = int(record_item.get('bitOffset', 0))
+                    bit_offset = int(record_item.get('bitOffset')) if record_item.get('bitOffset') is not None else None  # PQA Fix #32
                     item_access_right_restriction = record_item.get('accessRightRestriction')  # PQA
 
                     # Get record item name (direct child only, not SingleValue/Name)

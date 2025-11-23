@@ -129,7 +129,7 @@ class RecordItem:
     """Record item within process data"""
     subindex: int
     name: str
-    bit_offset: int
+    bit_offset: Optional[int]  # None when not explicitly in original IODD (PQA Fix #32)
     bit_length: Optional[int]  # None when not explicitly in original IODD (PQA)
     data_type: str
     default_value: Optional[str] = None

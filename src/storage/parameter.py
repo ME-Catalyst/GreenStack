@@ -161,7 +161,7 @@ class ParameterSaver(BaseSaver):
             self._execute(query, (
                 parameter_id,
                 getattr(ri, 'subindex', 0),
-                getattr(ri, 'bit_offset', 0),
+                getattr(ri, 'bit_offset', None),  # PQA Fix #32: None if not in original
                 getattr(ri, 'bit_length', None),  # PQA: None if not in original
                 datatype_ref,
                 simple_datatype,
