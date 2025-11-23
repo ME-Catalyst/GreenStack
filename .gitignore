@@ -126,3 +126,9 @@ test_*.zip
 # Archive folder (but track docs/archive for historical documentation)
 archive/
 !docs/archive/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Auto-generated stats
+codebase_stats.json
