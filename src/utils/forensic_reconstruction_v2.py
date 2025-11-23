@@ -700,7 +700,7 @@ class IODDReconstructor:
                         if max_val is not None:
                             vr_elem.set('upperValue', str(max_val))
                         # PQA Fix #30: Add Name child element with textId
-                        vr_name_text_id = item.get('value_range_name_text_id')
+                        vr_name_text_id = item['value_range_name_text_id'] if 'value_range_name_text_id' in item.keys() else None
                         if vr_name_text_id:
                             vr_name_elem = ET.SubElement(vr_elem, 'Name')
                             vr_name_elem.set('textId', vr_name_text_id)
@@ -813,7 +813,7 @@ class IODDReconstructor:
                     if max_val is not None:
                         vr_elem.set('upperValue', str(max_val))
                     # PQA Fix #30: Add Name child element with textId
-                    vr_name_text_id = item.get('value_range_name_text_id')
+                    vr_name_text_id = item['value_range_name_text_id'] if 'value_range_name_text_id' in item.keys() else None
                     if vr_name_text_id:
                         vr_name_elem = ET.SubElement(vr_elem, 'Name')
                         vr_name_elem.set('textId', vr_name_text_id)
@@ -939,18 +939,18 @@ class IODDReconstructor:
             self._add_single_values(conn, datatype_elem, dt['id'])
 
             # PQA Fix #30b: Add ValueRange at Datatype level if present
-            dt_min_value = dt.get('min_value')
-            dt_max_value = dt.get('max_value')
+            dt_min_value = dt['min_value'] if 'min_value' in dt.keys() else None
+            dt_max_value = dt['max_value'] if 'max_value' in dt.keys() else None
             if dt_min_value is not None or dt_max_value is not None:
                 vr_elem = ET.SubElement(datatype_elem, 'ValueRange')
-                vr_xsi_type = dt.get('value_range_xsi_type')
+                vr_xsi_type = dt['value_range_xsi_type'] if 'value_range_xsi_type' in dt.keys() else None
                 if vr_xsi_type:
                     vr_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', vr_xsi_type)
                 if dt_min_value is not None:
                     vr_elem.set('lowerValue', str(dt_min_value))
                 if dt_max_value is not None:
                     vr_elem.set('upperValue', str(dt_max_value))
-                vr_name_text_id = dt.get('value_range_name_text_id')
+                vr_name_text_id = dt['value_range_name_text_id'] if 'value_range_name_text_id' in dt.keys() else None
                 if vr_name_text_id:
                     vr_name_elem = ET.SubElement(vr_elem, 'Name')
                     vr_name_elem.set('textId', vr_name_text_id)
@@ -1095,7 +1095,7 @@ class IODDReconstructor:
                         if max_val is not None:
                             vr_elem.set('upperValue', str(max_val))
                         # PQA Fix #30: Add Name child element with textId
-                        vr_name_text_id = item.get('value_range_name_text_id')
+                        vr_name_text_id = item['value_range_name_text_id'] if 'value_range_name_text_id' in item.keys() else None
                         if vr_name_text_id:
                             vr_name_elem = ET.SubElement(vr_elem, 'Name')
                             vr_name_elem.set('textId', vr_name_text_id)
@@ -1126,7 +1126,7 @@ class IODDReconstructor:
                     if max_val is not None:
                         vr_elem.set('upperValue', str(max_val))
                     # PQA Fix #30: Add Name child element with textId
-                    vr_name_text_id = item.get('value_range_name_text_id')
+                    vr_name_text_id = item['value_range_name_text_id'] if 'value_range_name_text_id' in item.keys() else None
                     if vr_name_text_id:
                         vr_name_elem = ET.SubElement(vr_elem, 'Name')
                         vr_name_elem.set('textId', vr_name_text_id)
@@ -1215,7 +1215,7 @@ class IODDReconstructor:
                     if item['unit_code']:
                         var_ref.set('unitCode', item['unit_code'])
                     # PQA Fix #29: Output buttonValue attribute when present
-                    if item.get('button_value'):
+                    if item['button_value'] if 'button_value' in item.keys() else None:
                         var_ref.set('buttonValue', item['button_value'])
                     # Use 'is not None' to handle 0 values correctly
                     # PQA: Use original string format if available, otherwise format the float
@@ -1666,18 +1666,18 @@ class IODDReconstructor:
                         # Add SingleValues to SimpleDatatype for ArrayT (PQA reconstruction)
                         self._add_variable_single_values(conn, param['id'], simple_dt)
                         # PQA Fix #30c: Add ValueRange to ArrayT SimpleDatatype if present
-                        ae_min = param.get('array_element_min_value')
-                        ae_max = param.get('array_element_max_value')
+                        ae_min = param['array_element_min_value'] if 'array_element_min_value' in param.keys() else None
+                        ae_max = param['array_element_max_value'] if 'array_element_max_value' in param.keys() else None
                         if ae_min is not None or ae_max is not None:
                             vr_elem = ET.SubElement(simple_dt, 'ValueRange')
-                            ae_vr_xsi_type = param.get('array_element_value_range_xsi_type')
+                            ae_vr_xsi_type = param['array_element_value_range_xsi_type'] if 'array_element_value_range_xsi_type' in param.keys() else None
                             if ae_vr_xsi_type:
                                 vr_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', ae_vr_xsi_type)
                             if ae_min is not None:
                                 vr_elem.set('lowerValue', str(ae_min))
                             if ae_max is not None:
                                 vr_elem.set('upperValue', str(ae_max))
-                            ae_vr_name_text_id = param.get('array_element_value_range_name_text_id')
+                            ae_vr_name_text_id = param['array_element_value_range_name_text_id'] if 'array_element_value_range_name_text_id' in param.keys() else None
                             if ae_vr_name_text_id:
                                 vr_name_elem = ET.SubElement(vr_elem, 'Name')
                                 vr_name_elem.set('textId', ae_vr_name_text_id)
