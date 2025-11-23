@@ -330,6 +330,7 @@ class WireConfiguration:
     wire_description: Optional[str] = None
     connection_symbol: Optional[str] = None  # PQA: Connection@connectionSymbol attribute
     name_text_id: Optional[str] = None  # PQA Fix #22: Wire/Name@textId attribute
+    xsi_type: Optional[str] = None  # PQA Fix #25: Wire@xsi:type attribute (e.g., Wire1T)
 
 
 @dataclass

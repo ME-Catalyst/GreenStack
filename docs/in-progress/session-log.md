@@ -633,7 +633,7 @@ without checking if the original had it.
 
 ### Fix #24: DeviceIdentity textId Storage (141 issues) - COMMITTED
 
-**Commit**: (pending)
+**Commit**: `a098cd7`
 
 **Problem**: VendorText@textId, VendorUrl@textId, and DeviceFamily@textId elements were using
 lookup-based textIds (TI_VendorText) instead of storing the original textIds from the IODD.
@@ -650,6 +650,28 @@ Reconstruction used `_lookup_textid()` which guesses based on common prefixes.
 5. `alembic/versions/065_add_device_identity_text_ids.py` - Add new columns
 
 **Expected Impact**: ~141 issues resolved (requires re-import)
+
+**Status**: COMMITTED & PUSHED - Requires re-import to populate data
+
+---
+
+### Fix #25: Wire xsi:type Storage (33 issues) - COMMITTED
+
+**Commit**: (pending)
+
+**Problem**: Wire1, Wire3, Wire4 elements inside Connection missing `xsi:type` attribute.
+Expected values like `Wire1T`, `Wire3T`, `Wire4T`. Affected 33 issues across 10 devices.
+
+**Root Cause**: Parser didn't extract xsi:type from Wire elements. Reconstruction didn't output it.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `xsi_type` field to WireConfiguration
+2. `src/parsing/__init__.py` - Extract xsi:type from Wire elements
+3. `src/storage/communication.py` - Save xsi_type to wire_configurations table
+4. `src/utils/forensic_reconstruction_v2.py` - Output xsi:type when present
+5. `alembic/versions/066_add_wire_xsi_type.py` - Add xsi_type column
+
+**Expected Impact**: ~33 issues resolved (requires re-import)
 
 **Status**: COMMITTED & PUSHED - Requires re-import to populate data
 

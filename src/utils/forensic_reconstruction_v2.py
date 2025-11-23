@@ -1362,6 +1362,10 @@ class IODDReconstructor:
             for wire in wire_configs:
                 wire_elem_name = f"Wire{wire['wire_number']}"
                 wire_elem = ET.SubElement(connection, wire_elem_name)
+                # PQA Fix #25: Add xsi:type attribute if present (e.g., Wire1T, Wire3T)
+                wire_xsi_type = wire['xsi_type'] if 'xsi_type' in wire.keys() and wire['xsi_type'] else None
+                if wire_xsi_type:
+                    wire_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', wire_xsi_type)
                 if wire['wire_color']:
                     wire_elem.set('color', wire['wire_color'])
                 if wire['wire_function']:

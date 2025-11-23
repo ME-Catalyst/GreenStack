@@ -1871,6 +1871,9 @@ class IODDParser:
                     name_text_id = name_elem.get('textId') if name_elem is not None else None
                     wire_description = self._resolve_text(name_text_id)
 
+                    # PQA Fix #25: Extract Wire@xsi:type attribute (e.g., Wire1T, Wire3T)
+                    wire_xsi_type = wire_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+
                     wires.append(WireConfiguration(
                         connection_type=connection_type,
                         wire_number=wire_num,
@@ -1878,7 +1881,8 @@ class IODDParser:
                         wire_function=wire_elem.get('function'),
                         wire_description=wire_description,
                         connection_symbol=connection_symbol,  # PQA Fix #19
-                        name_text_id=name_text_id  # PQA Fix #22: Store Wire/Name@textId
+                        name_text_id=name_text_id,  # PQA Fix #22: Store Wire/Name@textId
+                        xsi_type=wire_xsi_type  # PQA Fix #25: Store Wire@xsi:type
                     ))
 
         logger.info(f"Extracted {len(wires)} wire configurations")
