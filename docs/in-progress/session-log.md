@@ -842,6 +842,103 @@ but didn't extract ValueRange inside the SimpleDatatype.
 
 ---
 
+## SESSION 2025-11-23 - PQA ANALYSIS AND PLANNING
+
+### Current IODD PQA Status (After Previous Fixes)
+
+| Metric | Value |
+|--------|-------|
+| **Average Score** | 99.67% |
+| **Min Score** | 93.71% (Device 18 - SL-x-TRIO IOLINK) |
+| **Max Score** | 100.00% |
+| **Total Diffs** | 878 |
+| **Devices at 100%** | 27 |
+| **Devices 99-99.99%** | 123 |
+| **Devices < 99%** | 11 |
+
+### Score Distribution
+
+| Range | Count |
+|-------|-------|
+| 100% | 27 |
+| 99-99.99% | 123 |
+| 95-98.99% | 9 |
+| 90-94.99% | 2 |
+| <90% | 0 |
+
+### Remaining Issues by Type (878 total)
+
+| Diff Type | Count |
+|-----------|-------|
+| missing_element | 331 |
+| incorrect_attribute | 253 |
+| extra_element | 139 |
+| missing_attribute | 116 |
+| value_changed | 39 |
+
+### Top Issue Patterns
+
+| Issue Pattern | Count | Priority |
+|--------------|-------|----------|
+| missing_element:ProcessDataOut | 78 | High |
+| extra_element:RecordItem@bitOffset | 64 | High |
+| missing_element:Description | 62 | Medium |
+| missing_element:ProcessDataRefCollection | 56 | High |
+| incorrect_attribute:Name@textId | 54 | High |
+| incorrect_attribute:SingleValue@value | 49 | Medium |
+| incorrect_attribute:RecordItemInfo@subindex | 48 | Medium |
+| incorrect_attribute:StdErrorTypeRef@additionalCode | 44 | Low |
+| missing_element:SingleValue | 38 | Medium |
+| missing_element:ErrorType | 31 | Medium |
+
+### Worst Performing Device Analysis
+
+**Device 18 (SL-x-TRIO IOLINK)** - 93.71% with 265+ issues:
+- Primary cause: DatatypeCollection RecordItem ordering
+- RecordItems reconstructed by `subindex` order, but original XML has different ordering
+- Results in cascading mismatches: subindex, bitOffset, Name@textId, ValueRange values
+
+### Planned Fixes (Priority Order)
+
+#### Fix #31: ProcessDataRefCollection Reconstruction (56 issues)
+**Complexity**: High
+**Problem**: ProcessDataRefCollection element in UserInterface not implemented
+
+**Implementation Required**:
+1. ProcessDataRefCollection is child of UserInterface (after MenuCollection)
+2. Contains ProcessDataRef elements with processDataId attribute
+3. Each ProcessDataRef has ProcessDataRecordItemInfo children
+
+#### Fix #32: RecordItem@bitOffset Conditional Output (64 issues)
+**Complexity**: Low
+**Problem**: bitOffset output when not in original (like Fix #4 for bitLength)
+
+**Files to modify**:
+- `src/models/__init__.py` - Add `has_bit_offset: Optional[bool]` to RecordItem
+- `src/parsing/__init__.py` - Track whether bitOffset exists
+- `src/storage/*.py` - Save has_bit_offset flag
+- `src/utils/forensic_reconstruction_v2.py` - Only output bitOffset when flag is True
+
+#### Fix #33: DatatypeCollection RecordItem XML Order (265+ issues)
+**Complexity**: Medium
+**Problem**: RecordItems ordered by subindex, not original XML order
+
+**Files to modify**:
+- `src/models/__init__.py` - Add `xml_order: Optional[int]`
+- `src/parsing/__init__.py` - Track XML order during parsing
+- `src/storage/custom_datatype.py` - Save xml_order
+- `src/utils/forensic_reconstruction_v2.py` - Order by xml_order
+
+#### Fix #34: ProcessDataOut Structure (78 issues)
+**Complexity**: Medium
+**Requires investigation**: Verify ProcessDataOut elements match expected wrapper structure
+
+#### Fix #35: Missing Description Elements (62 issues)
+**Complexity**: Low-Medium
+**Requires investigation**: Identify missing Description contexts
+
+---
+
 ## POST-REIMPORT RESULTS (HISTORICAL)
 
 Re-import completed successfully with parser shadowing fix applied.
