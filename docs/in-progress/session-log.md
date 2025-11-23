@@ -794,6 +794,30 @@ RecordItem model lacked value_range_name_text_id field.
 
 ---
 
+### Fix #30b: DatatypeCollection Datatype/ValueRange Missing (35 issues) - COMMITTED
+
+**Commit**: `ff3e248`
+
+**Problem**: Datatype elements in DatatypeCollection can have ValueRange child elements
+directly (not inside RecordItem). This is for scalar custom datatypes with value ranges.
+Affected 35 issues.
+
+**Root Cause**: Parser and CustomDatatype model didn't support ValueRange at Datatype level.
+Only ValueRange inside RecordItem/SimpleDatatype was implemented.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `min_value`, `max_value`, `value_range_xsi_type`, `value_range_name_text_id` to CustomDatatype
+2. `src/parsing/__init__.py` - Extract Datatype-level ValueRange (direct child, not in RecordItem)
+3. `src/storage/custom_datatype.py` - Save ValueRange fields to custom_datatypes table
+4. `src/utils/forensic_reconstruction_v2.py` - Output ValueRange with Name at Datatype level
+5. `alembic/versions/070_add_datatype_value_range.py` - Add columns to custom_datatypes
+
+**Expected Impact**: ~35 issues resolved (requires re-import)
+
+**Status**: COMMITTED & PUSHED - Requires re-import to populate data
+
+---
+
 ## POST-REIMPORT RESULTS (HISTORICAL)
 
 Re-import completed successfully with parser shadowing fix applied.
