@@ -909,25 +909,78 @@ but didn't extract ValueRange inside the SimpleDatatype.
 2. Contains ProcessDataRef elements with processDataId attribute
 3. Each ProcessDataRef has ProcessDataRecordItemInfo children
 
-#### Fix #32: RecordItem@bitOffset Conditional Output (64 issues)
-**Complexity**: Low
-**Problem**: bitOffset output when not in original (like Fix #4 for bitLength)
+#### Fix #32: RecordItem@bitOffset Conditional Output (64 issues) - COMMITTED
 
-**Files to modify**:
-- `src/models/__init__.py` - Add `has_bit_offset: Optional[bool]` to RecordItem
-- `src/parsing/__init__.py` - Track whether bitOffset exists
-- `src/storage/*.py` - Save has_bit_offset flag
-- `src/utils/forensic_reconstruction_v2.py` - Only output bitOffset when flag is True
+**Commit**: `3374140`
 
-#### Fix #33: DatatypeCollection RecordItem XML Order (265+ issues)
-**Complexity**: Medium
-**Problem**: RecordItems ordered by subindex, not original XML order
+**Problem**: RecordItem bitOffset was output as "0" even when not present in original IODD.
+Affected devices 35 and 36 (48 RecordItems each with no bitOffset in original).
 
-**Files to modify**:
-- `src/models/__init__.py` - Add `xml_order: Optional[int]`
-- `src/parsing/__init__.py` - Track XML order during parsing
-- `src/storage/custom_datatype.py` - Save xml_order
-- `src/utils/forensic_reconstruction_v2.py` - Order by xml_order
+**Root Cause**: Parser used `int(ri_elem.get('bitOffset', 0))` which converted missing
+attribute to 0. Reconstruction then output `bitOffset="0"` for all RecordItems.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Changed `bit_offset: int` to `bit_offset: Optional[int]`
+2. `src/parsing/__init__.py` - Store None when bitOffset not present (3 locations)
+3. `src/storage/parameter.py` - Use None as default for bit_offset
+
+**Note**: Reconstruction already had correct logic: `if item['bit_offset'] is not None:`
+
+**Expected Impact**: ~64 issues resolved (requires re-import)
+
+**Status**: COMMITTED & PUSHED - Requires re-import to populate data
+
+#### Fix #33a: Custom Datatype Child Table Deletion (165 issues) - COMMITTED
+
+**Commit**: `6e5da61`
+
+**Problem**: Device 18 had 9 record items per DT_Color datatype instead of 3 (3x duplication).
+RecordItemInfo subindex and defaultValue were all mismatched due to this duplication.
+
+**Root Cause**: FK cascade was disabled in SQLite (`PRAGMA foreign_keys = 0`), so deleting
+from `custom_datatypes` didn't cascade to child tables. Duplicates accumulated on re-import.
+
+**Changes Made**:
+1. `src/storage/custom_datatype.py` - Explicitly delete from child tables before parent:
+   - Get existing datatype IDs
+   - Delete from custom_datatype_record_item_single_values
+   - Delete from custom_datatype_record_items
+   - Delete from custom_datatype_single_values
+   - Delete from custom_datatypes
+
+**Results for Device 18**:
+- RecordItems per DT_Color: 9 → 3 (correct)
+- Total diffs: 265 → 100 (165 fixed)
+- Score: 93.71% → 94.26%
+
+**Remaining Issues**: 100 diffs (RecordItemInfo ordering in VariableCollection - different issue)
+
+**Status**: COMMITTED & PUSHED
+
+---
+
+#### Fix #33b: Parameter/ProcessData Child Table Deletion (182 issues) - COMMITTED
+
+**Commit**: `f28a0da`
+
+**Problem**: Same FK cascade issue as Fix #33a. Duplicate records in:
+- `variable_record_item_info` (273 → 91 for device 18)
+- `parameter_single_values`, `parameter_record_items`
+- `process_data_*` child tables
+
+**Changes Made**:
+1. `src/storage/parameter.py` - Delete from variable_record_item_info, parameter_single_values,
+   parameter_record_items before deleting from parameters
+2. `src/storage/process_data.py` - Delete from process_data_single_values, process_data_ui_info,
+   process_data_conditions, process_data_record_items before deleting from process_data
+
+**Results for Device 18**:
+- Score: 94.26% → 96.43% (3% improvement)
+- Total diffs: 100 → 158 (mix of fixed and newly visible issues)
+
+**Remaining Issues**: UserInterface menu element ordering (VariableRef, RecordItemRef, MenuRef)
+
+**Status**: COMMITTED & PUSHED
 
 #### Fix #34: ProcessDataOut Structure (78 issues)
 **Complexity**: Medium
