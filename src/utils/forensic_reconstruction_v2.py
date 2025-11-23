@@ -469,10 +469,18 @@ class IODDReconstructor:
 
     def _create_process_data_collection(self, conn: sqlite3.Connection,
                                        device_id: int) -> Optional[ET.Element]:
-        """Create ProcessDataCollection element"""
+        """Create ProcessDataCollection element
+
+        PQA Fix #34: Group ProcessDataIn and ProcessDataOut by wrapper_id so they
+        appear as children of the same ProcessData element.
+        """
         cursor = conn.cursor()
+        # Order by wrapper_id to group related entries, then by direction (input before output)
         cursor.execute("""
-            SELECT * FROM process_data WHERE device_id = ? ORDER BY id
+            SELECT * FROM process_data WHERE device_id = ?
+            ORDER BY COALESCE(wrapper_id, pd_id),
+                     CASE direction WHEN 'input' THEN 0 ELSE 1 END,
+                     id
         """, (device_id,))
         process_data_rows = cursor.fetchall()
 
@@ -481,108 +489,99 @@ class IODDReconstructor:
 
         collection = ET.Element('ProcessDataCollection')
 
+        # PQA Fix #34: Group by wrapper_id - create one ProcessData per unique wrapper
+        wrapper_elements = {}  # Maps wrapper_id -> ProcessData element
+        wrapper_order = []  # Preserve order of first occurrence
+
         for pd in process_data_rows:
-            pd_elem = ET.Element('ProcessData')
-
-            # Check for Condition element (goes first in ProcessData)
-            cursor.execute("""
-                SELECT condition_variable_id, condition_value, condition_subindex
-                FROM process_data_conditions
-                WHERE process_data_id = ?
-            """, (pd['id'],))
-            condition = cursor.fetchone()
-            if condition and condition['condition_variable_id']:
-                condition_elem = ET.SubElement(pd_elem, 'Condition')
-                condition_elem.set('variableId', condition['condition_variable_id'])
-                condition_elem.set('value', str(condition['condition_value']))
-                # PQA: Add subindex attribute if present
-                cond_subindex = condition['condition_subindex'] if 'condition_subindex' in condition.keys() else None
-                if cond_subindex:
-                    condition_elem.set('subindex', cond_subindex)
-
-            # PQA Fix #18: Use stored wrapper_id if available, otherwise derive it
+            # Determine the wrapper_id for this row
             wrapper_id = pd['wrapper_id'] if 'wrapper_id' in pd.keys() and pd['wrapper_id'] else None
-            if wrapper_id:
-                pd_elem.set('id', wrapper_id)
-            else:
-                # Fallback: Convert ProcessData ID format (legacy logic)
-                # PI_ProcessDataIn -> P_ProcessData, PO_ProcessDataOut -> P_ProcessData
+            if not wrapper_id:
+                # Fallback: derive wrapper_id from pd_id
                 pd_id = pd['pd_id']
-
-                # First, handle PI_/PO_ prefix (convert to P_)
                 if pd_id.startswith('PI_'):
-                    pd_id = 'P_' + pd_id[3:]
+                    wrapper_id = 'P_' + pd_id[3:]
                 elif pd_id.startswith('PO_'):
-                    pd_id = 'P_' + pd_id[3:]
+                    wrapper_id = 'P_' + pd_id[3:]
+                else:
+                    wrapper_id = pd_id
+                # Strip direction suffixes
+                wrapper_id = re.sub(r'In(_?\d*)$', r'\1', wrapper_id)
+                wrapper_id = re.sub(r'Out(_?\d*)$', r'\1', wrapper_id)
+                wrapper_id = re.sub(r'_IN(_?\d*)$', r'\1', wrapper_id)
+                wrapper_id = re.sub(r'_OUT(_?\d*)$', r'\1', wrapper_id)
 
-                # Strip direction suffixes (In/Out/_IN/_OUT), preserve numeric suffixes
-                pd_id = re.sub(r'In(_?\d*)$', r'\1', pd_id)
-                pd_id = re.sub(r'Out(_?\d*)$', r'\1', pd_id)
-                pd_id = re.sub(r'_IN(_?\d*)$', r'\1', pd_id)
-                pd_id = re.sub(r'_OUT(_?\d*)$', r'\1', pd_id)
-                pd_elem.set('id', pd_id)
+            # Get or create ProcessData element for this wrapper
+            if wrapper_id in wrapper_elements:
+                pd_elem = wrapper_elements[wrapper_id]
+            else:
+                pd_elem = ET.Element('ProcessData')
+                pd_elem.set('id', wrapper_id)
+                wrapper_elements[wrapper_id] = pd_elem
+                wrapper_order.append(wrapper_id)
 
-            # Direction (ProcessDataIn or ProcessDataOut) - create child element
-            if pd['direction']:
-                if pd['direction'] == 'input':
-                    direction_elem = ET.SubElement(pd_elem, 'ProcessDataIn')
-                    direction_elem.set('id', pd['pd_id'])  # Full ID with suffix
-                    if pd['bit_length']:
-                        direction_elem.set('bitLength', str(pd['bit_length']))
+                # Check for Condition element (only add once per wrapper)
+                cursor.execute("""
+                    SELECT condition_variable_id, condition_value, condition_subindex
+                    FROM process_data_conditions
+                    WHERE process_data_id = ?
+                """, (pd['id'],))
+                condition = cursor.fetchone()
+                if condition and condition['condition_variable_id']:
+                    condition_elem = ET.SubElement(pd_elem, 'Condition')
+                    condition_elem.set('variableId', condition['condition_variable_id'])
+                    condition_elem.set('value', str(condition['condition_value']))
+                    cond_subindex = condition['condition_subindex'] if 'condition_subindex' in condition.keys() else None
+                    if cond_subindex:
+                        condition_elem.set('subindex', cond_subindex)
 
-                    # Add Name element with textId (PQA accuracy)
-                    name_text_id = pd['name_text_id'] if 'name_text_id' in pd.keys() else None
-                    if name_text_id:
-                        name_elem = ET.SubElement(direction_elem, 'Name')
-                        name_elem.set('textId', name_text_id)
+            # Add ProcessDataIn or ProcessDataOut as child of the wrapper
+            self._add_process_data_direction_element(conn, pd_elem, pd)
 
-                    # Datatype goes inside ProcessDataIn
-                    if pd['data_type']:
-                        datatype = ET.SubElement(direction_elem, 'Datatype')
-                        datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', pd['data_type'])
-                        # Add bitLength to Datatype element as well
-                        if pd['bit_length']:
-                            datatype.set('bitLength', str(pd['bit_length']))
-                        # Add subindexAccessSupported attribute (PQA accuracy)
-                        subindex_access = pd['subindex_access_supported'] if 'subindex_access_supported' in pd.keys() else None
-                        if subindex_access is not None:
-                            datatype.set('subindexAccessSupported', 'true' if subindex_access else 'false')
-                        # Add RecordItem elements for RecordT types
-                        if pd['data_type'] == 'RecordT':
-                            self._add_process_data_record_items(conn, datatype, pd['id'])
-                elif pd['direction'] == 'output':
-                    direction_elem = ET.SubElement(pd_elem, 'ProcessDataOut')
-                    direction_elem.set('id', pd['pd_id'])  # Full ID with suffix
-                    if pd['bit_length']:
-                        direction_elem.set('bitLength', str(pd['bit_length']))
-
-                    # Add Name element with textId (PQA accuracy)
-                    name_text_id = pd['name_text_id'] if 'name_text_id' in pd.keys() else None
-                    if name_text_id:
-                        name_elem = ET.SubElement(direction_elem, 'Name')
-                        name_elem.set('textId', name_text_id)
-
-                    # Datatype goes inside ProcessDataOut
-                    if pd['data_type']:
-                        datatype = ET.SubElement(direction_elem, 'Datatype')
-                        datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', pd['data_type'])
-                        # Add bitLength to Datatype element
-                        if pd['bit_length']:
-                            datatype.set('bitLength', str(pd['bit_length']))
-                        # Add subindexAccessSupported attribute (PQA accuracy)
-                        subindex_access = pd['subindex_access_supported'] if 'subindex_access_supported' in pd.keys() else None
-                        if subindex_access is not None:
-                            datatype.set('subindexAccessSupported', 'true' if subindex_access else 'false')
-                        # Add RecordItem elements for RecordT types
-                        if pd['data_type'] == 'RecordT':
-                            self._add_process_data_record_items(conn, datatype, pd['id'])
-
-            # Note: UIInfo for ProcessData is stored in UserInterface/ProcessDataRefCollection,
-            # NOT as a direct child of ProcessData. Do not add UIInfo here.
-
-            collection.append(pd_elem)
+        # Add wrapper elements to collection in order of first occurrence
+        for wrapper_id in wrapper_order:
+            collection.append(wrapper_elements[wrapper_id])
 
         return collection
+
+    def _add_process_data_direction_element(self, conn: sqlite3.Connection,
+                                            pd_elem: ET.Element, pd) -> None:
+        """Add ProcessDataIn or ProcessDataOut element to ProcessData wrapper
+
+        PQA Fix #34: Helper method to reduce duplication when creating direction elements.
+        """
+        if not pd['direction']:
+            return
+
+        if pd['direction'] == 'input':
+            direction_elem = ET.SubElement(pd_elem, 'ProcessDataIn')
+        else:
+            direction_elem = ET.SubElement(pd_elem, 'ProcessDataOut')
+
+        direction_elem.set('id', pd['pd_id'])
+        if pd['bit_length']:
+            direction_elem.set('bitLength', str(pd['bit_length']))
+
+        # Add Name element with textId (PQA accuracy)
+        name_text_id = pd['name_text_id'] if 'name_text_id' in pd.keys() else None
+        if name_text_id:
+            name_elem = ET.SubElement(direction_elem, 'Name')
+            name_elem.set('textId', name_text_id)
+
+        # Datatype goes inside ProcessDataIn/ProcessDataOut
+        if pd['data_type']:
+            datatype = ET.SubElement(direction_elem, 'Datatype')
+            datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', pd['data_type'])
+            if pd['bit_length']:
+                datatype.set('bitLength', str(pd['bit_length']))
+            # Add subindexAccessSupported attribute (PQA accuracy)
+            subindex_access = pd['subindex_access_supported'] if 'subindex_access_supported' in pd.keys() else None
+            if subindex_access is not None:
+                datatype.set('subindexAccessSupported', 'true' if subindex_access else 'false')
+            # Add RecordItem elements for RecordT types
+            if pd['data_type'] == 'RecordT':
+                self._add_process_data_record_items(conn, datatype, pd['id'])
+
 
     def _add_ui_info(self, conn: sqlite3.Connection, parent: ET.Element,
                     process_data_id: int) -> None:
