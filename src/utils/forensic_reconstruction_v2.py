@@ -60,9 +60,9 @@ class IODDReconstructor:
 
         # If it's a float
         if isinstance(value, float):
-            # Check if it's a whole number
+            # Check if it's a whole number - keep .0 suffix for floats (PQA Fix)
             if value == int(value):
-                return str(int(value))
+                return f"{int(value)}.0"
             # Format with enough precision and strip trailing zeros
             formatted = f'{value:.10g}'  # Uses scientific notation for very large/small numbers
             return formatted
@@ -1338,6 +1338,42 @@ class IODDReconstructor:
                     if has_xsi_type:
                         menu_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', 'UIMenuRefT')
                     menu_elem.set('menuId', menu_id)
+
+        # PQA Fix #31: Add ProcessDataRefCollection if UI info exists
+        cursor.execute("""
+            SELECT pdui.*, pd.pd_id
+            FROM process_data_ui_info pdui
+            JOIN process_data pd ON pdui.process_data_id = pd.id
+            WHERE pd.device_id = ?
+            ORDER BY pd.id, pdui.subindex
+        """, (device_id,))
+        ui_info_rows = cursor.fetchall()
+
+        if ui_info_rows:
+            pdrc = ET.SubElement(user_interface, 'ProcessDataRefCollection')
+            current_pd_id = None
+            current_pd_ref = None
+
+            for ui_info in ui_info_rows:
+                pd_id = ui_info['pd_id']
+
+                # Create new ProcessDataRef for each unique process data
+                if pd_id != current_pd_id:
+                    current_pd_ref = ET.SubElement(pdrc, 'ProcessDataRef')
+                    current_pd_ref.set('processDataId', pd_id)
+                    current_pd_id = pd_id
+
+                # Add ProcessDataRecordItemInfo
+                item_info = ET.SubElement(current_pd_ref, 'ProcessDataRecordItemInfo')
+                item_info.set('subindex', str(ui_info['subindex']))
+                if ui_info['gradient'] is not None:
+                    item_info.set('gradient', self._format_number(ui_info['gradient']))
+                if ui_info['offset'] is not None:
+                    item_info.set('offset', self._format_number(ui_info['offset']))
+                if ui_info['unit_code']:
+                    item_info.set('unitCode', ui_info['unit_code'])
+                if ui_info['display_format']:
+                    item_info.set('displayFormat', ui_info['display_format'])
 
         return user_interface
 
