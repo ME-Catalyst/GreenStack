@@ -1610,9 +1610,17 @@ class IODDParser:
         connection_symbol = None  # PQA Fix #19b: Store connectionSymbol
         wire_config = {}
 
+        # PQA Fix #26: Extract ProductRef@productId
+        product_ref_id = None
+
         if connection_elem is not None:
             connection_type = connection_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type', '').replace('T', '')
             connection_symbol = connection_elem.get('connectionSymbol')  # PQA Fix #19b
+
+            # PQA Fix #26: Extract ProductRef productId
+            product_ref_elem = connection_elem.find('.//iodd:ProductRef', self.NAMESPACES)
+            if product_ref_elem is not None:
+                product_ref_id = product_ref_elem.get('productId')
 
             # Extract wire configuration
             for i in range(1, 5):
@@ -1637,7 +1645,8 @@ class IODDParser:
             connection_type=connection_type,
             wire_config=wire_config,
             connection_symbol=connection_symbol,  # PQA Fix #19b
-            test_xsi_type=test_xsi_type  # PQA Fix #23
+            test_xsi_type=test_xsi_type,  # PQA Fix #23
+            product_ref_id=product_ref_id  # PQA Fix #26
         )
 
     def _extract_ui_menus(self) -> Optional[UserInterfaceMenus]:

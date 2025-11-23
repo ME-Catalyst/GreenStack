@@ -239,6 +239,7 @@ class CommunicationProfile:
     wire_config: Dict[str, str] = field(default_factory=dict)
     connection_symbol: Optional[str] = None  # PQA: Connection@connectionSymbol attribute
     test_xsi_type: Optional[str] = None  # PQA Fix #23: Test@xsi:type attribute
+    product_ref_id: Optional[str] = None  # PQA Fix #26: Connection/ProductRef@productId
 
 
 @dataclass

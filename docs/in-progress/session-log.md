@@ -657,7 +657,7 @@ Reconstruction used `_lookup_textid()` which guesses based on common prefixes.
 
 ### Fix #25: Wire xsi:type Storage (33 issues) - COMMITTED
 
-**Commit**: (pending)
+**Commit**: `21baabc`
 
 **Problem**: Wire1, Wire3, Wire4 elements inside Connection missing `xsi:type` attribute.
 Expected values like `Wire1T`, `Wire3T`, `Wire4T`. Affected 33 issues across 10 devices.
@@ -672,6 +672,30 @@ Expected values like `Wire1T`, `Wire3T`, `Wire4T`. Affected 33 issues across 10 
 5. `alembic/versions/066_add_wire_xsi_type.py` - Add xsi_type column
 
 **Expected Impact**: ~33 issues resolved (requires re-import)
+
+**Status**: COMMITTED & PUSHED - Requires re-import to populate data
+
+---
+
+### Fix #26: Connection/ProductRef@productId (24 issues) - COMMITTED
+
+**Commit**: (pending)
+
+**Problem**: Connection/ProductRef@productId was using device_variants.product_id instead
+of the original productId from the IODD. This caused 24 issues across 24 devices where
+the ProductRef productId differs (e.g., different cable lengths, model variants).
+
+**Root Cause**: Parser didn't extract ProductRef@productId. Reconstruction used device_variants
+which may have a different productId than what's in Connection/ProductRef.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `product_ref_id` field to CommunicationProfile
+2. `src/parsing/__init__.py` - Extract productId from Connection/ProductRef element
+3. `src/storage/communication.py` - Save product_ref_id to communication_profile table
+4. `src/utils/forensic_reconstruction_v2.py` - Use stored product_ref_id with fallback
+5. `alembic/versions/067_add_product_ref_id.py` - Add product_ref_id column
+
+**Expected Impact**: ~24 issues resolved (requires re-import)
 
 **Status**: COMMITTED & PUSHED - Requires re-import to populate data
 
