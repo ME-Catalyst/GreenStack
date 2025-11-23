@@ -2099,13 +2099,30 @@ class IODDParser:
                         access_right_restriction=item_access_right_restriction,  # PQA
                     ))
 
+            # PQA Fix #30b: Extract ValueRange at Datatype level (not inside RecordItem)
+            dt_min_value = None
+            dt_max_value = None
+            dt_vr_xsi_type = None
+            dt_vr_name_text_id = None
+            dt_vr_elem = datatype_elem.find('iodd:ValueRange', self.NAMESPACES)
+            if dt_vr_elem is not None:
+                dt_min_value = dt_vr_elem.get('lowerValue')
+                dt_max_value = dt_vr_elem.get('upperValue')
+                dt_vr_xsi_type = dt_vr_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                vr_name_elem = dt_vr_elem.find('iodd:Name', self.NAMESPACES)
+                dt_vr_name_text_id = vr_name_elem.get('textId') if vr_name_elem is not None else None
+
             datatypes.append(CustomDatatype(
                 datatype_id=datatype_id,
                 datatype_xsi_type=xsi_type or 'Unknown',
                 bit_length=int(bit_length) if bit_length else None,
                 subindex_access_supported=subindex_access,
                 single_values=single_values,
-                record_items=record_items
+                record_items=record_items,
+                min_value=dt_min_value,
+                max_value=dt_max_value,
+                value_range_xsi_type=dt_vr_xsi_type,
+                value_range_name_text_id=dt_vr_name_text_id
             ))
 
         logger.info(f"Extracted {len(datatypes)} custom datatypes")

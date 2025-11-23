@@ -364,6 +364,11 @@ class CustomDatatype:
     subindex_access_supported: bool = False
     single_values: List[SingleValue] = field(default_factory=list)
     record_items: List[RecordItem] = field(default_factory=list)
+    # PQA Fix #30b: Datatype-level ValueRange
+    min_value: Optional[str] = None
+    max_value: Optional[str] = None
+    value_range_xsi_type: Optional[str] = None
+    value_range_name_text_id: Optional[str] = None
 
 
 @dataclass

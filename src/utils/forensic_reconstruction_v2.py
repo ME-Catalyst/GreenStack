@@ -938,6 +938,23 @@ class IODDReconstructor:
             # Add SingleValue enumerations
             self._add_single_values(conn, datatype_elem, dt['id'])
 
+            # PQA Fix #30b: Add ValueRange at Datatype level if present
+            dt_min_value = dt.get('min_value')
+            dt_max_value = dt.get('max_value')
+            if dt_min_value is not None or dt_max_value is not None:
+                vr_elem = ET.SubElement(datatype_elem, 'ValueRange')
+                vr_xsi_type = dt.get('value_range_xsi_type')
+                if vr_xsi_type:
+                    vr_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', vr_xsi_type)
+                if dt_min_value is not None:
+                    vr_elem.set('lowerValue', str(dt_min_value))
+                if dt_max_value is not None:
+                    vr_elem.set('upperValue', str(dt_max_value))
+                vr_name_text_id = dt.get('value_range_name_text_id')
+                if vr_name_text_id:
+                    vr_name_elem = ET.SubElement(vr_elem, 'Name')
+                    vr_name_elem.set('textId', vr_name_text_id)
+
             # Add RecordItem structures
             self._add_record_items(conn, datatype_elem, dt['id'])
 

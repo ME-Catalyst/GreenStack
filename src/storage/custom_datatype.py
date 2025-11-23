@@ -43,8 +43,9 @@ class CustomDatatypeSaver(BaseSaver):
         query = """
             INSERT INTO custom_datatypes (
                 device_id, datatype_id, datatype_xsi_type,
-                bit_length, subindex_access_supported
-            ) VALUES (?, ?, ?, ?, ?)
+                bit_length, subindex_access_supported,
+                min_value, max_value, value_range_xsi_type, value_range_name_text_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -53,6 +54,10 @@ class CustomDatatypeSaver(BaseSaver):
             getattr(datatype, 'datatype_xsi_type', None),
             getattr(datatype, 'bit_length', None),
             1 if getattr(datatype, 'subindex_access_supported', False) else 0,
+            getattr(datatype, 'min_value', None),  # PQA Fix #30b
+            getattr(datatype, 'max_value', None),  # PQA Fix #30b
+            getattr(datatype, 'value_range_xsi_type', None),  # PQA Fix #30b
+            getattr(datatype, 'value_range_name_text_id', None),  # PQA Fix #30b
         )
 
         self._execute(query, params)
