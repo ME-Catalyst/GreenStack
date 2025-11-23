@@ -699,6 +699,11 @@ class IODDReconstructor:
                             vr_elem.set('lowerValue', str(min_val))
                         if max_val is not None:
                             vr_elem.set('upperValue', str(max_val))
+                        # PQA Fix #30: Add Name child element with textId
+                        vr_name_text_id = item.get('value_range_name_text_id')
+                        if vr_name_text_id:
+                            vr_name_elem = ET.SubElement(vr_elem, 'Name')
+                            vr_name_elem.set('textId', vr_name_text_id)
                 else:
                     # Custom datatype reference
                     dt_ref = ET.SubElement(record_elem, 'DatatypeRef')
@@ -807,6 +812,11 @@ class IODDReconstructor:
                         vr_elem.set('lowerValue', str(min_val))
                     if max_val is not None:
                         vr_elem.set('upperValue', str(max_val))
+                    # PQA Fix #30: Add Name child element with textId
+                    vr_name_text_id = item.get('value_range_name_text_id')
+                    if vr_name_text_id:
+                        vr_name_elem = ET.SubElement(vr_elem, 'Name')
+                        vr_name_elem.set('textId', vr_name_text_id)
 
             # Add Name element with textId
             if item['name']:
@@ -1067,6 +1077,11 @@ class IODDReconstructor:
                             vr_elem.set('lowerValue', str(min_val))
                         if max_val is not None:
                             vr_elem.set('upperValue', str(max_val))
+                        # PQA Fix #30: Add Name child element with textId
+                        vr_name_text_id = item.get('value_range_name_text_id')
+                        if vr_name_text_id:
+                            vr_name_elem = ET.SubElement(vr_elem, 'Name')
+                            vr_name_elem.set('textId', vr_name_text_id)
                 else:
                     # Custom datatype reference - use DatatypeRef
                     datatype = ET.SubElement(record_elem, 'DatatypeRef')
@@ -1093,6 +1108,11 @@ class IODDReconstructor:
                         vr_elem.set('lowerValue', str(min_val))
                     if max_val is not None:
                         vr_elem.set('upperValue', str(max_val))
+                    # PQA Fix #30: Add Name child element with textId
+                    vr_name_text_id = item.get('value_range_name_text_id')
+                    if vr_name_text_id:
+                        vr_name_elem = ET.SubElement(vr_elem, 'Name')
+                        vr_name_elem.set('textId', vr_name_text_id)
 
     def _add_custom_datatype_record_item_single_values(self, conn: sqlite3.Connection,
                                                        record_item_id: int,

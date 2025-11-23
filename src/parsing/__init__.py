@@ -732,6 +732,7 @@ class IODDParser:
             min_value = None
             max_value = None
             value_range_xsi_type = None
+            value_range_name_text_id = None  # PQA Fix #30: ValueRange/Name@textId
             # SimpleDatatype attributes (PQA reconstruction)
             fixed_length = None
             encoding = None
@@ -769,6 +770,9 @@ class IODDParser:
                     min_value = vr_elem.get('lowerValue')
                     max_value = vr_elem.get('upperValue')
                     value_range_xsi_type = vr_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                    # PQA Fix #30: Extract ValueRange/Name@textId
+                    vr_name_elem = vr_elem.find('iodd:Name', self.NAMESPACES)
+                    value_range_name_text_id = vr_name_elem.get('textId') if vr_name_elem is not None else None
             else:
                 data_type = 'Unknown'
                 bit_length = None  # PQA: Don't assume bitLength when not in original
@@ -786,6 +790,7 @@ class IODDParser:
                 min_value=min_value,
                 max_value=max_value,
                 value_range_xsi_type=value_range_xsi_type,
+                value_range_name_text_id=value_range_name_text_id,  # PQA Fix #30
                 access_right_restriction=access_right_restriction,  # PQA
                 fixed_length=fixed_length,  # PQA: SimpleDatatype@fixedLength
                 encoding=encoding,  # PQA: SimpleDatatype@encoding
@@ -895,6 +900,7 @@ class IODDParser:
                     item_min_value = None
                     item_max_value = None
                     item_vr_xsi_type = None
+                    item_vr_name_text_id = None  # PQA Fix #30: ValueRange/Name@textId
 
                     simple_dt = record_item.find('.//iodd:SimpleDatatype', self.NAMESPACES)
                     if simple_dt is not None:
@@ -926,6 +932,9 @@ class IODDParser:
                             item_min_value = vr_elem.get('lowerValue')
                             item_max_value = vr_elem.get('upperValue')
                             item_vr_xsi_type = vr_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                            # PQA Fix #30: Extract ValueRange/Name@textId
+                            vr_name_elem = vr_elem.find('iodd:Name', self.NAMESPACES)
+                            item_vr_name_text_id = vr_name_elem.get('textId') if vr_name_elem is not None else None
                     else:
                         # Check for DatatypeRef
                         dt_ref = record_item.find('.//iodd:DatatypeRef', self.NAMESPACES)
@@ -966,6 +975,7 @@ class IODDParser:
                         min_value=item_min_value,
                         max_value=item_max_value,
                         value_range_xsi_type=item_vr_xsi_type,
+                        value_range_name_text_id=item_vr_name_text_id,  # PQA Fix #30
                         access_right_restriction=item_access_right_restriction,  # PQA
                     ))
 
@@ -1032,6 +1042,7 @@ class IODDParser:
                     item_min_value = None
                     item_max_value = None
                     item_vr_xsi_type = None
+                    item_vr_name_text_id = None  # PQA Fix #30: ValueRange/Name@textId
 
                     simple_dt = record_item.find('.//iodd:SimpleDatatype', self.NAMESPACES)
                     if simple_dt is not None:
@@ -1063,6 +1074,9 @@ class IODDParser:
                             item_min_value = vr_elem.get('lowerValue')
                             item_max_value = vr_elem.get('upperValue')
                             item_vr_xsi_type = vr_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                            # PQA Fix #30: Extract ValueRange/Name@textId
+                            vr_name_elem = vr_elem.find('iodd:Name', self.NAMESPACES)
+                            item_vr_name_text_id = vr_name_elem.get('textId') if vr_name_elem is not None else None
                     else:
                         # Check for DatatypeRef
                         dt_ref = record_item.find('.//iodd:DatatypeRef', self.NAMESPACES)
@@ -1103,6 +1117,7 @@ class IODDParser:
                         min_value=item_min_value,
                         max_value=item_max_value,
                         value_range_xsi_type=item_vr_xsi_type,
+                        value_range_name_text_id=item_vr_name_text_id,  # PQA Fix #30
                         access_right_restriction=item_access_right_restriction,  # PQA
                     ))
 
@@ -2026,6 +2041,7 @@ class IODDParser:
                 item_min_value = None
                 item_max_value = None
                 item_vr_xsi_type = None
+                item_vr_name_text_id = None  # PQA Fix #30: ValueRange/Name@textId
 
                 if datatype_ref_elem is not None:
                     datatype_ref = datatype_ref_elem.get('datatypeId')
@@ -2041,6 +2057,9 @@ class IODDParser:
                         item_min_value = vr_elem.get('lowerValue')
                         item_max_value = vr_elem.get('upperValue')
                         item_vr_xsi_type = vr_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                        # PQA Fix #30: Extract ValueRange/Name@textId
+                        vr_name_elem = vr_elem.find('iodd:Name', self.NAMESPACES)
+                        item_vr_name_text_id = vr_name_elem.get('textId') if vr_name_elem is not None else None
                 else:
                     datatype_ref = 'Unknown'
                     simple_datatype_elem = None  # Ensure it's None for SingleValue extraction
@@ -2076,6 +2095,7 @@ class IODDParser:
                         min_value=item_min_value,
                         max_value=item_max_value,
                         value_range_xsi_type=item_vr_xsi_type,
+                        value_range_name_text_id=item_vr_name_text_id,  # PQA Fix #30
                         access_right_restriction=item_access_right_restriction,  # PQA
                     ))
 

@@ -109,8 +109,8 @@ class ProcessDataSaver(BaseSaver):
                 INSERT INTO process_data_record_items (
                     process_data_id, subindex, name,
                     bit_offset, bit_length, data_type, default_value, name_text_id, description_text_id,
-                    min_value, max_value, value_range_xsi_type, access_right_restriction
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    min_value, max_value, value_range_xsi_type, value_range_name_text_id, access_right_restriction
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
             params = (
@@ -126,6 +126,7 @@ class ProcessDataSaver(BaseSaver):
                 getattr(item, 'min_value', None),  # PQA: ValueRange
                 getattr(item, 'max_value', None),  # PQA: ValueRange
                 getattr(item, 'value_range_xsi_type', None),  # PQA: ValueRange
+                getattr(item, 'value_range_name_text_id', None),  # PQA Fix #30: ValueRange/Name
                 getattr(item, 'access_right_restriction', None),  # PQA: RecordItem attribute
             )
 

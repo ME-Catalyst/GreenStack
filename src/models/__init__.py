@@ -136,6 +136,7 @@ class RecordItem:
     min_value: Optional[str] = None
     max_value: Optional[str] = None
     value_range_xsi_type: Optional[str] = None
+    value_range_name_text_id: Optional[str] = None  # PQA Fix #30: ValueRange/Name@textId
     access_right_restriction: Optional[str] = None  # RecordItem@accessRightRestriction (PQA)
     # SimpleDatatype attributes (PQA reconstruction)
     fixed_length: Optional[int] = None  # SimpleDatatype@fixedLength
