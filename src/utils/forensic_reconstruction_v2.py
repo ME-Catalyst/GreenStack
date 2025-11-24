@@ -350,13 +350,10 @@ class IODDReconstructor:
             vendor_url_id = self._lookup_textid(conn, device_id, None, ['TI_VendorUrl', 'TN_VendorUrl', 'T_VendorUrl'])
         vendor_url.set('textId', vendor_url_id)
 
-        # VendorLogo - if logo file exists
-        vendor_logo = ET.SubElement(device_identity, 'VendorLogo')
+        # VendorLogo - PQA Fix #83: Only output when present in original IODD
         if device['vendor_logo_filename']:
+            vendor_logo = ET.SubElement(device_identity, 'VendorLogo')
             vendor_logo.set('name', device['vendor_logo_filename'])
-        else:
-            # Use manufacturer name to create logo filename
-            vendor_logo.set('name', f"{device['manufacturer'].replace(' ', '-')}-logo.png" if device['manufacturer'] else 'vendor-logo.png')
 
         # DeviceName - PQA Fix #55: Only output when present in original IODD
         device_name_id = device['device_name_text_id'] if 'device_name_text_id' in device.keys() else None
