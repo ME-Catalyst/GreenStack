@@ -182,6 +182,7 @@ class ProcessData:
     # PQA Fix #53: Track if original uses DatatypeRef vs inline Datatype
     uses_datatype_ref: bool = False
     datatype_ref_id: Optional[str] = None  # datatypeId attribute if using DatatypeRef
+    datatype_name_text_id: Optional[str] = None  # PQA Fix #72: Datatype/Name textId (direct child)
 
 
 @dataclass

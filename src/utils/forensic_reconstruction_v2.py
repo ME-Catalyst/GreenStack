@@ -667,6 +667,11 @@ class IODDReconstructor:
             subindex_access = pd['subindex_access_supported'] if 'subindex_access_supported' in pd.keys() else None
             if subindex_access is not None:
                 datatype.set('subindexAccessSupported', 'true' if subindex_access else 'false')
+            # PQA Fix #72: Add Name element inside Datatype when present
+            dt_name_text_id = pd['datatype_name_text_id'] if 'datatype_name_text_id' in pd.keys() else None
+            if dt_name_text_id:
+                dt_name_elem = ET.SubElement(datatype, 'Name')
+                dt_name_elem.set('textId', dt_name_text_id)
             # Add RecordItem elements for RecordT types
             if pd['data_type'] == 'RecordT':
                 self._add_process_data_record_items(conn, datatype, pd['id'])

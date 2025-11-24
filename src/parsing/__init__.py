@@ -971,6 +971,8 @@ class IODDParser:
 
             # PQA Fix #71: Initialize direct_single_values before type checking
             direct_single_values = []
+            # PQA Fix #72: Initialize datatype_name_text_id
+            datatype_name_text_id = None
 
             if datatype_ref_elem is not None:
                 # Uses DatatypeRef - reference to custom datatype
@@ -1000,6 +1002,10 @@ class IODDParser:
                             xsi_type=sv_xsi_type
                         ))
 
+                # PQA Fix #72: Extract direct Datatype/Name textId
+                dt_name_elem = datatype_elem.find('iodd:Name', self.NAMESPACES)
+                datatype_name_text_id = dt_name_elem.get('textId') if dt_name_elem is not None else None
+
                 # Extract record items if it's a RecordT
                 for record_item in datatype_elem.findall('.//iodd:RecordItem', self.NAMESPACES):
                     subindex = int(record_item.get('subindex', 0))
@@ -1127,7 +1133,8 @@ class IODDParser:
                 subindex_access_supported=subindex_access_supported,  # PQA: Store subindexAccessSupported
                 wrapper_id=wrapper_id_lookup.get(pd_id),  # PQA Fix #18: Store wrapper ProcessData ID
                 uses_datatype_ref=uses_datatype_ref,  # PQA Fix #53
-                datatype_ref_id=datatype_ref_id  # PQA Fix #53
+                datatype_ref_id=datatype_ref_id,  # PQA Fix #53
+                datatype_name_text_id=datatype_name_text_id,  # PQA Fix #72
             )
             collection.inputs.append(process_data)
             collection.total_input_bits += bit_length
@@ -1156,6 +1163,8 @@ class IODDParser:
 
             # PQA Fix #71: Initialize direct_single_values before type checking
             direct_single_values = []
+            # PQA Fix #72: Initialize datatype_name_text_id
+            datatype_name_text_id = None
 
             if datatype_ref_elem is not None:
                 # Uses DatatypeRef - reference to custom datatype
@@ -1183,6 +1192,10 @@ class IODDParser:
                             text_id=sv_text_id,
                             xsi_type=sv_xsi_type
                         ))
+
+                # PQA Fix #72: Extract direct Datatype/Name textId
+                dt_name_elem = datatype_elem.find('iodd:Name', self.NAMESPACES)
+                datatype_name_text_id = dt_name_elem.get('textId') if dt_name_elem is not None else None
 
                 # Extract record items if it's a RecordT
                 for record_item in datatype_elem.findall('.//iodd:RecordItem', self.NAMESPACES):
@@ -1311,7 +1324,8 @@ class IODDParser:
                 subindex_access_supported=subindex_access_supported,  # PQA: Store subindexAccessSupported
                 wrapper_id=wrapper_id_lookup.get(pd_id),  # PQA Fix #18: Store wrapper ProcessData ID
                 uses_datatype_ref=uses_datatype_ref,  # PQA Fix #53
-                datatype_ref_id=datatype_ref_id  # PQA Fix #53
+                datatype_ref_id=datatype_ref_id,  # PQA Fix #53
+                datatype_name_text_id=datatype_name_text_id,  # PQA Fix #72
             )
             collection.outputs.append(process_data)
             collection.total_output_bits += bit_length
