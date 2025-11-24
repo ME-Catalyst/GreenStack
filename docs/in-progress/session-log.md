@@ -1282,3 +1282,153 @@ These issues require more significant changes and are deferred:
 1. `66a6c9f` feat(pqa): Fix #34 - group ProcessDataIn/Out by wrapper_id
 2. `bd576dc` fix(pqa): Fix #34b - preserve ProcessData element order
 3. `eb9f451` feat(pqa): Fix #31 - add ProcessDataRefCollection reconstruction
+
+---
+
+## SESSION 2025-11-23 (Continued) - PQA Complete Fix Pass
+
+### Starting State
+- **Average Score**: 99.71%
+- **Perfect (100%)**: 45 devices
+- **Near Perfect (99-99.99%)**: 99 devices
+- **Below 99%**: 17 devices
+- **Total Diffs**: 864
+
+### Fixes Completed This Session
+
+#### PQA Threshold API Fix
+**Commit**: `1d9ec61`
+
+**Problem**: PQA threshold UI not working - DELETE endpoint missing, model incomplete.
+
+**Changes**:
+1. `src/routes/pqa_routes.py`:
+   - Added DELETE endpoint `/api/pqa/thresholds/{id}`
+   - Updated ThresholdConfig model with all fields: id, description, min_value_score, allow_critical_data_loss, email_notifications, active
+   - Fixed GET endpoint to return id and all fields with null safety
+   - Fixed POST/PUT endpoints to include all fields
+   - Protected default threshold from deletion
+
+**Impact**: Unblocked PQA threshold UI
+
+---
+
+#### Fix #39: Connection/Description Missing (63 issues)
+**Commit**: `c0844d5`
+
+**Problem**: Connection elements in CommNetworkProfile have Description child element that was not being reconstructed.
+
+**Changes**:
+1. `src/models/__init__.py` - Added `connection_description_text_id` to CommunicationProfile
+2. `src/parsing/__init__.py` - Extract Connection/Description@textId
+3. `src/storage/communication.py` - Save connection_description_text_id
+4. `src/utils/forensic_reconstruction_v2.py` - Output Description element inside Connection
+5. `alembic/versions/072_add_connection_description_text_id.py` - Add column
+
+**Expected Impact**: ~63 issues resolved (requires re-import)
+
+---
+
+#### Fix #36: ProcessDataRefCollection Ordering (313 issues)
+**Commit**: `4b132f4`
+
+**Problem**: ProcessDataRef elements in ProcessDataRefCollection ordered by pd.id instead of direction, causing PDI to appear before PDO.
+
+**Changes**:
+1. `src/utils/forensic_reconstruction_v2.py` - Changed ORDER BY from `pd.id` to `CASE pd.direction WHEN 'output' THEN 0 ELSE 1 END, pd.pd_id, pdui.subindex`
+
+**Impact**: ~313 issues resolved (no re-import needed, just PQA re-run)
+
+---
+
+#### Fix #37: ErrorType vs StdErrorTypeRef (108 issues)
+**Commit**: `cd7adde`
+
+**Problem**: Three issues with ErrorTypeCollection:
+- 16 extra StdErrorTypeRef elements (should be custom ErrorType)
+- 52 incorrect attribute values (ordering)
+- 40 missing ErrorType elements
+
+**Root Cause**: Parser didn't distinguish between custom ErrorType (with Name/Description children) and StdErrorTypeRef (standard references).
+
+**Changes**:
+1. `src/models/__init__.py` - Added `is_custom`, `name_text_id`, `description_text_id` to ErrorType
+2. `src/parsing/__init__.py` - Track custom vs standard errors, store textIds
+3. `src/storage/event.py` - Save is_custom flag and textIds
+4. `src/utils/forensic_reconstruction_v2.py` - Output ErrorType with Name/Description for custom, StdErrorTypeRef for standard
+5. `alembic/versions/073_add_error_types_custom_fields.py` - Add 3 columns
+
+**Expected Impact**: ~108 issues resolved (requires re-import)
+
+---
+
+#### Fix #38: DatatypeCollection/SingleValue Ordering (99 issues)
+**Commit**: `8c4349b`
+
+**Problem**: SingleValue elements inside custom datatypes ordered by value (alphabetically) instead of original XML order, causing "false" to appear before "true".
+
+**Changes**:
+1. `src/models/__init__.py` - Added `xml_order` to SingleValue
+2. `src/parsing/__init__.py` - Track xml_order for SingleValue elements
+3. `src/storage/custom_datatype.py` - Save xml_order to custom_datatype_single_values
+4. `src/utils/forensic_reconstruction_v2.py` - Order by xml_order with fallback to value-based sort
+5. `alembic/versions/074_add_single_value_xml_order.py` - Add xml_order column
+
+**Expected Impact**: ~99 issues resolved (requires re-import)
+
+---
+
+#### Fix #40: DeviceVariant ProductName/ProductText (66 issues)
+**Commit**: `d3cf3d2`
+
+**Problem**: Some IODDs use ProductName/ProductText instead of Name/Description in DeviceVariant. Reconstruction always output Name/Description.
+
+**Changes**:
+1. `src/models/__init__.py` - Added `product_name_text_id`, `product_text_text_id`, `has_name`, `has_description`, `has_product_name`, `has_product_text` to DeviceVariant
+2. `src/parsing/__init__.py` - Extract both element types, track which were present
+3. `src/storage/document.py` - Save all new fields
+4. `src/utils/forensic_reconstruction_v2.py` - Output correct element type based on what was present, with legacy fallback
+5. `alembic/versions/075_add_device_variant_element_flags.py` - Add 6 columns
+
+**Expected Impact**: ~66 issues resolved (requires re-import)
+
+---
+
+### All Commits This Session (Continued)
+4. `1d9ec61` fix(api): Fix PQA threshold API - add DELETE, fix model
+5. `c0844d5` feat(pqa): Fix #39 - add Connection/Description element reconstruction
+6. `4b132f4` fix(pqa): Fix #36 - ProcessDataRefCollection ordering
+7. `cd7adde` feat(pqa): Fix #37 - distinguish ErrorType vs StdErrorTypeRef
+8. `8c4349b` fix(pqa): Fix #38 - DatatypeCollection/SingleValue ordering
+9. `d3cf3d2` feat(pqa): Fix #40 - DeviceVariant ProductName/ProductText elements
+
+### Expected Results After Re-import
+
+| Issue Category | Before | After (Expected) | Reduction |
+|----------------|--------|------------------|-----------|
+| Connection/Description | 63 | 0 | -63 |
+| ProcessDataRefCollection ordering | 313 | 0 | -313 |
+| ErrorType issues | 108 | 0 | -108 |
+| SingleValue ordering | 99 | 0 | -99 |
+| DeviceVariant issues | 66 | 0 | -66 |
+| **Total** | **649** | **0** | **-649** |
+
+**Note**: Fix #36 (ProcessDataRefCollection) doesn't require re-import, just PQA re-run. All other fixes require re-import to populate new fields.
+
+### Migrations Added
+- 072: connection_description_text_id in communication_profile
+- 073: is_custom, name_text_id, description_text_id in error_types
+- 074: xml_order in custom_datatype_single_values
+- 075: product_name_text_id, product_text_text_id, has_name, has_description, has_product_name, has_product_text in device_variants
+
+---
+
+### READY FOR RE-IMPORT
+
+All fixes have been committed and pushed. Re-import required to:
+1. Populate Connection/Description textId
+2. Populate ErrorType is_custom and textIds
+3. Populate SingleValue xml_order
+4. Populate DeviceVariant element flags and textIds
+
+After re-import, run PQA analysis to verify improvements.
