@@ -1642,7 +1642,8 @@ class IODDReconstructor:
                     name_elem = ET.SubElement(wire_elem, 'Name')
                     name_elem.set('textId', name_text_id)
 
-        # Create Test section
+        # PQA Fix #84: Create Test section if it was present in original IODD
+        has_test_element = comm_profile['has_test_element'] if 'has_test_element' in comm_profile.keys() else False
         cursor.execute("""
             SELECT * FROM device_test_config
             WHERE device_id = ?
@@ -1650,7 +1651,7 @@ class IODDReconstructor:
         """, (device_id,))
         test_configs = cursor.fetchall()
 
-        if test_configs:
+        if has_test_element:
             test_elem = ET.SubElement(comm_elem, 'Test')
             # PQA Fix #23: Only add xsi:type if it was present in original
             test_xsi_type = comm_profile['test_xsi_type'] if 'test_xsi_type' in comm_profile.keys() and comm_profile['test_xsi_type'] else None

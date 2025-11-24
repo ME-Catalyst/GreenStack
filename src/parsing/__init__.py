@@ -1911,6 +1911,7 @@ class IODDParser:
             wire_config=wire_config,
             connection_symbol=connection_symbol,  # PQA Fix #19b
             test_xsi_type=test_xsi_type,  # PQA Fix #23
+            has_test_element=has_test_element,  # PQA Fix #84
             product_ref_id=product_ref_id,  # PQA Fix #26
             connection_description_text_id=connection_description_text_id,  # PQA Fix #39
             physics=physics,  # PQA Fix #44
