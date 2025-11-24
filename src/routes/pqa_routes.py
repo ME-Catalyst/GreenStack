@@ -65,13 +65,19 @@ class DiffDetailResponse(BaseModel):
 
 class ThresholdConfig(BaseModel):
     """Quality threshold configuration"""
+    id: Optional[int] = None
     threshold_name: str
+    description: Optional[str] = None
     min_overall_score: float = 95.0
     min_structural_score: float = 98.0
     min_attribute_score: float = 95.0
+    min_value_score: float = 90.0
     max_data_loss_percentage: float = 1.0
+    allow_critical_data_loss: bool = False
     auto_ticket_on_fail: bool = True
     auto_analysis_on_import: bool = False
+    email_notifications: bool = False
+    active: bool = True
 
 
 class DashboardSummary(BaseModel):
@@ -662,13 +668,19 @@ async def get_thresholds():
 
         return [
             ThresholdConfig(
+                id=t['id'],
                 threshold_name=t['threshold_name'],
-                min_overall_score=t['min_overall_score'],
-                min_structural_score=t['min_structural_score'],
-                min_attribute_score=t['min_attribute_score'],
-                max_data_loss_percentage=t['max_data_loss_percentage'],
-                auto_ticket_on_fail=bool(t['auto_ticket_on_fail']),
-                auto_analysis_on_import=bool(t['auto_analysis_on_import'])
+                description=t['description'],
+                min_overall_score=t['min_overall_score'] if t['min_overall_score'] is not None else 95.0,
+                min_structural_score=t['min_structural_score'] if t['min_structural_score'] is not None else 98.0,
+                min_attribute_score=t['min_attribute_score'] if t['min_attribute_score'] is not None else 95.0,
+                min_value_score=t['min_value_score'] if t['min_value_score'] is not None else 90.0,
+                max_data_loss_percentage=t['max_data_loss_percentage'] if t['max_data_loss_percentage'] is not None else 1.0,
+                allow_critical_data_loss=bool(t['allow_critical_data_loss']) if t['allow_critical_data_loss'] is not None else False,
+                auto_ticket_on_fail=bool(t['auto_ticket_on_fail']) if t['auto_ticket_on_fail'] is not None else True,
+                auto_analysis_on_import=bool(t['auto_analysis_on_import']) if t['auto_analysis_on_import'] is not None else False,
+                email_notifications=bool(t['email_notifications']) if t['email_notifications'] is not None else False,
+                active=bool(t['active']) if t['active'] is not None else True
             )
             for t in thresholds
         ]
@@ -687,18 +699,24 @@ async def create_threshold(threshold: ThresholdConfig):
 
         cursor.execute("""
             INSERT INTO pqa_thresholds (
-                threshold_name, min_overall_score, min_structural_score,
-                min_attribute_score, max_data_loss_percentage,
-                auto_ticket_on_fail, auto_analysis_on_import, active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+                threshold_name, description, min_overall_score, min_structural_score,
+                min_attribute_score, min_value_score, max_data_loss_percentage,
+                allow_critical_data_loss, auto_ticket_on_fail, auto_analysis_on_import,
+                email_notifications, active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             threshold.threshold_name,
+            threshold.description,
             threshold.min_overall_score,
             threshold.min_structural_score,
             threshold.min_attribute_score,
+            threshold.min_value_score,
             threshold.max_data_loss_percentage,
-            threshold.auto_ticket_on_fail,
-            threshold.auto_analysis_on_import
+            1 if threshold.allow_critical_data_loss else 0,
+            1 if threshold.auto_ticket_on_fail else 0,
+            1 if threshold.auto_analysis_on_import else 0,
+            1 if threshold.email_notifications else 0,
+            1 if threshold.active else 0
         ))
 
         threshold_id = cursor.lastrowid
@@ -723,25 +741,38 @@ async def update_threshold(threshold_id: int, threshold: ThresholdConfig):
 
         cursor.execute("""
             UPDATE pqa_thresholds SET
+                threshold_name = ?,
+                description = ?,
                 min_overall_score = ?,
                 min_structural_score = ?,
                 min_attribute_score = ?,
+                min_value_score = ?,
                 max_data_loss_percentage = ?,
+                allow_critical_data_loss = ?,
                 auto_ticket_on_fail = ?,
                 auto_analysis_on_import = ?,
+                email_notifications = ?,
+                active = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         """, (
+            threshold.threshold_name,
+            threshold.description,
             threshold.min_overall_score,
             threshold.min_structural_score,
             threshold.min_attribute_score,
+            threshold.min_value_score,
             threshold.max_data_loss_percentage,
-            threshold.auto_ticket_on_fail,
-            threshold.auto_analysis_on_import,
+            1 if threshold.allow_critical_data_loss else 0,
+            1 if threshold.auto_ticket_on_fail else 0,
+            1 if threshold.auto_analysis_on_import else 0,
+            1 if threshold.email_notifications else 0,
+            1 if threshold.active else 0,
             threshold_id
         ))
 
         if cursor.rowcount == 0:
+            conn.close()
             raise HTTPException(status_code=404, detail="Threshold not found")
 
         conn.commit()
@@ -753,6 +784,39 @@ async def update_threshold(threshold_id: int, threshold: ThresholdConfig):
         raise
     except Exception as e:
         logger.error(f"Error updating threshold: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/thresholds/{threshold_id}", response_model=Dict[str, Any])
+async def delete_threshold(threshold_id: int):
+    """Delete a quality threshold configuration"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Check if threshold exists
+        cursor.execute("SELECT threshold_name FROM pqa_thresholds WHERE id = ?", (threshold_id,))
+        threshold = cursor.fetchone()
+
+        if not threshold:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Threshold not found")
+
+        # Don't allow deleting the default threshold
+        if threshold['threshold_name'] == 'default':
+            conn.close()
+            raise HTTPException(status_code=400, detail="Cannot delete the default threshold")
+
+        cursor.execute("DELETE FROM pqa_thresholds WHERE id = ?", (threshold_id,))
+        conn.commit()
+        conn.close()
+
+        return {"message": "Threshold deleted successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting threshold: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
