@@ -2129,8 +2129,9 @@ class IODDParser:
 
         for variant_elem in device_identity.findall('.//iodd:DeviceVariantCollection/iodd:DeviceVariant', self.NAMESPACES):
             product_id = variant_elem.get('productId')
-            if not product_id:
-                continue
+            # PQA Fix #78: Allow empty productId (don't skip), only skip if attribute is missing
+            if product_id is None:
+                product_id = ''  # Default to empty string if attribute not present
 
             # PQA Fix #40: Check for Name vs ProductName, Description vs ProductText
             # Get Name element (direct child, not .// which would find nested Name elements)

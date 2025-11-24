@@ -388,9 +388,9 @@ class IODDReconstructor:
 
         device_variant = ET.SubElement(device_variant_coll, 'DeviceVariant')
 
-        # Use proper product_id from variant table
-        if variant_row and variant_row['product_id']:
-            device_variant.set('productId', variant_row['product_id'])
+        # PQA Fix #78: Always output productId attribute, even if empty
+        if variant_row and 'product_id' in variant_row.keys():
+            device_variant.set('productId', variant_row['product_id'] or '')
         elif device['product_name']:
             device_variant.set('productId', device['product_name'])
 
