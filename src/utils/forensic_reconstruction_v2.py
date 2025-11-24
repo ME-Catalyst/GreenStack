@@ -33,9 +33,9 @@ class IODDReconstructor:
             'namespace': 'http://www.io-link.com/IODD/2009/11',
             'xsd': 'IODD1.0.1.xsd'
         },
-        '1.0': {  # Alias for 1.0.1
-            'namespace': 'http://www.io-link.com/IODD/2009/11',
-            'xsd': 'IODD1.0.1.xsd'
+        '1.0': {  # PQA Fix #81: IODD 1.0 uses 2008/03 namespace
+            'namespace': 'http://www.io-link.com/IODD/2008/03',
+            'xsd': 'IODD1.0.xsd'
         },
     }
 
