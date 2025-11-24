@@ -1852,9 +1852,8 @@ class IODDParser:
             min_cycle_time_str = physical_layer.get('minCycleTime')
             if min_cycle_time_str:
                 min_cycle_time = int(min_cycle_time_str)
-            msequence_cap_str = physical_layer.get('mSequenceCapability')
-            if msequence_cap_str:
-                msequence_capability = int(msequence_cap_str)
+            # PQA Fix #82: Keep mSequenceCapability as string to preserve leading zeros
+            msequence_capability = physical_layer.get('mSequenceCapability')
             sio_supported = physical_layer.get('sioSupported', 'false').lower() == 'true'
             physics = physical_layer.get('physics')  # PQA Fix #44
 

@@ -256,7 +256,7 @@ class CommunicationProfile:
     compatible_with: Optional[str] = None
     bitrate: Optional[str] = None  # Value from baudrate or bitrate attribute
     min_cycle_time: Optional[int] = None  # microseconds
-    msequence_capability: Optional[int] = None
+    msequence_capability: Optional[str] = None  # PQA Fix #82: Keep as string to preserve leading zeros
     sio_supported: bool = False
     connection_type: Optional[str] = None
     wire_config: Dict[str, str] = field(default_factory=dict)
