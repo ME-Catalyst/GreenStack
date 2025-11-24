@@ -2279,3 +2279,76 @@ Completed 6 fixes (Fix #70-76):
 - Fix #80: DeviceVariant images - Likely resolved by Fix #78
 - Outlier files: 200 diffs in 2 files (SCHREMPP, Turck) - Deferred for separate investigation
 
+
+---
+
+## Session 2025-11-24b - PQA Fix #86-92 (Menu Duplicates)
+
+### Fix #86-92: UserInterface Menu Parsing Duplicates (140+ diffs) - COMMITTED
+
+**Commit**: `6d171c2` fix(pqa): Fix #86-92 - UserInterface Menu parsing duplicates
+
+**Problem**: UserInterface MenuCollection had duplicate menu items causing incorrect variableId, subindex, and other attribute values. Root cause was using descendant selectors (`.//iodd:`) which found nested elements multiple times.
+
+**Specific Issues Resolved**:
+- Fix #86: VariableRef@variableId incorrect (48 diffs)
+- Fix #87: RecordItemRef@subindex incorrect (40 diffs)
+- Fix #88: RecordItemRef@variableId incorrect (33 diffs)
+- Fix #89: RecordItemRef@unitCode incorrect (17 diffs)
+- Fix #92: MenuRef@menuId incorrect (6 diffs)
+- Related Menu attribute issues
+
+**Root Cause**: 
+```python
+# BEFORE (incorrect - finds ALL menus including nested):
+for menu_elem in ui_elem.findall('.//iodd:Menu', self.NAMESPACES):
+    for var_ref in menu_elem.findall('.//iodd:VariableRef', self.NAMESPACES):
+
+# AFTER (correct - finds only direct children):
+menu_collection = ui_elem.find('.//iodd:MenuCollection', self.NAMESPACES)
+for menu_elem in menu_collection.findall('iodd:Menu', self.NAMESPACES):
+    for var_ref in menu_elem.findall('iodd:VariableRef', self.NAMESPACES):
+```
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Changed to direct child selectors:
+   - Extract menus from MenuCollection only (not RoleMenuSets)
+   - Use `iodd:VariableRef` instead of `.//iodd:VariableRef`
+   - Use `iodd:RecordItemRef` instead of `.//iodd:RecordItemRef`
+   - Use `iodd:MenuRef` instead of `.//iodd:MenuRef`
+   - Use `iodd:Button` instead of `.//iodd:Button`
+   - Use `iodd:Name`, `iodd:Description`, etc. for direct children
+
+**Expected Impact**: ~140+ issues resolved (requires re-import)
+
+**Status**: COMMITTED - Requires re-import
+
+---
+
+### Fix #84b: Missing has_test_element Variable - HOTFIX
+
+**Commit**: `32f18e0` fix(pqa): Fix #84b - add missing has_test_element variable definition
+
+**Problem**: The `has_test_element` variable was referenced but not defined in `_extract_communication_profile()`, causing `NameError` during IODD upload after Fix #84.
+
+**Changes Made**:
+Added line: `has_test_element = test_elem is not None`
+
+**Status**: COMMITTED - Fixed upload errors
+
+---
+
+## Summary of Session 2025-11-24b
+
+**Fixes Completed**: 1 major fix (Fix #86-92), 1 hotfix (Fix #84b)
+**Total Diffs Resolved**: ~140+ diffs
+**Migrations Created**: 0  
+**Status**: Ready for re-import
+
+**Remaining Issues** (for next session):
+- Fix #90: StdVariableRef SingleValue issues (12 diffs - in outlier file)
+- Fix #91: DatatypeCollection missing elements (10 diffs)
+- Fix #93: Menu element missing attributes (various)
+- Fix #94: schemaLocation incorrect (2 diffs)
+- Outlier files investigation: SL-x-TRIO (156 diffs), FS1xxx-2UPN8 (110 diffs)
+
