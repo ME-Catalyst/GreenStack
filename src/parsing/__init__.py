@@ -1895,8 +1895,10 @@ class IODDParser:
                     wire_config[f'Wire{i}'] = wire_function
 
         # PQA Fix #23: Extract Test@xsi:type if present
+        # PQA Fix #84: Track if Test element was present
         test_elem = comm_profile_elem.find('.//iodd:Test', self.NAMESPACES)
         test_xsi_type = None
+        has_test_element = test_elem is not None
         if test_elem is not None:
             test_xsi_type = test_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
 
