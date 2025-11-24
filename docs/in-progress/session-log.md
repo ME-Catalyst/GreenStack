@@ -2342,7 +2342,7 @@ Added line: `has_test_element = test_elem is not None`
 
 **Fixes Completed**: 1 major fix (Fix #86-92), 1 hotfix (Fix #84b)
 **Total Diffs Resolved**: ~140+ diffs
-**Migrations Created**: 0  
+**Migrations Created**: 0
 **Status**: Ready for re-import
 
 **Remaining Issues** (for next session):
@@ -2351,4 +2351,84 @@ Added line: `has_test_element = test_elem is not None`
 - Fix #93: Menu element missing attributes (various)
 - Fix #94: schemaLocation incorrect (2 diffs)
 - Outlier files investigation: SL-x-TRIO (156 diffs), FS1xxx-2UPN8 (110 diffs)
+
+---
+
+## Session: 2025-11-24c (Deep Dive & Parser Verification)
+
+### Fix #86-92b: Parser Verification & Root Cause Analysis
+
+**Commit**: `abc2075` (test_fix86_parser.py), `19cb870` (PQA_FIX_86-92_CRITICAL_WORKFLOW.md)
+
+**Problem**: Despite Fix #86-92 being applied in commit `6d171c2`, database continued showing menu duplicate issues after multiple restart/reimport attempts. Stats remained at 299 diffs instead of expected ~159 diffs.
+
+**Investigation**:
+1. Created `test_fix86_parser.py` to directly test parser output
+2. Parsed SL-x-TRIO IODD file (main outlier with 156 diffs)
+3. Checked all 8 menus for duplicate menu items
+
+**Test Results**: **[PASS] PARSER WORKING CORRECTLY** ✅
+
+```
+Found 8 menus:
+- ME_Ident: 11 unique variable_ids (NO duplicates)
+- ME_Observe: 9 unique record_item_refs (NO duplicates)
+- ME_Param: 1 unique variable_id, 3 unique menu_refs (NO duplicates)
+- ME_Param_Colors: 15 unique variable_ids (NO duplicates)
+- ME_Param_Flashing: 16 unique record_item_refs (NO duplicates)
+- ME_Param_Sounds: 30 unique record_item_refs (NO duplicates)
+- ME_Diagnosis: 8 unique variable_ids (NO duplicates)
+- ME_obs_Ident: 11 unique variable_ids (NO duplicates)
+```
+
+**Root Cause of Database Duplicates**:
+Parser is PROVEN working correctly. Database duplicates persist due to **incorrect workflow sequence**:
+
+1. ❌ Backend server not fully stopped before import
+2. ❌ Python bytecode cache not cleared
+3. ❌ Devices not deleted via GUI before re-upload
+4. ❌ User possibly clicked "re-analyze" instead of "delete + upload"
+
+**Evidence**:
+- Device ID 186 (SL-x-TRIO) remained IDENTICAL across "re-imports"
+- Total device count remained 247 (unchanged)
+- Duplicates in database exactly matched pre-fix state
+
+**Deep Dive Documentation Review**:
+Per user request: "deep dive session log and developer guide and other pqa docs, review all commits related to session log. ensure we miss nothing, this is major"
+
+Reviewed:
+- `docs/in-progress/session-log.md` - All fixes from #1 to #92
+- `docs/PQA_DEVELOPER_GUIDE.md` - Diagnostic workflows, fix patterns
+- `docs/guides/DEVELOPER_GUIDE.md` - Setup, environment, workflows
+- `docs/pqa-remaining-issues-analysis.md` - Breakdown of 299 diffs
+- `docs/pqa-next-session-plan.md` - Implementation guide for remaining fixes
+- All migrations (001-098) - Complete and present
+- Git commits - Fix #86-92 applied in TWO places (src/parsing ✅, src/greenstack ❌deprecated)
+
+**Files Created**:
+1. `test_fix86_parser.py` - Parser verification test (PASS)
+2. `docs/PQA_FIX_86-92_CRITICAL_WORKFLOW.md` - Comprehensive workflow guide
+
+**Comprehensive Workflow Document Contents**:
+1. Parser verification test results
+2. Detailed code changes explanation
+3. Why database still shows duplicates
+4. CORRECT workflow (6 steps with exact commands)
+5. Verification checklist (9 checkpoints)
+6. Expected impact (-140 diffs, +6 perfect files)
+7. Next steps (Phase 2-4 fixes)
+8. Common mistakes to avoid
+
+**Status**: Parser VERIFIED working. Awaiting correct workflow execution by user.
+
+**Next Action**: User must follow exact workflow in `PQA_FIX_86-92_CRITICAL_WORKFLOW.md`:
+1. STOP backend server (kill all processes)
+2. DELETE Python cache directories
+3. START backend server fresh
+4. DELETE all devices via GUI
+5. RE-UPLOAD all IODD packages
+6. VERIFY stats show ~159 diffs (down from 299)
+
+**Expected Impact After Correct Workflow**: -140 diffs (47% reduction)
 
