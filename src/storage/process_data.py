@@ -186,10 +186,12 @@ class ProcessDataSaver(BaseSaver):
     def _save_ui_info(self, pd_id_map: dict, ui_info_list: list):
         """Save UI rendering metadata (gradient, offset, unit codes)"""
         # PQA Fix #41: Include xml_order column
+        # PQA Fix #42: Include pd_ref_order column
         query = """
             INSERT INTO process_data_ui_info (
-                process_data_id, subindex, gradient, offset, unit_code, display_format, xml_order
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                process_data_id, subindex, gradient, offset, unit_code, display_format,
+                xml_order, pd_ref_order
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -205,6 +207,7 @@ class ProcessDataSaver(BaseSaver):
                     getattr(ui_info, 'unit_code', None),
                     getattr(ui_info, 'display_format', None),
                     getattr(ui_info, 'xml_order', None),  # PQA Fix #41
+                    getattr(ui_info, 'pd_ref_order', None),  # PQA Fix #42
                 ))
 
         if params_list:

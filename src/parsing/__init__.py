@@ -1869,7 +1869,8 @@ class IODDParser:
         if ui_elem is None:
             return ui_info_list
 
-        for pd_ref in ui_elem.findall('.//iodd:ProcessDataRefCollection/iodd:ProcessDataRef', self.NAMESPACES):
+        # PQA Fix #42: Track ProcessDataRef order to preserve original ordering
+        for pd_ref_order, pd_ref in enumerate(ui_elem.findall('.//iodd:ProcessDataRefCollection/iodd:ProcessDataRef', self.NAMESPACES)):
             process_data_id = pd_ref.get('processDataId')
             if not process_data_id:
                 continue
@@ -1885,7 +1886,8 @@ class IODDParser:
                         offset=float(item_info.get('offset')) if item_info.get('offset') else None,
                         unit_code=item_info.get('unitCode'),
                         display_format=item_info.get('displayFormat'),
-                        xml_order=xml_order
+                        xml_order=xml_order,
+                        pd_ref_order=pd_ref_order  # PQA Fix #42
                     ))
 
         logger.info(f"Extracted {len(ui_info_list)} process data UI info entries")
