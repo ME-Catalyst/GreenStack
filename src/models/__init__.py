@@ -459,6 +459,7 @@ class DeviceProfile:
     all_text_data: Dict[str, Dict[str, str]] = field(default_factory=dict)  # Multi-language text data
     text_xml_order: Dict[str, Dict[str, int]] = field(default_factory=dict)  # PQA: Original XML order of Text elements per language
     language_order: Dict[str, int] = field(default_factory=dict)  # PQA: Order of Language elements
+    text_redefine_ids: set = field(default_factory=set)  # PQA Fix #66: Text IDs that are TextRedefine elements
 
     # Phase 1: UI Rendering metadata
     process_data_ui_info: List[ProcessDataUIInfo] = field(default_factory=list)

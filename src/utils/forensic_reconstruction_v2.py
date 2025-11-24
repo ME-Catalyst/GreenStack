@@ -2114,15 +2114,19 @@ class IODDReconstructor:
         primary_elem.set('{http://www.w3.org/XML/1998/namespace}lang', primary_lang_code)
 
         # Get all texts for primary language
+        # PQA Fix #66: Include is_text_redefine column
         cursor.execute("""
-            SELECT text_id, text_value FROM iodd_text
+            SELECT text_id, text_value, is_text_redefine FROM iodd_text
             WHERE device_id = ? AND language_code = ?
             ORDER BY xml_order, id
         """, (device_id, primary_lang_code))
         texts = cursor.fetchall()
 
         for text in texts:
-            text_elem = ET.SubElement(primary_elem, 'Text')
+            # PQA Fix #66: Output TextRedefine instead of Text if appropriate
+            is_redefine = text['is_text_redefine'] if 'is_text_redefine' in text.keys() and text['is_text_redefine'] else False
+            elem_name = 'TextRedefine' if is_redefine else 'Text'
+            text_elem = ET.SubElement(primary_elem, elem_name)
             text_elem.set('id', text['text_id'])
             text_elem.set('value', text['text_value'] or '')
 
@@ -2134,15 +2138,19 @@ class IODDReconstructor:
             lang_elem = ET.SubElement(collection, 'Language')
             lang_elem.set('{http://www.w3.org/XML/1998/namespace}lang', lang_code)
 
+            # PQA Fix #66: Include is_text_redefine column
             cursor.execute("""
-                SELECT text_id, text_value FROM iodd_text
+                SELECT text_id, text_value, is_text_redefine FROM iodd_text
                 WHERE device_id = ? AND language_code = ?
                 ORDER BY xml_order, id
             """, (device_id, lang_code))
             texts = cursor.fetchall()
 
             for text in texts:
-                text_elem = ET.SubElement(lang_elem, 'Text')
+                # PQA Fix #66: Output TextRedefine instead of Text if appropriate
+                is_redefine = text['is_text_redefine'] if 'is_text_redefine' in text.keys() and text['is_text_redefine'] else False
+                elem_name = 'TextRedefine' if is_redefine else 'Text'
+                text_elem = ET.SubElement(lang_elem, elem_name)
                 text_elem.set('id', text['text_id'])
                 text_elem.set('value', text['text_value'] or '')
 

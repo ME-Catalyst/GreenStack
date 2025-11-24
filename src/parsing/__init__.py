@@ -128,38 +128,76 @@ class IODDParser:
         xml_order = {}  # PQA: Track original XML order of Text elements per language
         language_order = {}  # PQA: Track order of Language elements
 
+        # PQA Fix #66: Track which text IDs are TextRedefine elements
+        text_redefine_ids = set()
+
         # Extract primary language (usually English) - language_order 0
         primary_lang = self.root.find('.//iodd:ExternalTextCollection/iodd:PrimaryLanguage', self.NAMESPACES)
         if primary_lang is not None:
             lang_code = primary_lang.get('{http://www.w3.org/XML/1998/namespace}lang', 'en')
             language_order[lang_code] = 0  # Primary is always first
-            for order_idx, text_elem in enumerate(primary_lang.findall('.//iodd:Text', self.NAMESPACES)):
-                text_id = text_elem.get('id')
-                text_value = text_elem.get('value', '')
-                if text_id:
-                    if text_id not in all_text:
-                        all_text[text_id] = {}
-                    all_text[text_id][lang_code] = text_value
-                    # PQA: Track order per language
-                    if text_id not in xml_order:
-                        xml_order[text_id] = {}
-                    xml_order[text_id][lang_code] = order_idx
+            # PQA Fix #66: Extract both Text and TextRedefine elements in order
+            order_idx = 0
+            for child in primary_lang:
+                local_name = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+                if local_name == 'Text':
+                    text_id = child.get('id')
+                    text_value = child.get('value', '')
+                    if text_id:
+                        if text_id not in all_text:
+                            all_text[text_id] = {}
+                        all_text[text_id][lang_code] = text_value
+                        if text_id not in xml_order:
+                            xml_order[text_id] = {}
+                        xml_order[text_id][lang_code] = order_idx
+                        order_idx += 1
+                elif local_name == 'TextRedefine':
+                    text_id = child.get('id')
+                    text_value = child.get('value', '')
+                    if text_id:
+                        if text_id not in all_text:
+                            all_text[text_id] = {}
+                        all_text[text_id][lang_code] = text_value
+                        text_redefine_ids.add(text_id)  # PQA Fix #66
+                        if text_id not in xml_order:
+                            xml_order[text_id] = {}
+                        xml_order[text_id][lang_code] = order_idx
+                        order_idx += 1
 
         # Extract all secondary languages - language_order starts at 1
         for lang_idx, language_elem in enumerate(self.root.findall('.//iodd:ExternalTextCollection/iodd:Language', self.NAMESPACES)):
             lang_code = language_elem.get('{http://www.w3.org/XML/1998/namespace}lang', 'unknown')
             language_order[lang_code] = lang_idx + 1  # +1 because primary is 0
-            for order_idx, text_elem in enumerate(language_elem.findall('.//iodd:Text', self.NAMESPACES)):
-                text_id = text_elem.get('id')
-                text_value = text_elem.get('value', '')
-                if text_id:
-                    if text_id not in all_text:
-                        all_text[text_id] = {}
-                    all_text[text_id][lang_code] = text_value
-                    # PQA: Track order per language
-                    if text_id not in xml_order:
-                        xml_order[text_id] = {}
-                    xml_order[text_id][lang_code] = order_idx
+            # PQA Fix #66: Extract both Text and TextRedefine elements in order
+            order_idx = 0
+            for child in language_elem:
+                local_name = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+                if local_name == 'Text':
+                    text_id = child.get('id')
+                    text_value = child.get('value', '')
+                    if text_id:
+                        if text_id not in all_text:
+                            all_text[text_id] = {}
+                        all_text[text_id][lang_code] = text_value
+                        if text_id not in xml_order:
+                            xml_order[text_id] = {}
+                        xml_order[text_id][lang_code] = order_idx
+                        order_idx += 1
+                elif local_name == 'TextRedefine':
+                    text_id = child.get('id')
+                    text_value = child.get('value', '')
+                    if text_id:
+                        if text_id not in all_text:
+                            all_text[text_id] = {}
+                        all_text[text_id][lang_code] = text_value
+                        text_redefine_ids.add(text_id)  # PQA Fix #66
+                        if text_id not in xml_order:
+                            xml_order[text_id] = {}
+                        xml_order[text_id][lang_code] = order_idx
+                        order_idx += 1
+
+        # Store text_redefine_ids on self for use by storage
+        self.text_redefine_ids = text_redefine_ids
 
         return all_text, xml_order, language_order
 
@@ -240,6 +278,7 @@ class IODDParser:
             all_text_data=self.all_text_data,  # Include all multi-language text data
             text_xml_order=self.text_xml_order,  # PQA: Original XML order of Text elements
             language_order=self.language_order,  # PQA: Order of Language elements
+            text_redefine_ids=getattr(self, 'text_redefine_ids', set()),  # PQA Fix #66
             # Phase 1: UI Rendering metadata
             process_data_ui_info=self._extract_process_data_ui_info(),
             # Phase 2: Device Variants and Conditions

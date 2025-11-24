@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 class TextSaver(BaseSaver):
     """Handles multi-language text storage"""
 
-    def save(self, device_id: int, all_text_data: dict, text_xml_order: dict = None, language_order: dict = None) -> None:
+    def save(self, device_id: int, all_text_data: dict, text_xml_order: dict = None,
+             language_order: dict = None, text_redefine_ids: set = None) -> None:
         """
         Save all multi-language text entries for a device
 
@@ -25,6 +26,7 @@ class TextSaver(BaseSaver):
                           Example: {'TID123': {'en': 0, 'de': 1}, 'TID456': {'en': 1, 'de': 0}}
             language_order: Dict mapping language_code to order of Language element
                           Example: {'en': 0, 'de': 1, 'fr': 2}
+            text_redefine_ids: Set of text_ids that are TextRedefine elements (PQA Fix #66)
         """
         if not all_text_data:
             logger.debug(f"No text data to save for device {device_id}")
@@ -34,18 +36,22 @@ class TextSaver(BaseSaver):
             text_xml_order = {}
         if language_order is None:
             language_order = {}
+        if text_redefine_ids is None:
+            text_redefine_ids = set()
 
         # Delete existing
         self._delete_existing('iodd_text', device_id)
 
+        # PQA Fix #66: Include is_text_redefine column
         query = """
-            INSERT INTO iodd_text (device_id, text_id, language_code, text_value, xml_order, language_order)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO iodd_text (device_id, text_id, language_code, text_value, xml_order, language_order, is_text_redefine)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
         for text_id, languages in all_text_data.items():
             text_orders = text_xml_order.get(text_id, {})  # PQA: Get order per language
+            is_redefine = 1 if text_id in text_redefine_ids else 0  # PQA Fix #66
             for language_code, text_value in languages.items():
                 xml_order = text_orders.get(language_code)  # PQA: Order for this specific language
                 lang_order = language_order.get(language_code)  # PQA: Order of Language element
@@ -56,6 +62,7 @@ class TextSaver(BaseSaver):
                     text_value,
                     xml_order,
                     lang_order,
+                    is_redefine,  # PQA Fix #66
                 ))
 
         if params_list:
