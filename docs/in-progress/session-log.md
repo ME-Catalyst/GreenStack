@@ -1658,3 +1658,31 @@ subindex_db_val = None if subindex_val is None else (1 if subindex_val else 0)
 ### READY FOR RE-IMPORT (3rd attempt)
 
 Re-import required to store NULL for missing subindexAccessSupported attributes.
+
+---
+
+### Post Re-import #3 Analysis (2025-11-23)
+
+**Results:**
+- 95 devices at 100% (was 41)
+- 247 total diffs (was 840)
+- Average score: 99.90%
+
+**subindexAccessSupported fix confirmed working** - 593 issues resolved!
+
+**Remaining issues (247 total):**
+
+| Issue | Count | Description |
+|-------|-------|-------------|
+| ProcessDataRecordItemInfo@offset | 60 | Incorrect offset values |
+| RecordItem/SimpleDatatype/SingleValue | 23 | Missing SingleValue in RecordItems |
+| ProcessDataRecordItemInfo@gradient | 21 | Incorrect gradient values |
+| ProcessDataIn Datatype vs DatatypeRef | 30 | Using inline Datatype instead of DatatypeRef |
+| ProfileHeader values | 39 | ProfileIdentification/Name/Revision changes |
+| DeviceName extras | 13 | Extra DeviceName elements |
+| ErrorTypeCollection | 9 | Missing ErrorTypeCollection |
+| Features@dataStorage | 7 | Missing dataStorage attribute |
+| DeviceVariant revisions | 14 | Missing firmware/hardware revision |
+| Various SingleValue | 17 | SingleValue in StdRecordItemRef etc |
+| Datatype encoding/fixedLength | 10 | Missing encoding/fixedLength attrs |
+| Other | 4 | deviceId, bitLength, etc |
