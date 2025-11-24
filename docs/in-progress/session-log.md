@@ -1686,3 +1686,23 @@ Re-import required to store NULL for missing subindexAccessSupported attributes.
 | Various SingleValue | 17 | SingleValue in StdRecordItemRef etc |
 | Datatype encoding/fixedLength | 10 | Missing encoding/fixedLength attrs |
 | Other | 4 | deviceId, bitLength, etc |
+
+---
+
+### Fix #54: ProfileHeader Hardcoded Values (39 issues)
+**Commit**: (pending)
+
+**Problem**: ProfileHeader values (ProfileIdentification, ProfileRevision, ProfileName) were hardcoded in reconstruction instead of using the original values from the IODD.
+- Original IODD might have different values like "IO Device Profile (1.1)" or custom identification strings
+- Reconstruction always output "IO Device Profile", "1.1", "Device Profile for IO Devices"
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `profile_identification`, `profile_revision`, `profile_name` fields to DeviceProfile
+2. `src/parsing/__init__.py` - Added `_extract_profile_header()` method to extract ProfileHeader values
+3. `src/storage/iodd_file.py` - Save ProfileHeader values to iodd_files table
+4. `src/utils/forensic_reconstruction_v2.py` - Updated `_create_profile_header()` to query stored values from database
+5. `alembic/versions/082_add_profile_header_columns.py` - Add profile_identification, profile_revision, profile_name columns
+
+**Expected Impact**: ~39 issues resolved (requires re-import)
+
+**Status**: COMMITTED - Requires re-import to populate data

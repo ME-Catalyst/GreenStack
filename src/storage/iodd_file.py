@@ -25,11 +25,13 @@ class IODDFileSaver(BaseSaver):
         self._delete_existing('iodd_files', device_id)
 
         # Save IODD file content
+        # PQA Fix #54: Added profile_identification, profile_revision, profile_name
         query = """
             INSERT INTO iodd_files (
                 device_id, file_name, xml_content, schema_version,
-                stamp_crc, checker_name, checker_version
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                stamp_crc, checker_name, checker_version,
+                profile_identification, profile_revision, profile_name
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         file_name = f"{getattr(profile.device_info, 'product_name', 'device')}.xml"
@@ -42,6 +44,9 @@ class IODDFileSaver(BaseSaver):
             getattr(profile, 'stamp_crc', None),
             getattr(profile, 'checker_name', None),
             getattr(profile, 'checker_version', None),
+            getattr(profile, 'profile_identification', None),  # PQA Fix #54
+            getattr(profile, 'profile_revision', None),  # PQA Fix #54
+            getattr(profile, 'profile_name', None),  # PQA Fix #54
         )
 
         self._execute(query, params)

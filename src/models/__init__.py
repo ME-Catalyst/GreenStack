@@ -471,6 +471,11 @@ class DeviceProfile:
     # PQA: StdVariableRef preservation
     std_variable_refs: List[StdVariableRef] = field(default_factory=list)
 
+    # PQA Fix #54: ProfileHeader values for accurate reconstruction
+    profile_identification: Optional[str] = None
+    profile_revision: Optional[str] = None
+    profile_name: Optional[str] = None
+
 
 # Export all models
 __all__ = [

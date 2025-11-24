@@ -142,7 +142,7 @@ class IODDReconstructor:
                 root.append(document_info)
 
             # Add ProfileHeader
-            profile_header = self._create_profile_header()
+            profile_header = self._create_profile_header(conn, device_id)
             if profile_header is not None:
                 root.append(profile_header)
 
@@ -264,21 +264,37 @@ class IODDReconstructor:
 
         return doc_info
 
-    def _create_profile_header(self) -> ET.Element:
-        """Create ProfileHeader with standard IO-Link profile information"""
+    def _create_profile_header(self, conn: sqlite3.Connection, device_id: int) -> ET.Element:
+        """Create ProfileHeader with standard IO-Link profile information
+
+        PQA Fix #54: Use stored ProfileHeader values from iodd_files table
+        instead of hardcoded defaults.
+        """
         header = ET.Element('ProfileHeader')
+
+        # Query stored ProfileHeader values from iodd_files
+        cursor = conn.execute("""
+            SELECT profile_identification, profile_revision, profile_name
+            FROM iodd_files WHERE device_id = ?
+        """, (device_id,))
+        row = cursor.fetchone()
+
+        # Use stored values or fall back to defaults
+        stored_identification = row['profile_identification'] if row and row['profile_identification'] else None
+        stored_revision = row['profile_revision'] if row and row['profile_revision'] else None
+        stored_name = row['profile_name'] if row and row['profile_name'] else None
 
         # Profile Identification
         profile_id = ET.SubElement(header, 'ProfileIdentification')
-        profile_id.text = 'IO Device Profile'
+        profile_id.text = stored_identification or 'IO Device Profile'
 
         # Profile Revision
         profile_rev = ET.SubElement(header, 'ProfileRevision')
-        profile_rev.text = '1.1'
+        profile_rev.text = stored_revision or '1.1'
 
         # Profile Name
         profile_name = ET.SubElement(header, 'ProfileName')
-        profile_name.text = 'Device Profile for IO Devices'
+        profile_name.text = stored_name or 'Device Profile for IO Devices'
 
         # Profile Source
         profile_source = ET.SubElement(header, 'ProfileSource')

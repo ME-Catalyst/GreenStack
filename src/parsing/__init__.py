@@ -219,6 +219,9 @@ class IODDParser:
         # Extract vendor logo
         vendor_logo = self._extract_vendor_logo()
 
+        # PQA Fix #54: Extract ProfileHeader values
+        profile_header = self._extract_profile_header()
+
         return DeviceProfile(
             vendor_info=self._extract_vendor_info(),
             device_info=self._extract_device_info(),
@@ -250,8 +253,36 @@ class IODDParser:
             checker_name=stamp_data.get('checker_name'),
             checker_version=stamp_data.get('checker_version'),
             # PQA: StdVariableRef preservation
-            std_variable_refs=self._extract_std_variable_refs()
+            std_variable_refs=self._extract_std_variable_refs(),
+            # PQA Fix #54: ProfileHeader values
+            profile_identification=profile_header.get('identification'),
+            profile_revision=profile_header.get('revision'),
+            profile_name=profile_header.get('name')
         )
+
+    def _extract_profile_header(self) -> Dict[str, Optional[str]]:
+        """PQA Fix #54: Extract ProfileHeader values for accurate reconstruction"""
+        result = {
+            'identification': None,
+            'revision': None,
+            'name': None
+        }
+
+        profile_header = self.root.find('.//iodd:ProfileHeader', self.NAMESPACES)
+        if profile_header is not None:
+            id_elem = profile_header.find('iodd:ProfileIdentification', self.NAMESPACES)
+            if id_elem is not None and id_elem.text:
+                result['identification'] = id_elem.text
+
+            rev_elem = profile_header.find('iodd:ProfileRevision', self.NAMESPACES)
+            if rev_elem is not None and rev_elem.text:
+                result['revision'] = rev_elem.text
+
+            name_elem = profile_header.find('iodd:ProfileName', self.NAMESPACES)
+            if name_elem is not None and name_elem.text:
+                result['name'] = name_elem.text
+
+        return result
 
     def _extract_vendor_info(self) -> VendorInfo:
         """Extract vendor information from DeviceIdentity"""
