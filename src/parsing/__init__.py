@@ -965,6 +965,7 @@ class IODDParser:
 
                         # Extract inline single values
                         # PQA Fix #51: Include SingleValue even if name text is empty
+                        # PQA Fix #61: Extract xsi:type attribute for SingleValue
                         for single_val in simple_dt.findall('.//iodd:SingleValue', self.NAMESPACES):
                             value = single_val.get('value')
                             if value is not None:  # Only require value, not name
@@ -974,11 +975,14 @@ class IODDParser:
                                 desc_elem = single_val.find('.//iodd:Description', self.NAMESPACES)
                                 desc_id = desc_elem.get('textId') if desc_elem is not None else None
                                 description = self._resolve_text(desc_id) if desc_id else None
+                                # PQA Fix #61: Get xsi:type (e.g., BooleanValueT)
+                                sv_xsi_type = single_val.get('{http://www.w3.org/2001/XMLSchema-instance}type')
                                 single_values.append(SingleValue(
                                     value=value,
                                     name=text_value or '',
                                     description=description,
-                                    text_id=text_id  # PQA: Store original textId for reconstruction
+                                    text_id=text_id,  # PQA: Store original textId for reconstruction
+                                    xsi_type=sv_xsi_type  # PQA Fix #61
                                 ))
 
                         # Extract ValueRange from SimpleDatatype (PQA reconstruction)
@@ -1118,6 +1122,7 @@ class IODDParser:
 
                         # Extract inline single values
                         # PQA Fix #51: Include SingleValue even if name text is empty
+                        # PQA Fix #61: Extract xsi:type attribute for SingleValue
                         for single_val in simple_dt.findall('.//iodd:SingleValue', self.NAMESPACES):
                             value = single_val.get('value')
                             if value is not None:  # Only require value, not name
@@ -1127,11 +1132,14 @@ class IODDParser:
                                 desc_elem = single_val.find('.//iodd:Description', self.NAMESPACES)
                                 desc_id = desc_elem.get('textId') if desc_elem is not None else None
                                 description = self._resolve_text(desc_id) if desc_id else None
+                                # PQA Fix #61: Get xsi:type (e.g., BooleanValueT)
+                                sv_xsi_type = single_val.get('{http://www.w3.org/2001/XMLSchema-instance}type')
                                 single_values.append(SingleValue(
                                     value=value,
                                     name=text_value or '',
                                     description=description,
-                                    text_id=text_id  # PQA: Store original textId for reconstruction
+                                    text_id=text_id,  # PQA: Store original textId for reconstruction
+                                    xsi_type=sv_xsi_type  # PQA Fix #61
                                 ))
 
                         # Extract ValueRange from SimpleDatatype (PQA reconstruction)

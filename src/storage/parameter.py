@@ -266,10 +266,11 @@ class ParameterSaver(BaseSaver):
             record_item_id: Database ID of the parent record item
             single_values: List of SingleValue objects
         """
+        # PQA Fix #61: Include xsi_type column
         query = """
             INSERT INTO record_item_single_values (
-                record_item_id, value, name, name_text_id, order_index
-            ) VALUES (?, ?, ?, ?, ?)
+                record_item_id, value, name, name_text_id, order_index, xsi_type
+            ) VALUES (?, ?, ?, ?, ?, ?)
         """
 
         values_list = []
@@ -279,7 +280,8 @@ class ParameterSaver(BaseSaver):
                 getattr(sv, 'value', ''),
                 getattr(sv, 'name', None),
                 getattr(sv, 'text_id', None),
-                idx  # order_index
+                idx,  # order_index
+                getattr(sv, 'xsi_type', None),  # PQA Fix #61
             ))
 
         self._execute_many(query, values_list)

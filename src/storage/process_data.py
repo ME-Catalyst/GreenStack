@@ -151,10 +151,11 @@ class ProcessDataSaver(BaseSaver):
 
     def _save_record_item_single_values(self, item_db_id: int, single_values: list):
         """Save single values for a record item"""
+        # PQA Fix #61: Include xsi_type column
         query = """
             INSERT INTO process_data_single_values (
-                record_item_id, value, name, description, name_text_id
-            ) VALUES (?, ?, ?, ?, ?)
+                record_item_id, value, name, description, name_text_id, xsi_type
+            ) VALUES (?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -165,6 +166,7 @@ class ProcessDataSaver(BaseSaver):
                 getattr(single_val, 'name', None),
                 getattr(single_val, 'description', None),
                 getattr(single_val, 'text_id', None),  # PQA: Store original textId
+                getattr(single_val, 'xsi_type', None),  # PQA Fix #61
             ))
 
         if params_list:

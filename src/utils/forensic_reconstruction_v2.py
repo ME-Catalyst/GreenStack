@@ -750,14 +750,19 @@ class IODDReconstructor:
                         simple_dt.set('id', dt_id)
 
                     # Add SingleValue elements for this SimpleDatatype (PQA reconstruction)
+                    # PQA Fix #61: Include xsi_type in query
                     cursor.execute("""
-                        SELECT value, name, name_text_id
+                        SELECT value, name, name_text_id, xsi_type
                         FROM process_data_single_values
                         WHERE record_item_id = ?
                     """, (item['id'],))
                     single_values = cursor.fetchall()
                     for sv in single_values:
                         sv_elem = ET.SubElement(simple_dt, 'SingleValue')
+                        # PQA Fix #61: Add xsi:type attribute if present
+                        sv_xsi_type = sv['xsi_type'] if 'xsi_type' in sv.keys() else None
+                        if sv_xsi_type:
+                            sv_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', sv_xsi_type)
                         sv_elem.set('value', str(sv['value']))
                         sv_name_text_id = sv['name_text_id'] if 'name_text_id' in sv.keys() else None
                         if sv_name_text_id:
@@ -873,8 +878,9 @@ class IODDReconstructor:
                     simple_dt.set('id', dt_id)
 
                 # Add SingleValue children for this RecordItem's SimpleDatatype
+                # PQA Fix #61: Include xsi_type in query
                 cursor.execute("""
-                    SELECT value, name, name_text_id, order_index
+                    SELECT value, name, name_text_id, order_index, xsi_type
                     FROM record_item_single_values
                     WHERE record_item_id = ?
                     ORDER BY order_index
@@ -883,6 +889,10 @@ class IODDReconstructor:
 
                 for sv in ri_single_values:
                     sv_elem = ET.SubElement(simple_dt, 'SingleValue')
+                    # PQA Fix #61: Add xsi:type attribute if present
+                    sv_xsi_type = sv['xsi_type'] if 'xsi_type' in sv.keys() else None
+                    if sv_xsi_type:
+                        sv_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', sv_xsi_type)
                     sv_elem.set('value', sv['value'])
                     if sv['name_text_id']:
                         sv_name_elem = ET.SubElement(sv_elem, 'Name')
