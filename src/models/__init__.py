@@ -323,6 +323,7 @@ class ProcessDataUIInfo:
     offset: Optional[float] = None
     unit_code: Optional[str] = None
     display_format: Optional[str] = None
+    xml_order: Optional[int] = None  # PQA Fix #41: preserve original element order
 
 
 @dataclass

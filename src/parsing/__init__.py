@@ -1874,8 +1874,8 @@ class IODDParser:
             if not process_data_id:
                 continue
 
-            # Extract ProcessDataRecordItemInfo elements
-            for item_info in pd_ref.findall('.//iodd:ProcessDataRecordItemInfo', self.NAMESPACES):
+            # PQA Fix #41: Extract ProcessDataRecordItemInfo elements with original XML order
+            for xml_order, item_info in enumerate(pd_ref.findall('.//iodd:ProcessDataRecordItemInfo', self.NAMESPACES)):
                 subindex = item_info.get('subindex')
                 if subindex is not None:
                     ui_info_list.append(ProcessDataUIInfo(
@@ -1884,7 +1884,8 @@ class IODDParser:
                         gradient=float(item_info.get('gradient')) if item_info.get('gradient') else None,
                         offset=float(item_info.get('offset')) if item_info.get('offset') else None,
                         unit_code=item_info.get('unitCode'),
-                        display_format=item_info.get('displayFormat')
+                        display_format=item_info.get('displayFormat'),
+                        xml_order=xml_order
                     ))
 
         logger.info(f"Extracted {len(ui_info_list)} process data UI info entries")
