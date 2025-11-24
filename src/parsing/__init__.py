@@ -961,10 +961,16 @@ class IODDParser:
                     item_vr_name_text_id = None  # PQA Fix #30: ValueRange/Name@textId
 
                     simple_dt = record_item.find('.//iodd:SimpleDatatype', self.NAMESPACES)
+                    # PQA Fix #65: Track fixedLength and encoding for SimpleDatatype
+                    item_fixed_length = None
+                    item_encoding = None
                     if simple_dt is not None:
                         item_type = simple_dt.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'UIntegerT')
                         # PQA: Only store bitLength if explicitly present
                         item_bit_length = int(simple_dt.get('bitLength')) if simple_dt.get('bitLength') else None
+                        # PQA Fix #65: Extract fixedLength and encoding for StringT/OctetStringT
+                        item_fixed_length = int(simple_dt.get('fixedLength')) if simple_dt.get('fixedLength') else None
+                        item_encoding = simple_dt.get('encoding')
 
                         # Extract inline single values
                         # PQA Fix #51: Include SingleValue even if name text is empty
@@ -1039,6 +1045,8 @@ class IODDParser:
                         value_range_xsi_type=item_vr_xsi_type,
                         value_range_name_text_id=item_vr_name_text_id,  # PQA Fix #30
                         access_right_restriction=item_access_right_restriction,  # PQA
+                        fixed_length=item_fixed_length,  # PQA Fix #65
+                        encoding=item_encoding,  # PQA Fix #65
                     ))
 
             process_data = ProcessData(
@@ -1118,10 +1126,16 @@ class IODDParser:
                     item_vr_name_text_id = None  # PQA Fix #30: ValueRange/Name@textId
 
                     simple_dt = record_item.find('.//iodd:SimpleDatatype', self.NAMESPACES)
+                    # PQA Fix #65: Track fixedLength and encoding for SimpleDatatype
+                    item_fixed_length = None
+                    item_encoding = None
                     if simple_dt is not None:
                         item_type = simple_dt.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'UIntegerT')
                         # PQA: Only store bitLength if explicitly present
                         item_bit_length = int(simple_dt.get('bitLength')) if simple_dt.get('bitLength') else None
+                        # PQA Fix #65: Extract fixedLength and encoding for StringT/OctetStringT
+                        item_fixed_length = int(simple_dt.get('fixedLength')) if simple_dt.get('fixedLength') else None
+                        item_encoding = simple_dt.get('encoding')
 
                         # Extract inline single values
                         # PQA Fix #51: Include SingleValue even if name text is empty
@@ -1196,6 +1210,8 @@ class IODDParser:
                         value_range_xsi_type=item_vr_xsi_type,
                         value_range_name_text_id=item_vr_name_text_id,  # PQA Fix #30
                         access_right_restriction=item_access_right_restriction,  # PQA
+                        fixed_length=item_fixed_length,  # PQA Fix #65
+                        encoding=item_encoding,  # PQA Fix #65
                     ))
 
             process_data = ProcessData(

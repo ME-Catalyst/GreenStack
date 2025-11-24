@@ -117,12 +117,14 @@ class ProcessDataSaver(BaseSaver):
 
         for item in pd.record_items:
             # Save record item with name_text_id, description_text_id, ValueRange and accessRightRestriction for PQA
+            # PQA Fix #65: Added fixed_length and encoding columns
             query = """
                 INSERT INTO process_data_record_items (
                     process_data_id, subindex, name,
                     bit_offset, bit_length, data_type, default_value, name_text_id, description_text_id,
-                    min_value, max_value, value_range_xsi_type, value_range_name_text_id, access_right_restriction
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    min_value, max_value, value_range_xsi_type, value_range_name_text_id, access_right_restriction,
+                    fixed_length, encoding
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
             params = (
@@ -140,6 +142,8 @@ class ProcessDataSaver(BaseSaver):
                 getattr(item, 'value_range_xsi_type', None),  # PQA: ValueRange
                 getattr(item, 'value_range_name_text_id', None),  # PQA Fix #30: ValueRange/Name
                 getattr(item, 'access_right_restriction', None),  # PQA: RecordItem attribute
+                getattr(item, 'fixed_length', None),  # PQA Fix #65
+                getattr(item, 'encoding', None),  # PQA Fix #65
             )
 
             self._execute(query, params)
