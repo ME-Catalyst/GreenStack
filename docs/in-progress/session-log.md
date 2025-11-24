@@ -1706,3 +1706,19 @@ Re-import required to store NULL for missing subindexAccessSupported attributes.
 **Expected Impact**: ~39 issues resolved (requires re-import)
 
 **Status**: COMMITTED - Requires re-import to populate data
+
+---
+
+### Fix #55: Extra DeviceName Elements (13 issues)
+**Commit**: (pending)
+
+**Problem**: DeviceName element was always output in DeviceIdentity reconstruction, even when the original IODD didn't have one. Some IODDs (like Murrelektronik 55518/55519 series) use ProductName/ProductText in DeviceVariant instead of DeviceName at DeviceIdentity level.
+
+**Root Cause**: Reconstruction always created DeviceName and used lookup fallback when device_name_text_id was NULL. This caused extra DeviceName elements for 13 devices.
+
+**Changes Made**:
+1. `src/utils/forensic_reconstruction_v2.py` - Only output DeviceName when device_name_text_id is not NULL (indicating element was present in original)
+
+**Expected Impact**: ~13 issues resolved (no re-import needed)
+
+**Status**: COMMITTED
