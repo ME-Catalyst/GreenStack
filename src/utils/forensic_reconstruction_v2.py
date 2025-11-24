@@ -972,16 +972,17 @@ class IODDReconstructor:
                           datatype_id: int) -> None:
         """Add SingleValue enumeration values (Phase 3 Task 10a - direct children, no wrapper)"""
         cursor = conn.cursor()
-        # Sort numerically if value is numeric, otherwise alphabetically
-        # This preserves original IODD ordering (0,1,2,...10,11 not 0,1,10,11,2,...)
+        # PQA Fix #38: Order by xml_order to preserve original IODD order
+        # Fallback to numeric/alphabetic sort for legacy data without xml_order
         cursor.execute("""
             SELECT * FROM custom_datatype_single_values
             WHERE datatype_id = ?
-            ORDER BY CASE
-                WHEN value GLOB '[0-9]*' AND value NOT GLOB '*[^0-9]*'
-                THEN CAST(value AS INTEGER)
-                ELSE 999999
-            END, value
+            ORDER BY COALESCE(xml_order, 999999),
+                CASE
+                    WHEN value GLOB '[0-9]*' AND value NOT GLOB '*[^0-9]*'
+                    THEN CAST(value AS INTEGER)
+                    ELSE 999999
+                END, value
         """, (datatype_id,))
         values = cursor.fetchall()
 

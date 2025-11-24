@@ -87,10 +87,11 @@ class CustomDatatypeSaver(BaseSaver):
         if not hasattr(datatype, 'single_values') or not datatype.single_values:
             return
 
+        # PQA Fix #38: Added xml_order for proper reconstruction ordering
         query = """
             INSERT INTO custom_datatype_single_values (
-                datatype_id, value, name, text_id, xsi_type
-            ) VALUES (?, ?, ?, ?, ?)
+                datatype_id, value, name, text_id, xsi_type, xml_order
+            ) VALUES (?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -101,6 +102,7 @@ class CustomDatatypeSaver(BaseSaver):
                 getattr(single_val, 'name', None),
                 getattr(single_val, 'text_id', None),  # PQA: preserve original textId
                 getattr(single_val, 'xsi_type', None),  # PQA: preserve xsi:type
+                getattr(single_val, 'xml_order', None),  # PQA Fix #38: preserve original order
             ))
 
         if params_list:

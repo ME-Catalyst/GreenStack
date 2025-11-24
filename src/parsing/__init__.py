@@ -2027,8 +2027,9 @@ class IODDParser:
 
             # Extract single values (direct children only, not those inside RecordItem/SimpleDatatype)
             # PQA Fix #21b: Changed from .//iodd:SingleValue to iodd:SingleValue to prevent duplication
+            # PQA Fix #38: Added xml_order to preserve original order
             single_values = []
-            for single_val in datatype_elem.findall('iodd:SingleValue', self.NAMESPACES):
+            for sv_idx, single_val in enumerate(datatype_elem.findall('iodd:SingleValue', self.NAMESPACES)):
                 value = single_val.get('value')
                 name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
                 if name_elem is not None and value is not None:
@@ -2041,7 +2042,8 @@ class IODDParser:
                             value=value,
                             name=text_value,
                             text_id=text_id,  # Preserve original textId for PQA
-                            xsi_type=sv_xsi_type  # Preserve xsi:type for PQA
+                            xsi_type=sv_xsi_type,  # Preserve xsi:type for PQA
+                            xml_order=sv_idx  # PQA Fix #38: Preserve original order
                         ))
 
             # Extract record items (for RecordT types)

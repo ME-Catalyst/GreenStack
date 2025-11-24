@@ -72,6 +72,7 @@ class SingleValue:
     description: Optional[str] = None
     text_id: Optional[str] = None  # Original textId from IODD for PQA reconstruction
     xsi_type: Optional[str] = None  # xsi:type attribute (e.g., BooleanValueT) for PQA
+    xml_order: Optional[int] = None  # PQA Fix #38: Original XML order for reconstruction
 
 
 @dataclass
