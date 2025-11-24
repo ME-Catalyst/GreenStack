@@ -1923,6 +1923,14 @@ class IODDReconstructor:
         - StdErrorTypeRef: Standard IO-Link error references with only attributes
         """
         cursor = conn.cursor()
+
+        # PQA Fix #56: Check if original IODD had ErrorTypeCollection (even if empty)
+        cursor.execute("""
+            SELECT has_error_type_collection FROM devices WHERE id = ?
+        """, (device_id,))
+        device_row = cursor.fetchone()
+        has_collection = device_row['has_error_type_collection'] if device_row and 'has_error_type_collection' in device_row.keys() else False
+
         cursor.execute("""
             SELECT code, additional_code, has_code_attr, xml_order,
                    is_custom, name_text_id, description_text_id
@@ -1933,6 +1941,9 @@ class IODDReconstructor:
         error_types = cursor.fetchall()
 
         if not error_types:
+            # PQA Fix #56: Output empty ErrorTypeCollection if original had one
+            if has_collection:
+                return ET.Element('ErrorTypeCollection')
             return None
 
         collection = ET.Element('ErrorTypeCollection')

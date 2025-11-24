@@ -1722,3 +1722,23 @@ Re-import required to store NULL for missing subindexAccessSupported attributes.
 **Expected Impact**: ~13 issues resolved (no re-import needed)
 
 **Status**: COMMITTED
+
+---
+
+### Fix #56: ErrorTypeCollection Missing (9 issues)
+**Commit**: (pending)
+
+**Problem**: Some IODDs have an empty `<ErrorTypeCollection></ErrorTypeCollection>` element. The reconstruction was not outputting ErrorTypeCollection when there were no error types, causing 9 missing_element issues.
+
+**Root Cause**: `_create_error_type_collection()` returned None when there were no error types in the database, without checking if the original IODD had an ErrorTypeCollection element.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `has_error_type_collection` field to DeviceProfile
+2. `src/parsing/__init__.py` - Added `_has_error_type_collection()` method to check if element exists
+3. `src/storage/device.py` - Save has_error_type_collection flag to devices table
+4. `src/utils/forensic_reconstruction_v2.py` - Output empty ErrorTypeCollection when flag is true but no error types exist
+5. `alembic/versions/083_add_has_error_type_collection.py` - Add has_error_type_collection column
+
+**Expected Impact**: ~9 issues resolved (requires re-import)
+
+**Status**: COMMITTED - Requires re-import to populate data

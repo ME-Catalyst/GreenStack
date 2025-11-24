@@ -228,6 +228,7 @@ class IODDParser:
             parameters=self._extract_parameters(),
             process_data=self._extract_process_data(),
             error_types=self._extract_error_types(),
+            has_error_type_collection=self._has_error_type_collection(),  # PQA Fix #56
             events=self._extract_events(),
             document_info=self._extract_document_info(),
             device_features=self._extract_device_features(),
@@ -1203,6 +1204,11 @@ class IODDParser:
             collection.total_output_bits += bit_length
 
         return collection
+
+    def _has_error_type_collection(self) -> bool:
+        """PQA Fix #56: Check if ErrorTypeCollection element exists (even if empty)"""
+        error_collection = self.root.find('.//iodd:ErrorTypeCollection', self.NAMESPACES)
+        return error_collection is not None
 
     def _extract_error_types(self) -> List[ErrorType]:
         """Extract error types from ErrorTypeCollection"""

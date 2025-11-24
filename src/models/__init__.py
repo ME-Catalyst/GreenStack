@@ -433,6 +433,7 @@ class DeviceProfile:
     parameters: List[Parameter]
     process_data: ProcessDataCollection
     error_types: List[ErrorType] = field(default_factory=list)
+    has_error_type_collection: bool = False  # PQA Fix #56: Track if original had ErrorTypeCollection (even if empty)
     events: List[Event] = field(default_factory=list)
     document_info: Optional[DocumentInfo] = None
     device_features: Optional[DeviceFeatures] = None
