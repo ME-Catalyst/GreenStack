@@ -1237,3 +1237,48 @@ These issues require more significant changes and are deferred:
    - ValueRange for RecordItems
    - CommNetworkProfile reconstruction
    - Stamp reconstruction
+
+---
+
+## SESSION 2025-11-23 - PQA Improvements
+
+### Summary
+- **Starting State**: 27 devices at 100%, avg 99.67%, 878 diffs
+- **Ending State**: 45 devices at 100%, avg 99.63%, 1139 diffs (ordering issues discovered)
+
+### Fix #34: ProcessDataOut Wrapper Grouping
+**Commits**: `66a6c9f`, `bd576dc`
+
+**Problem**: ProcessDataIn and ProcessDataOut with same wrapper_id were output as separate ProcessData elements instead of being grouped.
+
+**Changes**:
+1. `src/utils/forensic_reconstruction_v2.py`:
+   - Rewrote `_create_process_data_collection` to group rows by wrapper_id
+   - Added `_add_process_data_direction_element` helper method
+   - Used MIN(id) per wrapper to preserve original document order
+
+**Impact**: Fixed 78 missing ProcessDataOut issues, improved ordering for 200+ issues
+
+### Fix #31: ProcessDataRefCollection Reconstruction
+**Commit**: `eb9f451`
+
+**Problem**: ProcessDataRefCollection was missing entirely from UserInterface reconstruction.
+
+**Changes**:
+1. `src/utils/forensic_reconstruction_v2.py`:
+   - Added ProcessDataRefCollection generation in `_create_user_interface`
+   - Outputs ProcessDataRef with ProcessDataRecordItemInfo (gradient, offset, unitCode, displayFormat)
+   - Fixed `_format_number` to preserve ".0" for float whole numbers (e.g., "0.0" not "0")
+
+**Impact**: Fixed 56 missing ProcessDataRefCollection issues
+
+### Outstanding Issues
+1. **ProcessDataRefCollection ordering**: PDO/PDI order differs from original (313 issues)
+2. **Description elements**: Connection/Description missing (62 issues) - requires schema change
+3. **RecordItem@bitOffset**: Still present in some contexts (64 issues)
+4. **SingleValue attributes**: DatatypeCollection issues (96 issues)
+
+### All Commits This Session
+1. `66a6c9f` feat(pqa): Fix #34 - group ProcessDataIn/Out by wrapper_id
+2. `bd576dc` fix(pqa): Fix #34b - preserve ProcessData element order
+3. `eb9f451` feat(pqa): Fix #31 - add ProcessDataRefCollection reconstruction
