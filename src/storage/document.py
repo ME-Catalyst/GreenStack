@@ -67,8 +67,8 @@ class DeviceFeaturesSaver(BaseSaver):
                 device_id, block_parameter, data_storage, profile_characteristic,
                 access_locks_data_storage, access_locks_local_parameterization,
                 access_locks_local_user_interface, access_locks_parameter,
-                has_supported_access_locks
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                has_supported_access_locks, has_data_storage
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -81,6 +81,7 @@ class DeviceFeaturesSaver(BaseSaver):
             1 if getattr(device_features, 'access_locks_local_user_interface', False) else 0,
             1 if getattr(device_features, 'access_locks_parameter', False) else 0,
             1 if getattr(device_features, 'has_supported_access_locks', False) else 0,
+            1 if getattr(device_features, 'has_data_storage', False) else 0,  # PQA Fix #57
         )
 
         self._execute(query, params)

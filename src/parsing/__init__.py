@@ -1667,15 +1667,21 @@ class IODDParser:
         # Parse access locks
         access_locks_elem = features_elem.find('.//iodd:SupportedAccessLocks', self.NAMESPACES)
 
+        # PQA Fix #57: Track whether dataStorage attribute is present
+        data_storage_attr = features_elem.get('dataStorage')
+        has_data_storage = data_storage_attr is not None
+        data_storage = data_storage_attr.lower() == 'true' if data_storage_attr is not None else False
+
         return DeviceFeatures(
             block_parameter=features_elem.get('blockParameter', 'false').lower() == 'true',
-            data_storage=features_elem.get('dataStorage', 'false').lower() == 'true',
+            data_storage=data_storage,
             profile_characteristic=features_elem.get('profileCharacteristic'),
             access_locks_data_storage=access_locks_elem.get('dataStorage', 'false').lower() == 'true' if access_locks_elem is not None else False,
             access_locks_local_parameterization=access_locks_elem.get('localParameterization', 'false').lower() == 'true' if access_locks_elem is not None else False,
             access_locks_local_user_interface=access_locks_elem.get('localUserInterface', 'false').lower() == 'true' if access_locks_elem is not None else False,
             access_locks_parameter=access_locks_elem.get('parameter', 'false').lower() == 'true' if access_locks_elem is not None else False,
-            has_supported_access_locks=access_locks_elem is not None  # Track if element was present
+            has_supported_access_locks=access_locks_elem is not None,  # Track if element was present
+            has_data_storage=has_data_storage  # PQA Fix #57
         )
 
     def _extract_communication_profile(self) -> Optional[CommunicationProfile]:

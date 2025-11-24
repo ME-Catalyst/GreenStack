@@ -512,8 +512,10 @@ class IODDReconstructor:
 
         # Always emit blockParameter attribute (even when false, for PQA accuracy)
         features.set('blockParameter', 'true' if features_row['block_parameter'] else 'false')
-        if features_row['data_storage']:
-            features.set('dataStorage', 'true')
+        # PQA Fix #57: Only output dataStorage if it was present in original IODD
+        has_data_storage = features_row['has_data_storage'] if 'has_data_storage' in features_row.keys() else False
+        if has_data_storage:
+            features.set('dataStorage', 'true' if features_row['data_storage'] else 'false')
         if features_row['profile_characteristic']:
             features.set('profileCharacteristic', str(features_row['profile_characteristic']))
 

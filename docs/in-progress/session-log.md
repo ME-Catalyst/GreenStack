@@ -1742,3 +1742,23 @@ Re-import required to store NULL for missing subindexAccessSupported attributes.
 **Expected Impact**: ~9 issues resolved (requires re-import)
 
 **Status**: COMMITTED - Requires re-import to populate data
+
+---
+
+### Fix #57: Features@dataStorage Missing (7 issues)
+**Commit**: (pending)
+
+**Problem**: Features element `dataStorage` attribute was only output when value was "true", not when value was "false". Some IODDs have `dataStorage="false"` explicitly set.
+
+**Root Cause**: Reconstruction checked `if features_row['data_storage']:` which evaluates to False for the boolean false value. Parser didn't track whether the attribute was present vs absent.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `has_data_storage` field to DeviceFeatures
+2. `src/parsing/__init__.py` - Track whether dataStorage attribute is present
+3. `src/storage/document.py` - Save has_data_storage flag to device_features table
+4. `src/utils/forensic_reconstruction_v2.py` - Output dataStorage only when has_data_storage is true
+5. `alembic/versions/084_add_has_data_storage.py` - Add has_data_storage column
+
+**Expected Impact**: ~7 issues resolved (requires re-import)
+
+**Status**: COMMITTED - Requires re-import to populate data

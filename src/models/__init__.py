@@ -239,6 +239,8 @@ class DeviceFeatures:
     access_locks_parameter: bool = False
     # Track whether SupportedAccessLocks element was present in original IODD
     has_supported_access_locks: bool = False
+    # PQA Fix #57: Track whether dataStorage attribute was present in original IODD
+    has_data_storage: bool = False
 
 
 @dataclass
