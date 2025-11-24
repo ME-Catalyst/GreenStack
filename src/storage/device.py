@@ -45,13 +45,15 @@ class DeviceSaver(BaseSaver):
 
         # Insert new device
         # PQA Fix #62: Include device_id_str column
+        # PQA Fix #85: Include additional_device_ids column
         query = """
             INSERT INTO devices (
                 vendor_id, device_id, product_name, manufacturer,
                 iodd_version, import_date, checksum, vendor_logo_filename,
                 device_name_text_id, vendor_text_text_id, vendor_url_text_id,
-                device_family_text_id, has_error_type_collection, device_id_str
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                device_family_text_id, has_error_type_collection, device_id_str,
+                additional_device_ids
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -69,6 +71,7 @@ class DeviceSaver(BaseSaver):
             getattr(profile.device_info, 'device_family_text_id', None),  # PQA Fix #24
             1 if getattr(profile, 'has_error_type_collection', False) else 0,  # PQA Fix #56
             getattr(profile.device_info, 'device_id_str', None),  # PQA Fix #62
+            getattr(profile.device_info, 'additional_device_ids', None),  # PQA Fix #85
         )
 
         self._execute(query, params)

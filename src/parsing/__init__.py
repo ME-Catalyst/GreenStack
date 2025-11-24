@@ -379,6 +379,8 @@ class IODDParser:
 
             # PQA Fix #62: Store original deviceId string (preserves leading zeros like "005")
             device_id_str = device_identity.get('deviceId')
+            # PQA Fix #85: Extract additionalDeviceIds attribute
+            additional_device_ids = device_identity.get('additionalDeviceIds')
             return DeviceInfo(
                 vendor_id=int(device_identity.get('vendorId', 0)),
                 device_id=int(device_id_str) if device_id_str else 0,
@@ -392,7 +394,8 @@ class IODDParser:
                 vendor_text_text_id=vendor_text_text_id,  # PQA Fix #24
                 vendor_url_text_id=vendor_url_text_id,  # PQA Fix #24
                 device_family_text_id=device_family_text_id,  # PQA Fix #24
-                device_id_str=device_id_str  # PQA Fix #62
+                device_id_str=device_id_str,  # PQA Fix #62
+                additional_device_ids=additional_device_ids  # PQA Fix #85
             )
         return DeviceInfo(vendor_id=0, device_id=0, product_name='Unknown')
 

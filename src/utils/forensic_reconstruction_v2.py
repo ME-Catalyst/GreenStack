@@ -332,6 +332,10 @@ class IODDReconstructor:
         if device['manufacturer']:
             device_identity.set('vendorName', device['manufacturer'])
 
+        # PQA Fix #85: Add additionalDeviceIds attribute if present
+        if 'additional_device_ids' in device.keys() and device['additional_device_ids']:
+            device_identity.set('additionalDeviceIds', device['additional_device_ids'])
+
         # VendorText - use stored textId (PQA Fix #24), fallback to lookup
         vendor_text = ET.SubElement(device_identity, 'VendorText')
         vendor_text_id = device['vendor_text_text_id'] if 'vendor_text_text_id' in device.keys() and device['vendor_text_text_id'] else None

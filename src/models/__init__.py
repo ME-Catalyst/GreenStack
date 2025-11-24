@@ -57,6 +57,8 @@ class DeviceInfo:
     device_family_text_id: Optional[str] = None  # DeviceFamily@textId
     # PQA Fix #62: Store original string format for deviceId (preserves leading zeros)
     device_id_str: Optional[str] = None
+    # PQA Fix #85: Store additionalDeviceIds attribute
+    additional_device_ids: Optional[str] = None
 
 
 @dataclass
