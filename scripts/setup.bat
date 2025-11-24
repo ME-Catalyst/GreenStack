@@ -10,11 +10,72 @@ echo ║                 GREENSTACK - QUICK SETUP                     ║
 echo ╚══════════════════════════════════════════════════════════════╝
 echo.
 
-:: Check Python installation
-echo √ Checking Python installation...
+:: ============================================================================
+:: STEP 1: Clean Restart - Stop existing backends and clear cache
+:: ============================================================================
+echo [1/6] Cleaning up existing backend instances...
+
+:: Find and kill processes using port 8000 (GreenStack backend)
+set "BACKEND_KILLED=0"
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8000"') do (
+    set PID=%%a
+    if defined PID (
+        taskkill /F /PID !PID! >nul 2>&1
+        if !ERRORLEVEL! EQU 0 (
+            echo   Stopped backend process (PID: !PID!)
+            set "BACKEND_KILLED=1"
+        )
+    )
+)
+
+:: Also check for python processes running src.api
+wmic process where "commandline like '%%src.api%%'" get processid 2>nul | findstr /r "[0-9]" >nul
+if %ERRORLEVEL% EQU 0 (
+    echo   Stopping src.api processes...
+    for /f "tokens=1" %%a in ('wmic process where "commandline like '%%src.api%%'" get processid ^| findstr /r "[0-9]"') do (
+        taskkill /F /PID %%a >nul 2>&1
+        if !ERRORLEVEL! EQU 0 (
+            echo   Stopped src.api process (PID: %%a)
+            set "BACKEND_KILLED=1"
+        )
+    )
+)
+
+if "%BACKEND_KILLED%"=="0" (
+    echo   No existing backend processes found.
+) else (
+    echo   Existing backends stopped.
+    timeout /t 2 /nobreak >nul
+)
+echo.
+
+:: Clear Python bytecode cache
+echo [2/6] Clearing Python bytecode cache...
+set CACHE_COUNT=0
+
+for /r "%CD%\src" %%d in (__pycache__) do (
+    if exist "%%d" (
+        rmdir /s /q "%%d" 2>nul
+        if !ERRORLEVEL! EQU 0 (
+            set /a CACHE_COUNT+=1
+        )
+    )
+)
+
+if %CACHE_COUNT% GTR 0 (
+    echo   Cleared %CACHE_COUNT% cache directories.
+) else (
+    echo   No cache directories found (already clean).
+)
+echo.
+
+:: ============================================================================
+:: STEP 2: Check Python installation
+:: ============================================================================
+echo [3/6] Checking Python installation...
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo X Python is not installed. Please install Python 3.8+ first.
+    echo   [ERROR] Python is not installed. Please install Python 3.8+ first.
     echo   Download from: https://www.python.org/downloads/
     pause
     exit /b 1
@@ -23,8 +84,10 @@ if %errorlevel% neq 0 (
 for /f "tokens=*" %%i in ('python --version') do echo   Found: %%i
 echo.
 
-:: Install dependencies
-echo √ Installing Python dependencies...
+:: ============================================================================
+:: STEP 3: Install dependencies
+:: ============================================================================
+echo [4/6] Installing Python dependencies...
 python -m pip install -r requirements.txt >nul 2>&1
 if %errorlevel% equ 0 (
     echo   Dependencies installed!
@@ -32,15 +95,17 @@ if %errorlevel% equ 0 (
     echo   Installing dependencies with output...
     python -m pip install -r requirements.txt
     if %errorlevel% neq 0 (
-        echo X Failed to install dependencies!
+        echo   [ERROR] Failed to install dependencies!
         pause
         exit /b 1
     )
 )
 echo.
 
-:: Ensure Redis is running (for rate limiting + caching)
-echo √ Ensuring Redis (localhost:6379) is running...
+:: ============================================================================
+:: STEP 4: Ensure Redis is running
+:: ============================================================================
+echo [5/6] Ensuring Redis (localhost:6379) is running...
 set "REDIS_READY=0"
 call :check_redis_ready
 if %errorlevel% equ 0 goto :redis_already_running
@@ -77,8 +142,10 @@ echo   Redis is ready.
 :redis_message_end
 echo.
 
-:: Update codebase statistics for overview page
-echo √ Updating codebase statistics...
+:: ============================================================================
+:: STEP 5: Update codebase statistics
+:: ============================================================================
+echo [6/6] Updating codebase statistics...
 python -m src.utils.codebase_stats >nul 2>&1
 if %errorlevel% equ 0 (
     echo   Statistics updated!
@@ -87,30 +154,36 @@ if %errorlevel% equ 0 (
 )
 echo.
 
+:: ============================================================================
 :: Launch the application
-echo √ Launching GreenStack...
+:: ============================================================================
+echo ╔══════════════════════════════════════════════════════════════╗
+echo ║                 LAUNCHING GREENSTACK...                      ║
+echo ╚══════════════════════════════════════════════════════════════╝
 echo.
-echo ══════════════════════════════════════════════════════════════
-echo   The application will start in a moment...
 echo   • API Server: http://localhost:8000
 echo   • Web Interface: http://localhost:6173 (auto-detects next open port)
 echo   • API Documentation: http://localhost:8000/docs
+echo.
+echo   Press Ctrl+C to stop the application
+echo.
 echo ══════════════════════════════════════════════════════════════
 echo.
-echo Press Ctrl+C to stop the application
-echo.
 
-:: Start the application
-:: Note: The Python script will auto-detect and use the next available port
+:: Start the application with fresh, clean backend
 python -m src.start
 if %errorlevel% neq 0 (
     echo.
-    echo X Application failed to start! See errors above.
+    echo [ERROR] Application failed to start! See errors above.
     pause
     exit /b 1
 )
 
 goto :eof
+
+:: ============================================================================
+:: Helper Functions
+:: ============================================================================
 
 :ensure_docker_ready
 where docker >nul 2>&1
