@@ -52,6 +52,7 @@ class ProcessDataSaver(BaseSaver):
                 if pd_db_id:
                     pd_id_map[pd.id] = pd_db_id
                     self._save_record_items(pd_db_id, pd)
+                    self._save_direct_single_values(pd_db_id, pd)  # PQA Fix #71
 
         # Save process data outputs
         if hasattr(profile.process_data, 'outputs'):
@@ -60,6 +61,7 @@ class ProcessDataSaver(BaseSaver):
                 if pd_db_id:
                     pd_id_map[pd.id] = pd_db_id
                     self._save_record_items(pd_db_id, pd)
+                    self._save_direct_single_values(pd_db_id, pd)  # PQA Fix #71
 
         # Save conditions for all process data
         all_process_data = []
@@ -171,6 +173,32 @@ class ProcessDataSaver(BaseSaver):
                 getattr(single_val, 'description', None),
                 getattr(single_val, 'text_id', None),  # PQA: Store original textId
                 getattr(single_val, 'xsi_type', None),  # PQA Fix #61
+            ))
+
+        if params_list:
+            self._execute_many(query, params_list)
+
+    def _save_direct_single_values(self, process_data_db_id: int, pd):
+        """PQA Fix #71: Save direct SingleValue children of ProcessData/Datatype"""
+        single_values = getattr(pd, 'single_values', [])
+        if not single_values:
+            return
+
+        query = """
+            INSERT INTO process_data_single_values (
+                process_data_id, value, name, description, name_text_id, xsi_type
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        """
+
+        params_list = []
+        for single_val in single_values:
+            params_list.append((
+                process_data_db_id,
+                getattr(single_val, 'value', None),
+                getattr(single_val, 'name', None),
+                getattr(single_val, 'description', None),
+                getattr(single_val, 'text_id', None),
+                getattr(single_val, 'xsi_type', None),
             ))
 
         if params_list:

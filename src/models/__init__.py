@@ -169,6 +169,7 @@ class ProcessData:
     bit_length: int
     data_type: str
     record_items: List[RecordItem] = field(default_factory=list)
+    single_values: List[SingleValue] = field(default_factory=list)  # PQA Fix #71: Direct Datatype children
     description: Optional[str] = None
     # Phase 2: Conditional process data
     condition: Optional[ProcessDataCondition] = None

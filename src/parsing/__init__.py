@@ -969,6 +969,9 @@ class IODDParser:
             uses_datatype_ref = False
             datatype_ref_id = None
 
+            # PQA Fix #71: Initialize direct_single_values before type checking
+            direct_single_values = []
+
             if datatype_ref_elem is not None:
                 # Uses DatatypeRef - reference to custom datatype
                 uses_datatype_ref = True
@@ -980,6 +983,22 @@ class IODDParser:
                 subindex_attr = datatype_elem.get('subindexAccessSupported')
                 if subindex_attr is not None:
                     subindex_access_supported = subindex_attr.lower() == 'true'
+
+                # PQA Fix #71: Extract direct SingleValue children of Datatype (for non-RecordT types)
+                direct_single_values = []
+                for sv in datatype_elem.findall('iodd:SingleValue', self.NAMESPACES):
+                    sv_value = sv.get('value')
+                    if sv_value is not None:
+                        sv_name_elem = sv.find('iodd:Name', self.NAMESPACES)
+                        sv_text_id = sv_name_elem.get('textId') if sv_name_elem is not None else None
+                        sv_name = self._resolve_text(sv_text_id) or ''
+                        sv_xsi_type = sv.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                        direct_single_values.append(SingleValue(
+                            value=sv_value,
+                            name=sv_name,
+                            text_id=sv_text_id,
+                            xsi_type=sv_xsi_type
+                        ))
 
                 # Extract record items if it's a RecordT
                 for record_item in datatype_elem.findall('.//iodd:RecordItem', self.NAMESPACES):
@@ -1102,6 +1121,7 @@ class IODDParser:
                 bit_length=bit_length,
                 data_type=data_type,
                 record_items=record_items,
+                single_values=direct_single_values,  # PQA Fix #71
                 condition=condition_lookup.get(pd_id),  # Apply condition if exists (Phase 2)
                 name_text_id=name_id,  # PQA: Store original textId for accurate reconstruction
                 subindex_access_supported=subindex_access_supported,  # PQA: Store subindexAccessSupported
@@ -1134,6 +1154,9 @@ class IODDParser:
             uses_datatype_ref = False
             datatype_ref_id = None
 
+            # PQA Fix #71: Initialize direct_single_values before type checking
+            direct_single_values = []
+
             if datatype_ref_elem is not None:
                 # Uses DatatypeRef - reference to custom datatype
                 uses_datatype_ref = True
@@ -1145,6 +1168,21 @@ class IODDParser:
                 subindex_attr = datatype_elem.get('subindexAccessSupported')
                 if subindex_attr is not None:
                     subindex_access_supported = subindex_attr.lower() == 'true'
+
+                # PQA Fix #71: Extract direct SingleValue children of Datatype (for non-RecordT types)
+                for sv in datatype_elem.findall('iodd:SingleValue', self.NAMESPACES):
+                    sv_value = sv.get('value')
+                    if sv_value is not None:
+                        sv_name_elem = sv.find('iodd:Name', self.NAMESPACES)
+                        sv_text_id = sv_name_elem.get('textId') if sv_name_elem is not None else None
+                        sv_name = self._resolve_text(sv_text_id) or ''
+                        sv_xsi_type = sv.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                        direct_single_values.append(SingleValue(
+                            value=sv_value,
+                            name=sv_name,
+                            text_id=sv_text_id,
+                            xsi_type=sv_xsi_type
+                        ))
 
                 # Extract record items if it's a RecordT
                 for record_item in datatype_elem.findall('.//iodd:RecordItem', self.NAMESPACES):
@@ -1267,6 +1305,7 @@ class IODDParser:
                 bit_length=bit_length,
                 data_type=data_type,
                 record_items=record_items,
+                single_values=direct_single_values,  # PQA Fix #71
                 condition=condition_lookup.get(pd_id),  # Apply condition if exists (Phase 2)
                 name_text_id=name_id,  # PQA: Store original textId for accurate reconstruction
                 subindex_access_supported=subindex_access_supported,  # PQA: Store subindexAccessSupported

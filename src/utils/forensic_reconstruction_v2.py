@@ -670,6 +670,9 @@ class IODDReconstructor:
             # Add RecordItem elements for RecordT types
             if pd['data_type'] == 'RecordT':
                 self._add_process_data_record_items(conn, datatype, pd['id'])
+            else:
+                # PQA Fix #71: Add direct SingleValue children for non-RecordT types
+                self._add_process_data_direct_single_values(conn, datatype, pd['id'])
 
 
     def _add_ui_info(self, conn: sqlite3.Connection, parent: ET.Element,
@@ -697,6 +700,31 @@ class IODDReconstructor:
             ui_elem.set('unitCode', ui_info['unit_code'])
         if ui_info['display_format']:
             ui_elem.set('displayFormat', ui_info['display_format'])
+
+    def _add_process_data_direct_single_values(self, conn: sqlite3.Connection, parent: ET.Element,
+                                                process_data_id: int) -> None:
+        """PQA Fix #71: Add direct SingleValue children to ProcessData Datatype
+        
+        For non-RecordT types (like BooleanT) that have SingleValue enumerations directly under Datatype.
+        """
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT value, name, name_text_id, xsi_type
+            FROM process_data_single_values
+            WHERE process_data_id = ?
+            ORDER BY id
+        """, (process_data_id,))
+        single_values = cursor.fetchall()
+        
+        for sv in single_values:
+            sv_elem = ET.SubElement(parent, 'SingleValue')
+            # Add xsi:type if present
+            if sv['xsi_type']:
+                sv_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', sv['xsi_type'])
+            sv_elem.set('value', sv['value'])
+            if sv['name_text_id']:
+                name_elem = ET.SubElement(sv_elem, 'Name')
+                name_elem.set('textId', sv['name_text_id'])
 
     def _add_process_data_record_items(self, conn: sqlite3.Connection, parent: ET.Element,
                                        process_data_id: int) -> None:
