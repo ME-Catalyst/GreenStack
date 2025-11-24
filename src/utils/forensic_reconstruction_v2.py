@@ -1795,7 +1795,7 @@ class IODDReconstructor:
                 # Add StdRecordItemRef children
                 cursor2 = conn.cursor()
                 cursor2.execute("""
-                    SELECT subindex, default_value, order_index
+                    SELECT id, subindex, default_value, order_index
                     FROM std_record_item_refs
                     WHERE std_variable_ref_id = ?
                     ORDER BY order_index
@@ -1807,6 +1807,29 @@ class IODDReconstructor:
                     ri_elem.set('subindex', str(ri['subindex']))
                     if ri['default_value'] is not None:
                         ri_elem.set('defaultValue', ri['default_value'])
+                    
+                    # PQA Fix #76: Add SingleValue/StdSingleValueRef children
+                    cursor3 = conn.cursor()
+                    cursor3.execute("""
+                        SELECT value, name_text_id, is_std_ref, order_index
+                        FROM std_record_item_ref_single_values
+                        WHERE std_record_item_ref_id = ?
+                        ORDER BY order_index
+                    """, (ri['id'],))
+                    ri_single_values = cursor3.fetchall()
+                    
+                    for ri_sv in ri_single_values:
+                        if ri_sv['is_std_ref']:
+                            # StdSingleValueRef element
+                            ri_sv_elem = ET.SubElement(ri_elem, 'StdSingleValueRef')
+                            ri_sv_elem.set('value', ri_sv['value'])
+                        else:
+                            # SingleValue element with optional Name child
+                            ri_sv_elem = ET.SubElement(ri_elem, 'SingleValue')
+                            ri_sv_elem.set('value', ri_sv['value'])
+                            if ri_sv['name_text_id']:
+                                ri_sv_name = ET.SubElement(ri_sv_elem, 'Name')
+                                ri_sv_name.set('textId', ri_sv['name_text_id'])
         # No fallback - devices must be re-imported if std_variable_refs is empty
 
         # Phase 3 Task 9c: Create Variable elements from parameters

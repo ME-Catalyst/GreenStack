@@ -85,11 +85,22 @@ class StdVariableRefSaver(BaseSaver):
                     (std_variable_ref_id, subindex, default_value, order_index)
                     VALUES (?, ?, ?, ?)
                 """
-                ri_values = [
-                    (std_var_ref_id, ri.subindex, ri.default_value, idx)
-                    for idx, ri in enumerate(ref.record_item_refs)
-                ]
-                self._execute_many(ri_query, ri_values)
+                for idx, ri in enumerate(ref.record_item_refs):
+                    self._execute(ri_query, (std_var_ref_id, ri.subindex, ri.default_value, idx))
+                    ri_ref_id = self._get_lastrowid()
+                    
+                    # PQA Fix #76: Insert SingleValue children for this StdRecordItemRef
+                    if hasattr(ri, 'single_values') and ri.single_values:
+                        ri_sv_query = """
+                            INSERT INTO std_record_item_ref_single_values
+                            (std_record_item_ref_id, value, name_text_id, is_std_ref, order_index)
+                            VALUES (?, ?, ?, ?, ?)
+                        """
+                        ri_sv_values = [
+                            (ri_ref_id, sv.value, sv.name_text_id, 1 if sv.is_std_ref else 0, sv.order_index)
+                            for sv in ri.single_values
+                        ]
+                        self._execute_many(ri_sv_query, ri_sv_values)
 
         logger.debug(f"Saved {len(std_variable_refs)} StdVariableRef records for device {device_id}")
         return None

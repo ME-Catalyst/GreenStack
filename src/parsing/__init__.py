@@ -2493,15 +2493,44 @@ class IODDParser:
                 sv_idx += 1
 
             # Extract StdRecordItemRef children (for record variables like V_DeviceAccessLocks)
+            # PQA Fix #76: Also extract SingleValue and StdSingleValueRef children
             record_item_refs = []
             for ri_ref_elem in std_ref.findall('iodd:StdRecordItemRef', self.NAMESPACES):
                 subindex = ri_ref_elem.get('subindex')
                 ri_default = ri_ref_elem.get('defaultValue')
                 if subindex is not None:
+                    # PQA Fix #76: Extract SingleValue children of StdRecordItemRef
+                    ri_single_values = []
+                    ri_sv_idx = 0
+                    for sv_elem in ri_ref_elem.findall('iodd:SingleValue', self.NAMESPACES):
+                        sv_value = sv_elem.get('value')
+                        sv_name_elem = sv_elem.find('iodd:Name', self.NAMESPACES)
+                        sv_name_text_id = sv_name_elem.get('textId') if sv_name_elem is not None else None
+                        if sv_value is not None:
+                            ri_single_values.append(StdVariableRefSingleValue(
+                                value=sv_value,
+                                name_text_id=sv_name_text_id,
+                                is_std_ref=False,
+                                order_index=ri_sv_idx
+                            ))
+                            ri_sv_idx += 1
+                    # PQA Fix #76: Extract StdSingleValueRef children
+                    for std_sv_elem in ri_ref_elem.findall('iodd:StdSingleValueRef', self.NAMESPACES):
+                        std_sv_value = std_sv_elem.get('value')
+                        if std_sv_value is not None:
+                            ri_single_values.append(StdVariableRefSingleValue(
+                                value=std_sv_value,
+                                name_text_id=None,  # StdSingleValueRef has no Name child
+                                is_std_ref=True,
+                                order_index=ri_sv_idx
+                            ))
+                            ri_sv_idx += 1
+                    
                     from src.models import StdRecordItemRef
                     record_item_refs.append(StdRecordItemRef(
                         subindex=int(subindex),
-                        default_value=ri_default
+                        default_value=ri_default,
+                        single_values=ri_single_values,  # PQA Fix #76
                     ))
 
             refs.append(StdVariableRef(

@@ -427,6 +427,7 @@ class StdRecordItemRef:
     """StdRecordItemRef child of StdVariableRef - specifies default values for record items"""
     subindex: int
     default_value: Optional[str] = None
+    single_values: List['StdVariableRefSingleValue'] = field(default_factory=list)  # PQA Fix #76
 
 
 @dataclass
