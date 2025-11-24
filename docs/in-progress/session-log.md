@@ -2016,3 +2016,139 @@ Note: Fix #63 caused a regression (210→691 diffs) and was reverted.
 | Missing ProductRef | 2 | Low |
 | Various 1-off issues | ~11 | Low |
 
+
+---
+
+## Session: 2025-11-24
+
+### Fix #70: Variable Datatype/Name (4 diffs)
+**Commit**: `33631d0`
+
+**Problem**: Some Variables have Name element as direct child of Datatype (not inside RecordItem), which wasn't being extracted or reconstructed.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `datatype_name_text_id` field to Parameter
+2. `src/parsing/__init__.py` - Extract Datatype/Name textId for Variables
+3. `src/storage/parameter.py` - Save datatype_name_text_id
+4. `src/utils/forensic_reconstruction_v2.py` - Output Name element inside Variable/Datatype
+5. `alembic/versions/091_add_datatype_name_text_id.py` - Add column
+
+**Expected Impact**: ~4 diffs resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #71: ProcessData direct SingleValue (6 diffs)
+**Commit**: `c666a21`
+
+**Problem**: Some ProcessData elements (especially BooleanT types) have SingleValue children directly under Datatype, not inside RecordItem.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `single_values` field to ProcessData
+2. `src/parsing/__init__.py` - Extract direct SingleValue children from ProcessDataIn/Out Datatype
+3. `src/storage/process_data.py` - Added `_save_direct_single_values()` method
+4. `src/utils/forensic_reconstruction_v2.py` - Added `_add_process_data_direct_single_values()` method
+5. `alembic/versions/092_add_process_data_id_to_single_values.py` - Add process_data_id column
+
+**Expected Impact**: ~6 diffs resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #72: ProcessData Datatype/Name (3 diffs)
+**Commit**: `e5ddc51`
+
+**Problem**: ProcessData/Datatype elements can have Name child element (like Variables), which wasn't being captured.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Already had `datatype_name_text_id` field added in Fix #70
+2. `src/parsing/__init__.py` - Extract Datatype/Name textId for ProcessDataIn/Out
+3. `src/storage/process_data.py` - Save datatype_name_text_id
+4. `src/utils/forensic_reconstruction_v2.py` - Output Name inside ProcessData/Datatype
+5. `alembic/versions/093_add_process_data_datatype_name_text_id.py` - Add column
+
+**Expected Impact**: ~3 diffs resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #73: DatatypeCollection direct SingleValue - ALREADY IMPLEMENTED
+
+**Analysis**: Investigation revealed this functionality was already implemented with Fix #38.
+The parser, storage, and reconstruction code all support direct SingleValue children of custom datatypes.
+
+**Status**: NO CHANGES NEEDED - Verify with re-import
+
+---
+
+### Fix #74: RecordItem SingleValue xml_order (3 diffs)
+**Commit**: `2f536c5`
+
+**Problem**: SingleValue elements inside RecordItem/SimpleDatatype in DatatypeCollection weren't preserving their original XML order during reconstruction.
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Add enumerate index for RecordItem SingleValue extraction with xml_order
+2. `src/storage/custom_datatype.py` - Save xml_order to custom_datatype_record_item_single_values
+3. `src/utils/forensic_reconstruction_v2.py` - Order by xml_order instead of id
+4. `alembic/versions/094_add_record_item_single_value_xml_order.py` - Add xml_order column
+
+**Expected Impact**: ~3 diffs resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #75: ProcessData bitLength default (5 diffs)
+**Commit**: `5b3330b`
+
+**Problem**: ProcessDataIn/Out bitLength parser defaulted to 0 when attribute was missing, instead of None. This caused data inconsistency though reconstruction typically handled it.
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Changed `int(pd_in.get('bitLength', 0))` to `int(v) if (v := pd_in.get('bitLength')) else None` for both ProcessDataIn and ProcessDataOut
+
+**Expected Impact**: ~5 diffs resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #76: StdRecordItemRef SingleValue/StdSingleValueRef children (8 diffs)
+**Commit**: `11fca23`
+
+**Problem**: StdRecordItemRef elements can contain SingleValue and StdSingleValueRef child elements according to IODD schema, but these weren't being captured.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `single_values` field to StdRecordItemRef (reusing StdVariableRefSingleValue)
+2. `src/parsing/__init__.py` - Extract SingleValue and StdSingleValueRef children from StdRecordItemRef
+3. `src/storage/std_variable_ref.py` - Save children to std_record_item_ref_single_values table
+4. `src/utils/forensic_reconstruction_v2.py` - Output children with proper element names
+5. `alembic/versions/095_add_std_record_item_ref_single_values.py` - Create new table
+
+**Expected Impact**: ~8 diffs resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Session Summary (2025-11-24):
+
+Completed 6 fixes (Fix #70-76):
+- Fix #70: Variable Datatype/Name (~4 diffs)
+- Fix #71: ProcessData direct SingleValue (~6 diffs)
+- Fix #72: ProcessData Datatype/Name (~3 diffs)
+- Fix #73: DatatypeCollection direct SingleValue (already implemented)
+- Fix #74: RecordItem SingleValue xml_order (~3 diffs)
+- Fix #75: ProcessData bitLength default (~5 diffs)
+- Fix #76: StdRecordItemRef children (~8 diffs)
+
+**Total expected resolution**: ~29 diffs
+
+**Next Steps**:
+1. Run database migrations (091-095)
+2. Re-import all IODD files
+3. Run PQA analysis to verify improvements
+4. Address remaining minor issues
+
