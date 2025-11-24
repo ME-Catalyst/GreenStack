@@ -39,8 +39,8 @@ class CommunicationSaver(BaseSaver):
                 device_id, iolink_revision, compatible_with, bitrate,
                 min_cycle_time, msequence_capability, sio_supported,
                 connection_type, wire_config, connection_symbol, test_xsi_type,
-                product_ref_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                product_ref_id, connection_description_text_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -56,6 +56,7 @@ class CommunicationSaver(BaseSaver):
             getattr(communication_profile, 'connection_symbol', None),  # PQA Fix #19b
             getattr(communication_profile, 'test_xsi_type', None),  # PQA Fix #23
             getattr(communication_profile, 'product_ref_id', None),  # PQA Fix #26
+            getattr(communication_profile, 'connection_description_text_id', None),  # PQA Fix #39
         )
 
         self._execute(query, params)

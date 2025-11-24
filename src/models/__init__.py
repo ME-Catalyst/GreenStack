@@ -246,6 +246,7 @@ class CommunicationProfile:
     connection_symbol: Optional[str] = None  # PQA: Connection@connectionSymbol attribute
     test_xsi_type: Optional[str] = None  # PQA Fix #23: Test@xsi:type attribute
     product_ref_id: Optional[str] = None  # PQA Fix #26: Connection/ProductRef@productId
+    connection_description_text_id: Optional[str] = None  # PQA Fix #39: Connection/Description@textId
 
 
 @dataclass

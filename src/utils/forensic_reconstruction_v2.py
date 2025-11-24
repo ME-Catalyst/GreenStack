@@ -1452,6 +1452,12 @@ class IODDReconstructor:
                 product_ref = ET.SubElement(connection, 'ProductRef')
                 product_ref.set('productId', product_ref_id)
 
+            # PQA Fix #39: Add Connection/Description element if present
+            conn_desc_text_id = comm_profile['connection_description_text_id'] if 'connection_description_text_id' in comm_profile.keys() and comm_profile['connection_description_text_id'] else None
+            if conn_desc_text_id:
+                description_elem = ET.SubElement(connection, 'Description')
+                description_elem.set('textId', conn_desc_text_id)
+
             # Add wire elements
             for wire in wire_configs:
                 wire_elem_name = f"Wire{wire['wire_number']}"

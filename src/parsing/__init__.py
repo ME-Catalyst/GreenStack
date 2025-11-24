@@ -1641,6 +1641,8 @@ class IODDParser:
 
         # PQA Fix #26: Extract ProductRef@productId
         product_ref_id = None
+        # PQA Fix #39: Extract Connection/Description@textId
+        connection_description_text_id = None
 
         if connection_elem is not None:
             connection_type = connection_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type', '').replace('T', '')
@@ -1650,6 +1652,13 @@ class IODDParser:
             product_ref_elem = connection_elem.find('.//iodd:ProductRef', self.NAMESPACES)
             if product_ref_elem is not None:
                 product_ref_id = product_ref_elem.get('productId')
+
+            # PQA Fix #39: Extract Connection/Description@textId
+            connection_desc_elem = connection_elem.find('iodd:Description', self.NAMESPACES)
+            if connection_desc_elem is not None:
+                connection_description_text_id = connection_desc_elem.get('textId')
+            else:
+                connection_description_text_id = None
 
             # Extract wire configuration
             for i in range(1, 5):
@@ -1675,7 +1684,8 @@ class IODDParser:
             wire_config=wire_config,
             connection_symbol=connection_symbol,  # PQA Fix #19b
             test_xsi_type=test_xsi_type,  # PQA Fix #23
-            product_ref_id=product_ref_id  # PQA Fix #26
+            product_ref_id=product_ref_id,  # PQA Fix #26
+            connection_description_text_id=connection_description_text_id  # PQA Fix #39
         )
 
     def _extract_ui_menus(self) -> Optional[UserInterfaceMenus]:
