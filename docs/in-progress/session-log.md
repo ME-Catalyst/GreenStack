@@ -1432,3 +1432,143 @@ All fixes have been committed and pushed. Re-import required to:
 4. Populate DeviceVariant element flags and textIds
 
 After re-import, run PQA analysis to verify improvements.
+
+---
+
+## Session: 2025-11-23 (Fix #41-49 - PQA Final Push)
+
+### Current IODD PQA Status (Before Session)
+- **Total IODD Devices**: 161
+- **Average Score**: 99.84%
+- **Perfect (100%)**: 88 devices (54.7%)
+- **Near Perfect (99-99.99%)**: 65 devices (40.4%)
+- **Below 99%**: 8 devices (5.0%)
+- **Total Remaining Diffs**: 521
+
+### Fixes Completed
+
+#### Fix #41: ProcessDataRecordItemInfo Ordering (233 issues)
+**Commit**: `1bbd604` feat(pqa): Fix #41 - ProcessDataRecordItemInfo ordering
+
+**Problem**: ProcessDataRecordItemInfo elements were reconstructed in wrong order (sorted by subindex) instead of original XML order.
+
+**Changes**:
+- Model: Add xml_order field to ProcessDataUIInfo
+- Parser: Track element order when extracting ProcessDataRecordItemInfo
+- Storage: Save xml_order to process_data_ui_info table
+- Reconstruction: Order by COALESCE(xml_order, subindex)
+- Migration 076: Add xml_order column
+
+**Expected Impact**: ~233 issues resolved (requires re-import)
+
+---
+
+#### Fix #42: ProcessDataRef@processDataId (46 issues)
+**Commit**: `b9b9b85` feat(pqa): Fix #42 - ProcessDataRef ordering
+
+**Problem**: ProcessDataRef elements had Input/Output order hardcoded instead of preserving original XML order.
+
+**Changes**:
+- Model: Add pd_ref_order field to ProcessDataUIInfo
+- Parser: Track ProcessDataRef element order
+- Storage: Save pd_ref_order to process_data_ui_info table
+- Reconstruction: Order by pd_ref_order first, with direction fallback
+- Migration 077: Add pd_ref_order column
+
+**Expected Impact**: ~46 issues resolved (requires re-import)
+
+---
+
+#### Fix #44: PhysicalLayer Attributes (26 issues)
+**Commit**: `635f6be` feat(pqa): Fix #44 - PhysicalLayer physics and baudrate attributes
+
+**Problem**: PhysicalLayer missing `physics` attribute. Also, parser looked for `bitrate` but IODD uses `baudrate`.
+
+**Changes**:
+- Model: Add physics field to CommunicationProfile
+- Parser: Extract physics attribute, fix baudrate extraction
+- Storage: Save physics to communication_profile table
+- Reconstruction: Output physics attr, change bitrate to baudrate
+- Migration 078: Add physics column
+
+**Expected Impact**: ~26 issues resolved (requires re-import)
+
+---
+
+#### Fix #45: Datatype@subindexAccessSupported (21 issues)
+**Commit**: `88926ba` fix(pqa): Fix #45 - Datatype@subindexAccessSupported for false values
+
+**Problem**: DatatypeCollection/Datatype subindexAccessSupported only output when true, not when false.
+
+**Changes**:
+- Reconstruction: Check for `is not None` instead of truthy value
+
+**Expected Impact**: ~21 issues resolved (no re-import needed)
+
+---
+
+#### Fix #46: Event@mode (18 issues)
+**Commit**: `c5abfe2` feat(pqa): Fix #46 - Event@mode attribute
+
+**Problem**: Event and StdEventRef missing `mode` attribute (e.g., "AppearDisappear").
+
+**Changes**:
+- Model: Add mode field to Event
+- Parser: Extract mode from StdEventRef and Event elements
+- Storage: Save mode to events table
+- Reconstruction: Output mode attribute on both element types
+- Migration 079: Add mode column
+
+**Expected Impact**: ~18 issues resolved (requires re-import)
+
+---
+
+#### Fix #49: CommNetworkProfile@compatibleWith (11 issues)
+**Commit**: `25ca568` fix(pqa): Fix #49 - CommNetworkProfile@compatibleWith attribute
+
+**Problem**: CommNetworkProfile missing compatibleWith attribute (field was already extracted/stored, just not output).
+
+**Changes**:
+- Reconstruction: Output compatibleWith when present
+
+**Expected Impact**: ~11 issues resolved (no re-import needed)
+
+---
+
+### Commits Summary (Session 2025-11-23)
+
+1. `1bbd604` feat(pqa): Fix #41 - ProcessDataRecordItemInfo ordering
+2. `b9b9b85` feat(pqa): Fix #42 - ProcessDataRef ordering
+3. `635f6be` feat(pqa): Fix #44 - PhysicalLayer physics and baudrate attributes
+4. `88926ba` fix(pqa): Fix #45 - Datatype@subindexAccessSupported for false values
+5. `c5abfe2` feat(pqa): Fix #46 - Event@mode attribute
+6. `25ca568` fix(pqa): Fix #49 - CommNetworkProfile@compatibleWith attribute
+
+### Expected Results After Re-import
+
+| Issue Category | Count | Status |
+|----------------|-------|--------|
+| ProcessDataRecordItemInfo ordering | 233 | Requires re-import |
+| ProcessDataRef ordering | 46 | Requires re-import |
+| PhysicalLayer attributes | 26 | Requires re-import |
+| subindexAccessSupported | 21 | No re-import needed |
+| Event@mode | 18 | Requires re-import |
+| compatibleWith | 11 | No re-import needed |
+| **Total Fixed** | **355** | |
+
+### Deferred Issues (42 remaining)
+- Fix #43: SingleValue in StdRecordItemRef (42 issues) - Complex nested structure, requires significant new tables/parsing
+
+### Migrations Added This Session
+- 076: xml_order in process_data_ui_info
+- 077: pd_ref_order in process_data_ui_info
+- 078: physics in communication_profile
+- 079: mode in events
+
+---
+
+### READY FOR RE-IMPORT
+
+Re-import required to populate new fields for Fixes #41, #42, #44, #46.
+
+After re-import, run PQA analysis to verify improvements. Expected final score should be very close to 100% for most IODD devices.
