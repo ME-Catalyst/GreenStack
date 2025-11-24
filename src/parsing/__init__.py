@@ -1903,15 +1903,32 @@ class IODDParser:
             if not product_id:
                 continue
 
-            # Get name from textId
-            name_elem = variant_elem.find('.//iodd:Name', self.NAMESPACES)
+            # PQA Fix #40: Check for Name vs ProductName, Description vs ProductText
+            # Get Name element (direct child, not .// which would find nested Name elements)
+            name_elem = variant_elem.find('iodd:Name', self.NAMESPACES)
+            has_name = name_elem is not None
             name_text_id = name_elem.get('textId') if name_elem is not None else None
             name = self._resolve_text(name_text_id)
 
-            # Get description from textId
-            desc_elem = variant_elem.find('.//iodd:Description', self.NAMESPACES)
+            # Get Description element
+            desc_elem = variant_elem.find('iodd:Description', self.NAMESPACES)
+            has_description = desc_elem is not None
             desc_text_id = desc_elem.get('textId') if desc_elem is not None else None
             description = self._resolve_text(desc_text_id)
+
+            # Get ProductName element (alternative to Name)
+            product_name_elem = variant_elem.find('iodd:ProductName', self.NAMESPACES)
+            has_product_name = product_name_elem is not None
+            product_name_text_id = product_name_elem.get('textId') if product_name_elem is not None else None
+            if has_product_name and not name:
+                name = self._resolve_text(product_name_text_id)
+
+            # Get ProductText element (alternative to Description)
+            product_text_elem = variant_elem.find('iodd:ProductText', self.NAMESPACES)
+            has_product_text = product_text_elem is not None
+            product_text_text_id = product_text_elem.get('textId') if product_text_elem is not None else None
+            if has_product_text and not description:
+                description = self._resolve_text(product_text_text_id)
 
             variants.append(DeviceVariant(
                 product_id=product_id,
@@ -1920,7 +1937,13 @@ class IODDParser:
                 name=name,
                 description=description,
                 name_text_id=name_text_id,  # Preserve original textId for PQA
-                description_text_id=desc_text_id  # Preserve original textId for PQA
+                description_text_id=desc_text_id,  # Preserve original textId for PQA
+                product_name_text_id=product_name_text_id,  # PQA Fix #40
+                product_text_text_id=product_text_text_id,  # PQA Fix #40
+                has_name=has_name,
+                has_description=has_description,
+                has_product_name=has_product_name,
+                has_product_text=has_product_text
             ))
 
         logger.info(f"Extracted {len(variants)} device variants")

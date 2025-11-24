@@ -354,10 +354,13 @@ class IODDReconstructor:
         device_variant_coll = ET.SubElement(device_identity, 'DeviceVariantCollection')
 
         # Query variant data from database (including PQA textId fields)
+        # PQA Fix #40: Added ProductName/ProductText fields
         cursor = conn.cursor()
         cursor.execute("""
             SELECT product_id, device_symbol, device_icon, name, description,
-                   name_text_id, description_text_id
+                   name_text_id, description_text_id,
+                   product_name_text_id, product_text_text_id,
+                   has_name, has_description, has_product_name, has_product_text
             FROM device_variants
             WHERE device_id = ?
             LIMIT 1
@@ -378,25 +381,68 @@ class IODDReconstructor:
         if variant_row and variant_row['device_icon']:
             device_variant.set('deviceIcon', variant_row['device_icon'])
 
-        # Add variant name with proper text ID (PQA improvement - use stored textId)
-        variant_name = ET.SubElement(device_variant, 'Name')
-        name_text_id = variant_row['name_text_id'] if variant_row and 'name_text_id' in variant_row.keys() and variant_row['name_text_id'] else None
-        if name_text_id:
-            variant_name.set('textId', name_text_id)
-        elif variant_row and variant_row['product_id']:
-            variant_name.set('textId', f"TN_Variant_{variant_row['product_id']}")
-        else:
-            variant_name.set('textId', 'TN_Variant')
+        # PQA Fix #40: Output correct element type based on what was present in original
+        has_name = variant_row['has_name'] if variant_row and 'has_name' in variant_row.keys() else False
+        has_description = variant_row['has_description'] if variant_row and 'has_description' in variant_row.keys() else False
+        has_product_name = variant_row['has_product_name'] if variant_row and 'has_product_name' in variant_row.keys() else False
+        has_product_text = variant_row['has_product_text'] if variant_row and 'has_product_text' in variant_row.keys() else False
 
-        # Add variant description with proper text ID (PQA improvement - use stored textId)
-        variant_desc = ET.SubElement(device_variant, 'Description')
-        desc_text_id = variant_row['description_text_id'] if variant_row and 'description_text_id' in variant_row.keys() and variant_row['description_text_id'] else None
-        if desc_text_id:
-            variant_desc.set('textId', desc_text_id)
-        elif variant_row and variant_row['product_id']:
-            variant_desc.set('textId', f"TD_Variant_{variant_row['product_id']}")
-        else:
-            variant_desc.set('textId', 'TD_Variant')
+        # Output Name element if it was present
+        if has_name:
+            variant_name = ET.SubElement(device_variant, 'Name')
+            name_text_id = variant_row['name_text_id'] if variant_row and variant_row['name_text_id'] else None
+            if name_text_id:
+                variant_name.set('textId', name_text_id)
+            else:
+                variant_name.set('textId', 'TN_Variant')
+
+        # Output Description element if it was present
+        if has_description:
+            variant_desc = ET.SubElement(device_variant, 'Description')
+            desc_text_id = variant_row['description_text_id'] if variant_row and variant_row['description_text_id'] else None
+            if desc_text_id:
+                variant_desc.set('textId', desc_text_id)
+            else:
+                variant_desc.set('textId', 'TD_Variant')
+
+        # Output ProductName element if it was present (alternative to Name)
+        if has_product_name:
+            product_name_elem = ET.SubElement(device_variant, 'ProductName')
+            pn_text_id = variant_row['product_name_text_id'] if variant_row and variant_row['product_name_text_id'] else None
+            if pn_text_id:
+                product_name_elem.set('textId', pn_text_id)
+            else:
+                product_name_elem.set('textId', 'TN_Product_Name')
+
+        # Output ProductText element if it was present (alternative to Description)
+        if has_product_text:
+            product_text_elem = ET.SubElement(device_variant, 'ProductText')
+            pt_text_id = variant_row['product_text_text_id'] if variant_row and variant_row['product_text_text_id'] else None
+            if pt_text_id:
+                product_text_elem.set('textId', pt_text_id)
+            else:
+                product_text_elem.set('textId', 'TD_Product_Descr')
+
+        # Legacy fallback: if none of the flags are set (old data), output Name/Description
+        if not has_name and not has_description and not has_product_name and not has_product_text:
+            # Fallback for legacy data without the new flags
+            variant_name = ET.SubElement(device_variant, 'Name')
+            name_text_id = variant_row['name_text_id'] if variant_row and 'name_text_id' in variant_row.keys() and variant_row['name_text_id'] else None
+            if name_text_id:
+                variant_name.set('textId', name_text_id)
+            elif variant_row and variant_row['product_id']:
+                variant_name.set('textId', f"TN_Variant_{variant_row['product_id']}")
+            else:
+                variant_name.set('textId', 'TN_Variant')
+
+            variant_desc = ET.SubElement(device_variant, 'Description')
+            desc_text_id = variant_row['description_text_id'] if variant_row and 'description_text_id' in variant_row.keys() and variant_row['description_text_id'] else None
+            if desc_text_id:
+                variant_desc.set('textId', desc_text_id)
+            elif variant_row and variant_row['product_id']:
+                variant_desc.set('textId', f"TD_Variant_{variant_row['product_id']}")
+            else:
+                variant_desc.set('textId', 'TD_Variant')
 
         # DeviceFunction
         device_function = ET.SubElement(profile_body, 'DeviceFunction')

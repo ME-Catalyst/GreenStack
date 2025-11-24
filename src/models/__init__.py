@@ -335,6 +335,13 @@ class DeviceVariant:
     description: Optional[str] = None
     name_text_id: Optional[str] = None  # Original textId for Name element (PQA)
     description_text_id: Optional[str] = None  # Original textId for Description element (PQA)
+    # PQA Fix #40: Track ProductName/ProductText vs Name/Description
+    product_name_text_id: Optional[str] = None  # textId for ProductName element
+    product_text_text_id: Optional[str] = None  # textId for ProductText element
+    has_name: bool = False  # Whether Name element was present
+    has_description: bool = False  # Whether Description element was present
+    has_product_name: bool = False  # Whether ProductName element was present
+    has_product_text: bool = False  # Whether ProductText element was present
 
 
 @dataclass
