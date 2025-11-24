@@ -213,6 +213,7 @@ class Event:
     name_text_id: Optional[str] = None
     description_text_id: Optional[str] = None
     order_index: Optional[int] = None  # Preserve original order in IODD
+    mode: Optional[str] = None  # PQA Fix #46: Event@mode attribute (e.g., AppearDisappear)
 
 
 @dataclass

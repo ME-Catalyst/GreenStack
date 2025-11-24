@@ -29,11 +29,12 @@ class EventSaver(BaseSaver):
         self._delete_existing('events', device_id)
 
         # Prepare bulk insert with textId columns for PQA reconstruction
+        # PQA Fix #46: Added mode column
         query = """
             INSERT INTO events (
                 device_id, code, name, description, event_type,
-                name_text_id, description_text_id, order_index
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                name_text_id, description_text_id, order_index, mode
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -47,6 +48,7 @@ class EventSaver(BaseSaver):
                 getattr(event, 'name_text_id', None),
                 getattr(event, 'description_text_id', None),
                 getattr(event, 'order_index', None),
+                getattr(event, 'mode', None),  # PQA Fix #46
             ))
 
         if params_list:

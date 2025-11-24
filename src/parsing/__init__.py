@@ -1229,6 +1229,7 @@ class IODDParser:
                 # Standard event reference - no textIds, just code
                 code = int(child.get('code', 0))
                 event_name = self._get_standard_event_name(code)
+                mode = child.get('mode')  # PQA Fix #46
 
                 events.append(Event(
                     code=code,
@@ -1237,7 +1238,8 @@ class IODDParser:
                     event_type=None,  # StdEventRef has no type
                     name_text_id=None,
                     description_text_id=None,
-                    order_index=order_index
+                    order_index=order_index,
+                    mode=mode  # PQA Fix #46
                 ))
                 order_index += 1
 
@@ -1245,6 +1247,7 @@ class IODDParser:
                 # Custom event - preserve textIds
                 code = int(child.get('code', 0))
                 event_type = child.get('type')  # Notification, Warning, Error
+                mode = child.get('mode')  # PQA Fix #46
 
                 # Get name and its textId
                 name_elem = child.find('iodd:Name', self.NAMESPACES)
@@ -1263,7 +1266,8 @@ class IODDParser:
                     event_type=event_type,
                     name_text_id=name_text_id,
                     description_text_id=desc_text_id,
-                    order_index=order_index
+                    order_index=order_index,
+                    mode=mode  # PQA Fix #46
                 ))
                 order_index += 1
 

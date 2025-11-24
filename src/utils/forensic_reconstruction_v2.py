@@ -1947,9 +1947,10 @@ class IODDReconstructor:
         """
         cursor = conn.cursor()
         # Order by order_index (if available) or id to preserve original XML order
+        # PQA Fix #46: Include mode column
         cursor.execute("""
             SELECT code, name, description, event_type,
-                   name_text_id, description_text_id, order_index
+                   name_text_id, description_text_id, order_index, mode
             FROM events
             WHERE device_id = ?
             ORDER BY COALESCE(order_index, id)
@@ -1964,6 +1965,7 @@ class IODDReconstructor:
         for event in events:
             # Check for stored textIds - if name_text_id is NULL, this is a StdEventRef
             name_text_id = event['name_text_id'] if 'name_text_id' in event.keys() else None
+            mode = event['mode'] if 'mode' in event.keys() else None  # PQA Fix #46
 
             # StdEventRef: standard IO-Link events have no type and no name_text_id
             # (Parser stores NULL for name_text_id on StdEventRef elements)
@@ -1972,12 +1974,18 @@ class IODDReconstructor:
             if is_std_event:
                 std_ref = ET.SubElement(collection, 'StdEventRef')
                 std_ref.set('code', str(event['code']))
+                # PQA Fix #46: Add mode attribute if present
+                if mode:
+                    std_ref.set('mode', mode)
             else:
                 # Event: device-specific events with type, name, description
                 event_elem = ET.SubElement(collection, 'Event')
                 event_elem.set('code', str(event['code']))
                 if event['event_type']:
                     event_elem.set('type', event['event_type'])
+                # PQA Fix #46: Add mode attribute if present
+                if mode:
+                    event_elem.set('mode', mode)
 
                 # Use stored textIds directly (no reverse-lookup needed)
                 if name_text_id:
