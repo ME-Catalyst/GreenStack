@@ -1887,6 +1887,12 @@ class IODDReconstructor:
                         if fixed_length:
                             datatype_elem.set('fixedLength', str(fixed_length))
 
+                    # PQA Fix #70: Add direct Datatype/Name element if present
+                    dt_name_text_id = param['datatype_name_text_id'] if 'datatype_name_text_id' in param.keys() else None
+                    if dt_name_text_id:
+                        dt_name_elem = ET.SubElement(datatype_elem, 'Name')
+                        dt_name_elem.set('textId', dt_name_text_id)
+
                     # Add SingleValues for enumerated types
                     self._add_variable_single_values(conn, param['id'], datatype_elem)
 

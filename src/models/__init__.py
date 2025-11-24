@@ -125,6 +125,7 @@ class Parameter:
     value_range_xsi_type: Optional[str] = None  # ValueRange xsi:type (e.g., UIntegerValueRangeT)
     value_range_name_text_id: Optional[str] = None  # ValueRange Name textId
     xml_order: Optional[int] = None  # Original order in XML document (for PQA reconstruction)
+    datatype_name_text_id: Optional[str] = None  # PQA Fix #70: Datatype/Name textId (direct child)
 
 
 @dataclass

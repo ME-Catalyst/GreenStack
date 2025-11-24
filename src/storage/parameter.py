@@ -65,8 +65,9 @@ class ParameterSaver(BaseSaver):
                     value_range_xsi_type, value_range_name_text_id, xml_order,
                     string_fixed_length, string_encoding,
                     array_element_min_value, array_element_max_value,
-                    array_element_value_range_xsi_type, array_element_value_range_name_text_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    array_element_value_range_xsi_type, array_element_value_range_name_text_id,
+                    datatype_name_text_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
             self._execute(query, (
@@ -111,6 +112,7 @@ class ParameterSaver(BaseSaver):
                 getattr(param, 'array_element_max_value', None),
                 getattr(param, 'array_element_value_range_xsi_type', None),
                 getattr(param, 'array_element_value_range_name_text_id', None),
+                getattr(param, 'datatype_name_text_id', None),  # PQA Fix #70
             ))
 
             parameter_id = self._get_lastrowid()

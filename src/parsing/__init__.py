@@ -684,6 +684,11 @@ class IODDParser:
             if encoding:
                 result['string_encoding'] = encoding
 
+            # PQA Fix #70: Extract direct Datatype/Name textId (not inside SingleValue/ValueRange)
+            dt_name_elem = datatype_elem.find('iodd:Name', self.NAMESPACES)
+            if dt_name_elem is not None:
+                result['datatype_name_text_id'] = dt_name_elem.get('textId')
+
             # Extract single value enumerations (inline)
             enumeration_values = {}
             single_values = []
