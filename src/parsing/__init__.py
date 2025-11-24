@@ -845,11 +845,14 @@ class IODDParser:
                         sv_name_elem = sv_elem.find('iodd:Name', self.NAMESPACES)
                         sv_name_text_id = sv_name_elem.get('textId') if sv_name_elem is not None else None
                         sv_name = self._resolve_text(sv_name_text_id) or ''
+                        # PQA Fix #68: Extract xsi:type attribute
+                        sv_xsi_type = sv_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
 
                         single_values.append(SingleValue(
                             value=sv_value,
                             name=sv_name,
                             text_id=sv_name_text_id,
+                            xsi_type=sv_xsi_type,  # PQA Fix #68
                         ))
 
                 # Extract ValueRange from SimpleDatatype (PQA reconstruction)
