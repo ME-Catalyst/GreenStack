@@ -2258,6 +2258,9 @@ class IODDParser:
                 datatype_ref_elem = record_item_elem.find('.//iodd:DatatypeRef', self.NAMESPACES)
                 simple_datatype_elem = record_item_elem.find('.//iodd:SimpleDatatype', self.NAMESPACES)
                 item_bit_length = None  # PQA: Track if explicitly present
+                # PQA Fix #69: Initialize fixedLength and encoding
+                item_fixed_length = None
+                item_encoding = None
                 # ValueRange info (PQA reconstruction)
                 item_min_value = None
                 item_max_value = None
@@ -2272,6 +2275,9 @@ class IODDParser:
                     # PQA: Only store bitLength if explicitly present in SimpleDatatype
                     if simple_datatype_elem.get('bitLength'):
                         item_bit_length = int(simple_datatype_elem.get('bitLength'))
+                    # PQA Fix #69: Extract fixedLength and encoding from SimpleDatatype
+                    item_fixed_length = int(simple_datatype_elem.get('fixedLength')) if simple_datatype_elem.get('fixedLength') else None
+                    item_encoding = simple_datatype_elem.get('encoding')
                     # Extract ValueRange from SimpleDatatype (PQA reconstruction)
                     vr_elem = simple_datatype_elem.find('iodd:ValueRange', self.NAMESPACES)
                     if vr_elem is not None:
@@ -2318,6 +2324,8 @@ class IODDParser:
                         value_range_xsi_type=item_vr_xsi_type,
                         value_range_name_text_id=item_vr_name_text_id,  # PQA Fix #30
                         access_right_restriction=item_access_right_restriction,  # PQA
+                        fixed_length=item_fixed_length,  # PQA Fix #69
+                        encoding=item_encoding,  # PQA Fix #69
                     ))
 
             # PQA Fix #30b: Extract ValueRange at Datatype level (not inside RecordItem)

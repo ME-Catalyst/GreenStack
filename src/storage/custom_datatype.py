@@ -121,12 +121,14 @@ class CustomDatatypeSaver(BaseSaver):
         if not hasattr(datatype, 'record_items') or not datatype.record_items:
             return
 
+        # PQA Fix #69: Added fixed_length and encoding columns
         query = """
             INSERT INTO custom_datatype_record_items (
                 datatype_id, subindex, bit_offset, bit_length,
                 datatype_ref, name, name_text_id, description_text_id,
-                min_value, max_value, value_range_xsi_type, value_range_name_text_id, access_right_restriction
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                min_value, max_value, value_range_xsi_type, value_range_name_text_id, access_right_restriction,
+                fixed_length, encoding
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         # PQA Fix #21: Save one at a time to get record_item_id for SingleValues
@@ -145,6 +147,8 @@ class CustomDatatypeSaver(BaseSaver):
                 getattr(record_item, 'value_range_xsi_type', None),  # PQA: ValueRange
                 getattr(record_item, 'value_range_name_text_id', None),  # PQA Fix #30: ValueRange/Name
                 getattr(record_item, 'access_right_restriction', None),  # PQA: RecordItem attribute
+                getattr(record_item, 'fixed_length', None),  # PQA Fix #69: SimpleDatatype@fixedLength
+                getattr(record_item, 'encoding', None),  # PQA Fix #69: SimpleDatatype@encoding
             )
             self._execute(query, params)
             record_item_id = self._get_lastrowid()

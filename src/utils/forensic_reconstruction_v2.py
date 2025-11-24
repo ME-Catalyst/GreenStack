@@ -1189,6 +1189,13 @@ class IODDReconstructor:
                     datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', item['datatype_ref'])
                     if item['bit_length']:
                         datatype.set('bitLength', str(item['bit_length']))
+                    # PQA Fix #69: Add fixedLength and encoding attributes
+                    fixed_len = item['fixed_length'] if 'fixed_length' in item.keys() else None
+                    if fixed_len:
+                        datatype.set('fixedLength', str(fixed_len))
+                    enc = item['encoding'] if 'encoding' in item.keys() else None
+                    if enc:
+                        datatype.set('encoding', enc)
                     # PQA Fix #21: Add SingleValue elements inside SimpleDatatype
                     self._add_custom_datatype_record_item_single_values(conn, item['id'], datatype)
                     # Add ValueRange element if present (PQA reconstruction)
