@@ -1938,3 +1938,81 @@ Note: Reconstruction already output these when present.
 | #64 | Missing SingleValue (StdRecordItemRef) | 14 | PENDING |
 
 **Re-import required** to test fixes #61, #62, #65, #66
+---
+
+## Session 2025-11-24 (continued) - Fixes #68-69
+
+### Post-reimport stats (247 files) after Fix #61-66:
+- Perfect (100%): 216
+- Near perfect (99-100%): 31
+- Total diffs: 169
+
+Note: Fix #63 caused a regression (210→691 diffs) and was reverted.
+
+---
+
+### Fix #63 Revert: bitLength needed on Datatype element
+**Commit**: `d5c9f2e`
+
+**Problem**: Fix #63 incorrectly removed bitLength from Datatype element, assuming it only belonged on ProcessDataIn/Out. Most IODDs actually have bitLength on BOTH elements.
+
+**Impact**: Reverted. 691 diffs reduced back to ~169 diffs.
+
+---
+
+### Fix #68: Variable RecordItem SingleValue xsi:type (83 diffs)
+**Commit**: `487e6ec`
+
+**Problem**: Fix #61 added xsi:type extraction for ProcessData SingleValues but not for Variable RecordItem SingleValues. The storage and reconstruction code already handled xsi_type but the parser was missing extraction.
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Extract xsi:type from Variable RecordItem SingleValue elements in `_extract_variable_record_items()`
+
+**Expected Impact**: ~83 issues resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #69: DatatypeCollection RecordItem fixedLength/encoding (~11 diffs)
+**Commit**: `da79dce`
+
+**Problem**: fixedLength and encoding attributes on DatatypeCollection RecordItem/SimpleDatatype were not being extracted or stored.
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Extract fixedLength and encoding from SimpleDatatype in custom datatype RecordItems
+2. `src/storage/custom_datatype.py` - Save fixed_length and encoding to custom_datatype_record_items
+3. `src/utils/forensic_reconstruction_v2.py` - Output fixedLength and encoding when present
+
+**Expected Impact**: ~11 issues resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Post-Fix #68 stats (247 files):
+- Perfect (100%): 222
+- Near perfect (99-100%): 25
+- Total diffs: 86
+
+---
+
+### Remaining Issues Analysis (86 diffs):
+
+| Issue | Count | Complexity |
+|-------|-------|------------|
+| Missing SingleValue in ProcessData/Datatype (direct children) | 6 | High - needs schema changes |
+| Missing SingleValue in StdRecordItemRef | 5 | High - needs new model/storage |
+| Missing StdSingleValueRef in StdRecordItemRef | 3 | High - same as above |
+| Missing Name in Variable/Datatype | 4 | Medium |
+| Extra bitLength on some ProcessData/Datatype | 5 | Medium - needs tracking |
+| Missing SimpleDatatype in DatatypeCollection | 3 | Medium |
+| Missing SingleValue in DatatypeCollection | 3 | Medium |
+| Missing Name in ProcessData/Datatype | 3 | Medium |
+| Extra VendorLogo elements | 2 | Low |
+| mSequenceCapability format (01 vs 1) | 2 | Low - leading zeros |
+| schemaLocation mismatch | 2 | Investigation needed |
+| Missing Test element | 2 | Low |
+| Missing ProductRef | 2 | Low |
+| Various 1-off issues | ~11 | Low |
+
