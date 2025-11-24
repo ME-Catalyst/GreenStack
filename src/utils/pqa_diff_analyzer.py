@@ -393,6 +393,17 @@ class DiffAnalyzer:
             value_score * self.WEIGHTS['value']
         )
 
+        # Ensure 100% only if ALL sub-scores are exactly 100% and no diffs exist
+        has_any_diffs = len(diff_items) > 0
+        all_subscores_perfect = (
+            structural_score == 100.0 and
+            attribute_score == 100.0 and
+            value_score == 100.0
+        )
+        if overall_score == 100.0 and (has_any_diffs or not all_subscores_perfect):
+            # Cap at 99.99% if there are any issues
+            overall_score = 99.99
+
         # Data loss calculation
         data_loss_percentage = (missing_elements / total_elements * 100) if total_elements > 0 else 0
 
