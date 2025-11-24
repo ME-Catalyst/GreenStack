@@ -83,11 +83,13 @@ class ProcessDataSaver(BaseSaver):
 
     def _save_process_data_entry(self, device_id: int, pd, direction: str) -> int:
         """Save main process data entry"""
+        # PQA Fix #53: Added uses_datatype_ref and datatype_ref_id columns
         query = """
             INSERT INTO process_data (
                 device_id, pd_id, name, direction, bit_length, data_type, description,
-                name_text_id, subindex_access_supported, wrapper_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                name_text_id, subindex_access_supported, wrapper_id,
+                uses_datatype_ref, datatype_ref_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -101,6 +103,8 @@ class ProcessDataSaver(BaseSaver):
             getattr(pd, 'name_text_id', None),  # PQA: Store original textId
             getattr(pd, 'subindex_access_supported', None),  # PQA: Store subindexAccessSupported
             getattr(pd, 'wrapper_id', None),  # PQA Fix #18: Store wrapper ProcessData ID
+            1 if getattr(pd, 'uses_datatype_ref', False) else 0,  # PQA Fix #53
+            getattr(pd, 'datatype_ref_id', None),  # PQA Fix #53
         )
 
         self._execute(query, params)

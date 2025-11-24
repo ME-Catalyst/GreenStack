@@ -621,8 +621,16 @@ class IODDReconstructor:
             name_elem = ET.SubElement(direction_elem, 'Name')
             name_elem.set('textId', name_text_id)
 
-        # Datatype goes inside ProcessDataIn/ProcessDataOut
-        if pd['data_type']:
+        # PQA Fix #53: Use DatatypeRef or inline Datatype based on original
+        uses_datatype_ref = pd['uses_datatype_ref'] if 'uses_datatype_ref' in pd.keys() else False
+        datatype_ref_id = pd['datatype_ref_id'] if 'datatype_ref_id' in pd.keys() else None
+
+        if uses_datatype_ref and datatype_ref_id:
+            # Use DatatypeRef to reference custom datatype
+            datatype_ref = ET.SubElement(direction_elem, 'DatatypeRef')
+            datatype_ref.set('datatypeId', datatype_ref_id)
+        elif pd['data_type']:
+            # Use inline Datatype
             datatype = ET.SubElement(direction_elem, 'Datatype')
             datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', pd['data_type'])
             if pd['bit_length']:

@@ -878,12 +878,21 @@ class IODDParser:
             name = self._resolve_text(name_id) or 'Input'
 
             # Extract datatype info
-            datatype_elem = pd_in.find('.//iodd:Datatype', self.NAMESPACES)
+            # PQA Fix #53: Check for DatatypeRef vs inline Datatype
+            datatype_ref_elem = pd_in.find('iodd:DatatypeRef', self.NAMESPACES)
+            datatype_elem = pd_in.find('iodd:Datatype', self.NAMESPACES)
             data_type = 'Unknown'
             record_items = []
             subindex_access_supported = None  # PQA: Track subindexAccessSupported attribute
+            uses_datatype_ref = False
+            datatype_ref_id = None
 
-            if datatype_elem is not None:
+            if datatype_ref_elem is not None:
+                # Uses DatatypeRef - reference to custom datatype
+                uses_datatype_ref = True
+                datatype_ref_id = datatype_ref_elem.get('datatypeId')
+                data_type = datatype_ref_id or 'Unknown'
+            elif datatype_elem is not None:
                 data_type = datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'RecordT')
                 # PQA: Extract subindexAccessSupported attribute (store as bool or None)
                 subindex_attr = datatype_elem.get('subindexAccessSupported')
@@ -1002,7 +1011,9 @@ class IODDParser:
                 condition=condition_lookup.get(pd_id),  # Apply condition if exists (Phase 2)
                 name_text_id=name_id,  # PQA: Store original textId for accurate reconstruction
                 subindex_access_supported=subindex_access_supported,  # PQA: Store subindexAccessSupported
-                wrapper_id=wrapper_id_lookup.get(pd_id)  # PQA Fix #18: Store wrapper ProcessData ID
+                wrapper_id=wrapper_id_lookup.get(pd_id),  # PQA Fix #18: Store wrapper ProcessData ID
+                uses_datatype_ref=uses_datatype_ref,  # PQA Fix #53
+                datatype_ref_id=datatype_ref_id  # PQA Fix #53
             )
             collection.inputs.append(process_data)
             collection.total_input_bits += bit_length
@@ -1020,12 +1031,21 @@ class IODDParser:
             name = self._resolve_text(name_id) or 'Output'
 
             # Extract datatype info
-            datatype_elem = pd_out.find('.//iodd:Datatype', self.NAMESPACES)
+            # PQA Fix #53: Check for DatatypeRef vs inline Datatype
+            datatype_ref_elem = pd_out.find('iodd:DatatypeRef', self.NAMESPACES)
+            datatype_elem = pd_out.find('iodd:Datatype', self.NAMESPACES)
             data_type = 'Unknown'
             record_items = []
             subindex_access_supported = None  # PQA: Track subindexAccessSupported attribute
+            uses_datatype_ref = False
+            datatype_ref_id = None
 
-            if datatype_elem is not None:
+            if datatype_ref_elem is not None:
+                # Uses DatatypeRef - reference to custom datatype
+                uses_datatype_ref = True
+                datatype_ref_id = datatype_ref_elem.get('datatypeId')
+                data_type = datatype_ref_id or 'Unknown'
+            elif datatype_elem is not None:
                 data_type = datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'RecordT')
                 # PQA: Extract subindexAccessSupported attribute (store as bool or None)
                 subindex_attr = datatype_elem.get('subindexAccessSupported')
@@ -1144,7 +1164,9 @@ class IODDParser:
                 condition=condition_lookup.get(pd_id),  # Apply condition if exists (Phase 2)
                 name_text_id=name_id,  # PQA: Store original textId for accurate reconstruction
                 subindex_access_supported=subindex_access_supported,  # PQA: Store subindexAccessSupported
-                wrapper_id=wrapper_id_lookup.get(pd_id)  # PQA Fix #18: Store wrapper ProcessData ID
+                wrapper_id=wrapper_id_lookup.get(pd_id),  # PQA Fix #18: Store wrapper ProcessData ID
+                uses_datatype_ref=uses_datatype_ref,  # PQA Fix #53
+                datatype_ref_id=datatype_ref_id  # PQA Fix #53
             )
             collection.outputs.append(process_data)
             collection.total_output_bits += bit_length
