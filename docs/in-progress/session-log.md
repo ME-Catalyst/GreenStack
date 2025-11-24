@@ -2432,3 +2432,73 @@ Reviewed:
 
 **Expected Impact After Correct Workflow**: -140 diffs (47% reduction)
 
+---
+
+## Session: 2025-11-24d (setup.bat Window Exit Fix)
+
+### Issue: setup.bat Window Closing After App Stops
+
+**Commit**: `94f8220` fix(setup): prevent window exit after app stops
+
+**Problem**: User reported "setup.bat window exit after launch now" - CMD window was closing immediately after application stopped (via Ctrl+C or error), preventing user from seeing final status or error messages.
+
+**Root Cause**: After `python -m src.start` completed (whether gracefully or with error), the batch script continued to `goto :eof` and exited, closing the window without pause.
+
+**Investigation**:
+- Reviewed `src/start.py` - confirmed it runs indefinitely (while True loop) until Ctrl+C
+- If window closes immediately, means either:
+  1. Script failed before reaching loop
+  2. User pressed Ctrl+C and script exited without pause
+  3. Error occurred and was not caught
+
+**Changes Made**:
+1. `scripts/setup.bat` (Lines 174-191):
+   - Capture exit code: `set START_EXIT_CODE=%errorlevel%`
+   - Show status message: "Application stopped gracefully" or "Application exited with error code: X"
+   - **Add `pause` before exit** - ensures window stays open
+   - Display exit code in error message
+
+2. Created verification scripts:
+   - `test_setup_cleanup.bat` - Tests all cleanup functions
+   - `verify_setup_functionality.py` - Validates setup.bat structure
+   - `SETUP_BAT_USAGE.md` - Complete usage guide
+
+**Verification Results**:
+```
+[OK] Backend cleanup
+[OK] Cache cleanup
+[OK] Python check
+[OK] Dependencies
+[OK] Redis check
+[OK] Stats update
+[OK] Launch app
+[OK] Error handling
+[OK] Pause on exit      ← NEW
+[OK] All checks passed
+```
+
+**Expected Behavior After Fix**:
+1. User runs `scripts\setup.bat`
+2. Application starts and runs until Ctrl+C
+3. **Window stays open** with status message:
+   ```
+   ══════════════════════════════════════════════════════════════
+      Application stopped gracefully
+   ══════════════════════════════════════════════════════════════
+
+   Press any key to continue . . .
+   ```
+4. User can review any error messages or status
+5. User presses any key to close window
+
+**Status**: FIXED and VERIFIED - Ready for testing
+
+**Related to Fix #86-92 Testing**: The setup.bat clean restart is critical for testing menu duplicate fix, as it ensures:
+- All backend processes stopped
+- Python bytecode cache cleared
+- Fresh code loads from disk
+- No stale cache or duplicate backends interfering with upload
+
+**Documentation Created**:
+- `SETUP_BAT_USAGE.md` - Complete guide including Fix #86-92 test procedure
+
