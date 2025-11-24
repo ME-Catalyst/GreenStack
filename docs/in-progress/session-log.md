@@ -1817,3 +1817,124 @@ Re-import required to store NULL for missing subindexAccessSupported attributes.
 **Expected Impact**: ~135 issues resolved (96 gradient + 39 offset)
 
 **Status**: COMMITTED
+
+---
+
+## Session 2025-11-24 - Fixes #61-67
+
+### Pre-session stats (247 files):
+- Perfect (100%): 202
+- Near perfect (99-100%): 45
+- Total diffs: 210
+
+---
+
+### Fix #61: SingleValue xsi:type attribute (94 diffs)
+**Commit**: `d355b2b`
+
+**Problem**: SingleValue elements inside RecordItem/SimpleDatatype were missing xsi:type attribute (e.g., "BooleanValueT"). Affected both Variable and ProcessData collections.
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Extract xsi:type from SingleValue elements (2 locations)
+2. `src/storage/process_data.py` - Save xsi_type to process_data_single_values
+3. `src/storage/parameter.py` - Save xsi_type to record_item_single_values
+4. `src/utils/forensic_reconstruction_v2.py` - Output xsi:type on SingleValue (2 locations)
+5. `alembic/versions/088_add_single_value_xsi_type.py` - Add xsi_type columns
+
+**Expected Impact**: ~94 issues resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #62: deviceId leading zeros format (10 diffs)
+**Commit**: `d7065f7`
+
+**Problem**: deviceId values like "005" were being converted to integers, becoming "5" in reconstruction.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added device_id_str to DeviceInfo
+2. `src/parsing/__init__.py` - Store original deviceId string
+3. `src/storage/device.py` - Save device_id_str to devices table
+4. `src/utils/forensic_reconstruction_v2.py` - Use device_id_str when available
+5. `alembic/versions/089_add_device_id_str.py` - Add device_id_str column
+
+**Expected Impact**: ~10 issues resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #63: Extra bitLength on ProcessData/Datatype (7 diffs)
+**Commit**: `fbec3ce`
+
+**Problem**: bitLength was being output on both ProcessDataIn/Out element AND its child Datatype element, but original only had it on ProcessDataIn/Out.
+
+**Changes Made**:
+1. `src/utils/forensic_reconstruction_v2.py` - Removed bitLength output from Datatype element (it belongs on ProcessDataIn/Out)
+
+**Expected Impact**: ~7 issues resolved (no re-import needed)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #65: RecordItem SimpleDatatype fixedLength/encoding (13+6 diffs)
+**Commit**: `dc8f667`
+
+**Problem**: fixedLength and encoding attributes on RecordItem/SimpleDatatype were not being extracted or stored for ProcessData RecordItems.
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Extract fixedLength and encoding from SimpleDatatype (2 locations)
+2. `src/storage/process_data.py` - Save fixed_length and encoding to process_data_record_items
+
+Note: Reconstruction already output these when present.
+
+**Expected Impact**: ~19 issues resolved (~13 fixedLength + ~6 encoding) (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #66: Missing TextRedefine elements (12 diffs)
+**Commit**: `a8f15bd`
+
+**Problem**: TextRedefine elements (used to redefine standard text IDs like STD_TN_DeviceSpecific_*) were being output as Text elements.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added text_redefine_ids to DeviceProfile
+2. `src/parsing/__init__.py` - Extract TextRedefine elements (marked with is_text_redefine)
+3. `src/storage/text.py` - Save is_text_redefine to iodd_text table
+4. `src/storage/__init__.py` - Pass text_redefine_ids to TextSaver
+5. `src/utils/forensic_reconstruction_v2.py` - Output TextRedefine vs Text based on flag
+6. `alembic/versions/090_add_is_text_redefine.py` - Add is_text_redefine column
+
+**Expected Impact**: ~12 issues resolved (requires re-import)
+
+**Status**: COMMITTED
+
+---
+
+### Fix #64: Missing SingleValue elements (14 diffs) - PENDING
+
+**Problem**: Various SingleValue elements missing in reconstruction:
+- StdRecordItemRef/SingleValue and StdSingleValueRef
+- ProcessDataIn/Datatype/SingleValue
+- DatatypeCollection/Datatype/SingleValue
+
+**Note**: Requires additional model/parser/storage changes for StdRecordItemRef children. Deferred for now.
+
+---
+
+### Summary - Session 2025-11-24
+
+| Fix | Issue | Count | Status |
+|-----|-------|-------|--------|
+| #61 | SingleValue xsi:type | 94 | COMMITTED |
+| #62 | deviceId leading zeros | 10 | COMMITTED |
+| #63 | Extra bitLength | 7 | COMMITTED |
+| #65 | RecordItem fixedLength/encoding | 19 | COMMITTED |
+| #66 | TextRedefine elements | 12 | COMMITTED |
+| #64 | Missing SingleValue (StdRecordItemRef) | 14 | PENDING |
+
+**Re-import required** to test fixes #61, #62, #65, #66
