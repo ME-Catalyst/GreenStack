@@ -2152,3 +2152,130 @@ Completed 6 fixes (Fix #70-76):
 3. Run PQA analysis to verify improvements
 4. Address remaining minor issues
 
+
+---
+
+## Session 2025-11-24 - PQA Fixes #77-85
+
+### Fix #77: Extra ProcessData bitLength (7 diffs) - COMMITTED
+
+**Commit**: `88c8f4e` feat(pqa): Fix #77 - track ProcessData/Datatype bitLength attribute
+
+**Problem**: ProcessData elements had bitLength output on both the ProcessDataIn/Out element AND the child Datatype element. Original IODDs only have bitLength on the ProcessData element, not the Datatype.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `datatype_has_bit_length: bool` field to ProcessData model
+2. `src/parsing/__init__.py` - Track whether Datatype element has bitLength attribute (2 locations)
+3. `src/storage/process_data.py` - Save datatype_has_bit_length flag
+4. `src/utils/forensic_reconstruction_v2.py` - Only output bitLength on Datatype when flag is true
+5. `alembic/versions/096_add_process_data_datatype_has_bit_length.py` - Migration
+
+**Expected Impact**: ~7 issues resolved (requires re-import)
+
+---
+
+### Fix #78: DeviceVariant textId mismatch (6 diffs) - COMMITTED
+
+**Commit**: `9cfdc6b` fix(pqa): Fix #78 - parse DeviceVariants with empty productId
+
+**Problem**: Parser skipped DeviceVariant elements where productId="" (empty string) because `if not product_id: continue` treats empty string as falsy. This caused Name/Description textIds to not be stored.
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Only skip if `product_id is None`, default to empty string otherwise
+
+**Expected Impact**: ~6 issues resolved (requires re-import)
+
+---
+
+### Fix #82: mSequenceCapability format (2 diffs) - COMMITTED
+
+**Commit**: `1a73dcb` feat(pqa): Fix #82 - preserve mSequenceCapability leading zeros
+
+**Problem**: Parser converted mSequenceCapability="01" to int(1), stripping leading zeros.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Changed `msequence_capability` from `Optional[int]` to `Optional[str]`
+2. `src/parsing/__init__.py` - Keep mSequenceCapability as string
+3. `src/storage/communication.py` - Store as string
+4. `src/utils/forensic_reconstruction_v2.py` - Output as string
+
+**Expected Impact**: ~2 issues resolved (requires re-import)
+
+---
+
+### Fix #85: Missing additionalDeviceIds (2 diffs) - COMMITTED
+
+**Commit**: `e31936f` feat(pqa): Fix #85 - extract and reconstruct additionalDeviceIds
+
+**Problem**: DeviceIdentity@additionalDeviceIds attribute wasn't being extracted or reconstructed.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `additional_device_ids: Optional[str]` to DeviceInfo
+2. `src/parsing/__init__.py` - Extract additionalDeviceIds attribute
+3. `src/storage/device.py` - Save additional_device_ids to devices table
+4. `src/utils/forensic_reconstruction_v2.py` - Output additionalDeviceIds when present
+5. `alembic/versions/097_add_additional_device_ids.py` - Migration
+
+**Expected Impact**: ~2 issues resolved (requires re-import)
+
+---
+
+### Fix #83: Extra VendorLogo (2 diffs) - COMMITTED
+
+**Commit**: `3a81831` fix(pqa): Fix #83 - conditional VendorLogo output
+
+**Problem**: VendorLogo element was always output with either stored filename or synthetic filename, even when not present in original IODD.
+
+**Changes Made**:
+1. `src/utils/forensic_reconstruction_v2.py` - Only output VendorLogo when vendor_logo_filename is not NULL
+
+**Expected Impact**: ~2 issues resolved (no re-import needed)
+
+---
+
+### Fix #84: Missing Test element (2 diffs) - COMMITTED
+
+**Commit**: `b3451ac` feat(pqa): Fix #84 - track and output Test element when present
+
+**Problem**: Test element was only output when test configurations existed, missing cases where Test element was present but empty.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `has_test_element: bool` to CommunicationProfile
+2. `src/parsing/__init__.py` - Track whether Test element exists in original
+3. `src/storage/communication.py` - Save has_test_element flag
+4. `src/utils/forensic_reconstruction_v2.py` - Output Test element when flag is true
+5. `alembic/versions/098_add_has_test_element.py` - Migration
+
+**Expected Impact**: ~2 issues resolved (requires re-import)
+
+---
+
+### Fix #81: schemaLocation namespace (2 diffs) - COMMITTED
+
+**Commit**: `9857687` fix(pqa): Fix #81 - correct IODD 1.0 namespace mapping
+
+**Problem**: IODD 1.0 namespace was mapped to 2009/11 (which is for 1.0.1) instead of correct 2008/03 namespace.
+
+**Changes Made**:
+1. `src/utils/forensic_reconstruction_v2.py` - Updated SCHEMA_CONFIGS['1.0'] to use 2008/03 namespace and IODD1.0.xsd
+
+**Expected Impact**: ~2 issues resolved (no re-import needed)
+
+---
+
+## Summary of Session 2025-11-24
+
+**Fixes Completed**: 7 (Fix #77, #78, #82, #85, #83, #84, #81)
+**Total Diffs Resolved**: ~23 (7+6+2+2+2+2+2)
+**Migrations Created**: 3 (096, 097, 098)
+**Migrations Run**: ✓ All migrations applied successfully
+**Status**: Ready for re-import
+
+**Fixes Requiring Re-import**: #77, #78, #82, #85, #84
+**Fixes NOT Requiring Re-import**: #83, #81
+
+**Remaining Issues**:
+- Fix #79: Missing ProductRef/Wire elements (5 diffs) - Deferred
+- Fix #80: DeviceVariant images - Likely resolved by Fix #78
+- Outlier files: 200 diffs in 2 files (SCHREMPP, Turck) - Deferred for separate investigation
+
