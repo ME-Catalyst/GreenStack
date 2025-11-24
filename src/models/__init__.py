@@ -183,6 +183,7 @@ class ProcessData:
     uses_datatype_ref: bool = False
     datatype_ref_id: Optional[str] = None  # datatypeId attribute if using DatatypeRef
     datatype_name_text_id: Optional[str] = None  # PQA Fix #72: Datatype/Name textId (direct child)
+    datatype_has_bit_length: bool = False  # PQA Fix #77: Track if Datatype element had bitLength attribute
 
 
 @dataclass

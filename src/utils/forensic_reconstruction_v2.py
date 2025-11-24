@@ -660,8 +660,9 @@ class IODDReconstructor:
             # Use inline Datatype
             datatype = ET.SubElement(direction_elem, 'Datatype')
             datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', pd['data_type'])
-            # bitLength goes on both ProcessDataIn/Out AND Datatype element (reverted Fix #63)
-            if pd['bit_length']:
+            # PQA Fix #77: Only output bitLength on Datatype if original had it
+            datatype_has_bit_length = pd.get('datatype_has_bit_length', False) if hasattr(pd, 'get') else pd['datatype_has_bit_length'] if 'datatype_has_bit_length' in pd.keys() else False
+            if pd['bit_length'] and datatype_has_bit_length:
                 datatype.set('bitLength', str(pd['bit_length']))
             # Add subindexAccessSupported attribute (PQA accuracy)
             subindex_access = pd['subindex_access_supported'] if 'subindex_access_supported' in pd.keys() else None
