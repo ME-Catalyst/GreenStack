@@ -980,8 +980,9 @@ class IODDReconstructor:
                                  dt['datatype_xsi_type'])
 
             # Phase 2 Task 7: Add subindexAccessSupported attribute for RecordT types
-            if dt['subindex_access_supported']:
-                datatype_elem.set('subindexAccessSupported', 'true')
+            # PQA Fix #45: Output subindexAccessSupported even when false
+            if dt['subindex_access_supported'] is not None:
+                datatype_elem.set('subindexAccessSupported', 'true' if dt['subindex_access_supported'] else 'false')
 
             # Add bitLength attribute if present
             if dt['bit_length']:
