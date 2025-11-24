@@ -1373,34 +1373,38 @@ class _DeprecatedIODDParser:
 
         menus = []
 
-        # Extract all menus
-        for menu_elem in ui_elem.findall('.//iodd:Menu', self.NAMESPACES):
+        # Extract all menus from MenuCollection only (not from RoleMenuSets)
+        menu_collection = ui_elem.find('.//iodd:MenuCollection', self.NAMESPACES)
+        if menu_collection is None:
+            return None
+
+        for menu_elem in menu_collection.findall('iodd:Menu', self.NAMESPACES):
             menu_id = menu_elem.get('id')
             if not menu_id:
                 continue
 
-            # Get menu name from textId
-            name_elem = menu_elem.find('.//iodd:Name', self.NAMESPACES)
+            # Get menu name from textId (direct child only)
+            name_elem = menu_elem.find('iodd:Name', self.NAMESPACES)
             name_id = name_elem.get('textId') if name_elem is not None else None
             menu_name = self._resolve_text(name_id) or menu_id
 
             items = []
 
-            # Extract variable references
-            for var_ref in menu_elem.findall('.//iodd:VariableRef', self.NAMESPACES):
+            # Extract variable references (direct children only)
+            for var_ref in menu_elem.findall('iodd:VariableRef', self.NAMESPACES):
                 # Parse gradient and offset (Phase 1)
                 gradient = var_ref.get('gradient')
                 offset = var_ref.get('offset')
 
-                # Extract button configurations (Phase 3)
+                # Extract button configurations (Phase 3) (direct children only)
                 buttons = []
-                for button_elem in var_ref.findall('.//iodd:Button', self.NAMESPACES):
+                for button_elem in var_ref.findall('iodd:Button', self.NAMESPACES):
                     button_value = button_elem.get('buttonValue')
-                    desc_elem = button_elem.find('.//iodd:Description', self.NAMESPACES)
+                    desc_elem = button_elem.find('iodd:Description', self.NAMESPACES)
                     desc_text_id = desc_elem.get('textId') if desc_elem is not None else None
                     description = self._resolve_text(desc_text_id)
 
-                    action_msg_elem = button_elem.find('.//iodd:ActionStartedMessage', self.NAMESPACES)
+                    action_msg_elem = button_elem.find('iodd:ActionStartedMessage', self.NAMESPACES)
                     action_msg_text_id = action_msg_elem.get('textId') if action_msg_elem is not None else None
                     action_started_message = self._resolve_text(action_msg_text_id)
 
@@ -1421,8 +1425,8 @@ class _DeprecatedIODDParser:
                     buttons=buttons
                 ))
 
-            # Extract record item references
-            for record_ref in menu_elem.findall('.//iodd:RecordItemRef', self.NAMESPACES):
+            # Extract record item references (direct children only)
+            for record_ref in menu_elem.findall('iodd:RecordItemRef', self.NAMESPACES):
                 # Parse gradient and offset (Phase 1)
                 gradient = record_ref.get('gradient')
                 offset = record_ref.get('offset')
@@ -1437,9 +1441,9 @@ class _DeprecatedIODDParser:
                     offset=float(offset) if offset else None
                 ))
 
-            # Extract menu references (sub-menus)
+            # Extract menu references (sub-menus) (direct children only)
             sub_menus = []
-            for menu_ref in menu_elem.findall('.//iodd:MenuRef', self.NAMESPACES):
+            for menu_ref in menu_elem.findall('iodd:MenuRef', self.NAMESPACES):
                 sub_menu_id = menu_ref.get('menuId')
                 if sub_menu_id:
                     sub_menus.append(sub_menu_id)
