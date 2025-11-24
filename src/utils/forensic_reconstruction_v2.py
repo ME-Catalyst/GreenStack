@@ -1449,6 +1449,11 @@ class IODDReconstructor:
         if comm_profile['iolink_revision']:
             comm_elem.set('iolinkRevision', comm_profile['iolink_revision'])
 
+        # PQA Fix #49: Add compatibleWith attribute if present
+        compatible_with = comm_profile['compatible_with'] if 'compatible_with' in comm_profile.keys() else None
+        if compatible_with:
+            comm_elem.set('compatibleWith', compatible_with)
+
         # Create TransportLayers
         transport_layers = ET.SubElement(comm_elem, 'TransportLayers')
 
