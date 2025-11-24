@@ -2028,7 +2028,9 @@ class IODDParser:
                 has_name=has_name,
                 has_description=has_description,
                 has_product_name=has_product_name,
-                has_product_text=has_product_text
+                has_product_text=has_product_text,
+                hardware_revision=variant_elem.get('hardwareRevision'),  # PQA Fix #58
+                firmware_revision=variant_elem.get('firmwareRevision'),  # PQA Fix #58
             ))
 
         logger.info(f"Extracted {len(variants)} device variants")

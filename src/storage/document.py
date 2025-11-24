@@ -107,13 +107,15 @@ class DeviceVariantsSaver(BaseSaver):
         self._delete_existing('device_variants', device_id)
 
         # PQA Fix #40: Added ProductName/ProductText fields and presence flags
+        # PQA Fix #58: Added hardware_revision, firmware_revision
         query = """
             INSERT INTO device_variants (
                 device_id, product_id, device_symbol, device_icon,
                 name, description, name_text_id, description_text_id,
                 product_name_text_id, product_text_text_id,
-                has_name, has_description, has_product_name, has_product_text
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                has_name, has_description, has_product_name, has_product_text,
+                hardware_revision, firmware_revision
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -133,6 +135,8 @@ class DeviceVariantsSaver(BaseSaver):
                 1 if getattr(variant, 'has_description', False) else 0,  # PQA Fix #40
                 1 if getattr(variant, 'has_product_name', False) else 0,  # PQA Fix #40
                 1 if getattr(variant, 'has_product_text', False) else 0,  # PQA Fix #40
+                getattr(variant, 'hardware_revision', None),  # PQA Fix #58
+                getattr(variant, 'firmware_revision', None),  # PQA Fix #58
             ))
 
         if params_list:

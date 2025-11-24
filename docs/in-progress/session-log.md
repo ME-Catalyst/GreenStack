@@ -1762,3 +1762,21 @@ Re-import required to store NULL for missing subindexAccessSupported attributes.
 **Expected Impact**: ~7 issues resolved (requires re-import)
 
 **Status**: COMMITTED - Requires re-import to populate data
+
+---
+
+### Fix #58: DeviceVariant firmware/hardware revision (14 issues)
+**Commit**: (pending)
+
+**Problem**: DeviceVariant elements in some IODDs have `hardwareRevision` and `firmwareRevision` attributes that were not being extracted, stored, or reconstructed.
+
+**Changes Made**:
+1. `src/models/__init__.py` - Added `hardware_revision`, `firmware_revision` to DeviceVariant
+2. `src/parsing/__init__.py` - Extract revision attributes from DeviceVariant elements
+3. `src/storage/document.py` - Save revision attributes to device_variants table
+4. `src/utils/forensic_reconstruction_v2.py` - Output revision attributes when present
+5. `alembic/versions/085_add_device_variant_revisions.py` - Add revision columns
+
+**Expected Impact**: ~14 issues resolved (requires re-import)
+
+**Status**: COMMITTED - Requires re-import to populate data

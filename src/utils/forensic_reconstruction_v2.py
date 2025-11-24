@@ -370,12 +370,14 @@ class IODDReconstructor:
 
         # Query variant data from database (including PQA textId fields)
         # PQA Fix #40: Added ProductName/ProductText fields
+        # PQA Fix #58: Added hardware_revision, firmware_revision
         cursor = conn.cursor()
         cursor.execute("""
             SELECT product_id, device_symbol, device_icon, name, description,
                    name_text_id, description_text_id,
                    product_name_text_id, product_text_text_id,
-                   has_name, has_description, has_product_name, has_product_text
+                   has_name, has_description, has_product_name, has_product_text,
+                   hardware_revision, firmware_revision
             FROM device_variants
             WHERE device_id = ?
             LIMIT 1
@@ -395,6 +397,12 @@ class IODDReconstructor:
             device_variant.set('deviceSymbol', variant_row['device_symbol'])
         if variant_row and variant_row['device_icon']:
             device_variant.set('deviceIcon', variant_row['device_icon'])
+
+        # PQA Fix #58: Add hardware/firmware revision attributes
+        if variant_row and 'hardware_revision' in variant_row.keys() and variant_row['hardware_revision']:
+            device_variant.set('hardwareRevision', variant_row['hardware_revision'])
+        if variant_row and 'firmware_revision' in variant_row.keys() and variant_row['firmware_revision']:
+            device_variant.set('firmwareRevision', variant_row['firmware_revision'])
 
         # PQA Fix #40: Output correct element type based on what was present in original
         has_name = variant_row['has_name'] if variant_row and 'has_name' in variant_row.keys() else False

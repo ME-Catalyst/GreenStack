@@ -352,6 +352,9 @@ class DeviceVariant:
     has_description: bool = False  # Whether Description element was present
     has_product_name: bool = False  # Whether ProductName element was present
     has_product_text: bool = False  # Whether ProductText element was present
+    # PQA Fix #58: DeviceVariant hardware/firmware revision attributes
+    hardware_revision: Optional[str] = None
+    firmware_revision: Optional[str] = None
 
 
 @dataclass
