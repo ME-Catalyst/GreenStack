@@ -67,12 +67,16 @@ class CustomDatatypeSaver(BaseSaver):
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
+        # PQA Fix: Preserve None for subindex_access_supported (don't output if not in original)
+        subindex_val = getattr(datatype, 'subindex_access_supported', None)
+        subindex_db_val = None if subindex_val is None else (1 if subindex_val else 0)
+
         params = (
             device_id,
             getattr(datatype, 'datatype_id', None),
             getattr(datatype, 'datatype_xsi_type', None),
             getattr(datatype, 'bit_length', None),
-            1 if getattr(datatype, 'subindex_access_supported', False) else 0,
+            subindex_db_val,
             getattr(datatype, 'min_value', None),  # PQA Fix #30b
             getattr(datatype, 'max_value', None),  # PQA Fix #30b
             getattr(datatype, 'value_range_xsi_type', None),  # PQA Fix #30b
