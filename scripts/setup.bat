@@ -172,14 +172,23 @@ echo.
 
 :: Start the application with fresh, clean backend
 python -m src.start
-if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] Application failed to start! See errors above.
-    pause
-    exit /b 1
+set START_EXIT_CODE=%errorlevel%
+
+:: Show final status
+echo.
+echo ══════════════════════════════════════════════════════════════
+
+if %START_EXIT_CODE% equ 0 (
+    echo   Application stopped gracefully
+) else (
+    echo   [ERROR] Application exited with error code: %START_EXIT_CODE%
+    echo   Check the messages above for details
 )
 
-goto :eof
+echo ══════════════════════════════════════════════════════════════
+echo.
+pause
+exit /b %START_EXIT_CODE%
 
 :: ============================================================================
 :: Helper Functions
