@@ -55,6 +55,8 @@ class DeviceInfo:
     vendor_text_text_id: Optional[str] = None  # VendorText@textId
     vendor_url_text_id: Optional[str] = None  # VendorUrl@textId
     device_family_text_id: Optional[str] = None  # DeviceFamily@textId
+    # PQA Fix #62: Store original string format for deviceId (preserves leading zeros)
+    device_id_str: Optional[str] = None
 
 
 @dataclass

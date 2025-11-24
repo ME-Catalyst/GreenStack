@@ -338,9 +338,11 @@ class IODDParser:
             device_family_elem = device_identity.find('.//iodd:DeviceFamily', self.NAMESPACES)
             device_family_text_id = device_family_elem.get('textId') if device_family_elem is not None else None
 
+            # PQA Fix #62: Store original deviceId string (preserves leading zeros like "005")
+            device_id_str = device_identity.get('deviceId')
             return DeviceInfo(
                 vendor_id=int(device_identity.get('vendorId', 0)),
-                device_id=int(device_identity.get('deviceId', 0)),
+                device_id=int(device_id_str) if device_id_str else 0,
                 product_name=product_name or 'Unknown',
                 product_id=device_identity.get('productId'),
                 product_text=None,
@@ -350,7 +352,8 @@ class IODDParser:
                 device_name_text_id=device_name_id,  # PQA: Store original textId
                 vendor_text_text_id=vendor_text_text_id,  # PQA Fix #24
                 vendor_url_text_id=vendor_url_text_id,  # PQA Fix #24
-                device_family_text_id=device_family_text_id  # PQA Fix #24
+                device_family_text_id=device_family_text_id,  # PQA Fix #24
+                device_id_str=device_id_str  # PQA Fix #62
             )
         return DeviceInfo(vendor_id=0, device_id=0, product_name='Unknown')
 

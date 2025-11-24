@@ -322,7 +322,9 @@ class IODDReconstructor:
 
         # DeviceIdentity
         device_identity = ET.SubElement(profile_body, 'DeviceIdentity')
-        device_identity.set('deviceId', str(device['device_id']))
+        # PQA Fix #62: Use original string format if available (preserves leading zeros)
+        device_id_str = device['device_id_str'] if 'device_id_str' in device.keys() and device['device_id_str'] else str(device['device_id'])
+        device_identity.set('deviceId', device_id_str)
 
         if device['vendor_id']:
             device_identity.set('vendorId', str(device['vendor_id']))
