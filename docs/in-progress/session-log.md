@@ -1629,3 +1629,32 @@ attribute name was used in the original IODD.
 ### READY FOR RE-IMPORT (2nd attempt)
 
 Re-import required to fix regressions and apply regression fixes.
+
+---
+
+### Post Re-import #2 Analysis (2025-11-23)
+
+After re-import with regression fixes:
+- 41 devices at 100% (was 0 with regressions)
+- 840 total diffs
+- Average score: 99.74%
+
+**Issue discovered**: subindexAccessSupported fix still not working (593 issues remain)
+
+**Root cause**: Storage layer was converting `None` to `0`:
+```python
+1 if getattr(datatype, 'subindex_access_supported', False) else 0
+```
+This made `None` become `0`, so reconstruction still output the attribute.
+
+**Fix**: Changed storage to preserve `None`:
+```python
+subindex_val = getattr(datatype, 'subindex_access_supported', None)
+subindex_db_val = None if subindex_val is None else (1 if subindex_val else 0)
+```
+
+**Commit**: `0e7dce9` fix(pqa): Preserve NULL for subindex_access_supported in storage
+
+### READY FOR RE-IMPORT (3rd attempt)
+
+Re-import required to store NULL for missing subindexAccessSupported attributes.
