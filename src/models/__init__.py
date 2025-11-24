@@ -400,6 +400,9 @@ class CustomDatatype:
     max_value: Optional[str] = None
     value_range_xsi_type: Optional[str] = None
     value_range_name_text_id: Optional[str] = None
+    # PQA Fix #59: StringT/OctetStringT specific attributes
+    string_fixed_length: Optional[int] = None
+    string_encoding: Optional[str] = None
 
 
 @dataclass
