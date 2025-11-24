@@ -952,7 +952,7 @@ class IODDParser:
         for pd_in in pd_in_elems:
             # Get the process data ID and attributes
             pd_id = pd_in.get('id', 'ProcessDataIn')
-            bit_length = int(pd_in.get('bitLength', 0))
+            bit_length = int(v) if (v := pd_in.get('bitLength')) else None  # PQA Fix #75: None if missing
 
             # Get name from textId reference (direct child only, not recursive)
             name_elem = pd_in.find('iodd:Name', self.NAMESPACES)
@@ -1144,7 +1144,7 @@ class IODDParser:
         for pd_out in pd_out_elems:
             # Get the process data ID and attributes
             pd_id = pd_out.get('id', 'ProcessDataOut')
-            bit_length = int(pd_out.get('bitLength', 0))
+            bit_length = int(v) if (v := pd_out.get('bitLength')) else None  # PQA Fix #75: None if missing
 
             # Get name from textId reference (direct child only, not recursive)
             name_elem = pd_out.find('iodd:Name', self.NAMESPACES)
