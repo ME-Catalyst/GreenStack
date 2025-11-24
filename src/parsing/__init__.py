@@ -1181,25 +1181,31 @@ class IODDParser:
             ))
 
         # Also check for custom error types (ErrorType elements)
-        for error_elem in error_collection.findall('.//iodd:ErrorType', self.NAMESPACES):
+        # PQA Fix #37: Properly track custom ErrorType vs StdErrorTypeRef
+        custom_start_idx = len(error_types)  # Custom errors come after std refs in combined list
+        for idx, error_elem in enumerate(error_collection.findall('.//iodd:ErrorType', self.NAMESPACES)):
             code = int(error_elem.get('code', 0))
             additional_code = int(error_elem.get('additionalCode', 0))
 
             # Get name from textId
             name_elem = error_elem.find('.//iodd:Name', self.NAMESPACES)
-            name_id = name_elem.get('textId') if name_elem is not None else None
-            name = self._resolve_text(name_id)
+            name_text_id = name_elem.get('textId') if name_elem is not None else None
+            name = self._resolve_text(name_text_id)
 
             # Get description from textId
             desc_elem = error_elem.find('.//iodd:Description', self.NAMESPACES)
-            desc_id = desc_elem.get('textId') if desc_elem is not None else None
-            description = self._resolve_text(desc_id)
+            description_text_id = desc_elem.get('textId') if desc_elem is not None else None
+            description = self._resolve_text(description_text_id)
 
             error_types.append(ErrorType(
                 code=code,
                 additional_code=additional_code,
                 name=name,
-                description=description
+                description=description,
+                is_custom=True,  # PQA Fix #37: Mark as custom ErrorType
+                name_text_id=name_text_id,
+                description_text_id=description_text_id,
+                xml_order=custom_start_idx + idx
             ))
 
         return error_types

@@ -195,6 +195,10 @@ class ErrorType:
     # PQA: Track whether code attribute was in original and element order
     has_code_attr: bool = True  # Most have code, so default True
     xml_order: Optional[int] = None
+    # PQA Fix #37: Distinguish ErrorType (custom) vs StdErrorTypeRef (standard)
+    is_custom: bool = False  # True for ErrorType elements, False for StdErrorTypeRef
+    name_text_id: Optional[str] = None  # Original textId for custom ErrorType
+    description_text_id: Optional[str] = None  # Original textId for custom ErrorType
 
 
 @dataclass

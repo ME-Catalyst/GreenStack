@@ -1827,10 +1827,17 @@ class IODDReconstructor:
 
     def _create_error_type_collection(self, conn: sqlite3.Connection,
                                       device_id: int) -> Optional[ET.Element]:
-        """Create ErrorTypeCollection from error_types table"""
+        """Create ErrorTypeCollection from error_types table
+
+        PQA Fix #37: Properly distinguish between:
+        - ErrorType: Custom errors with Name/Description children
+        - StdErrorTypeRef: Standard IO-Link error references with only attributes
+        """
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT code, additional_code, has_code_attr, xml_order FROM error_types
+            SELECT code, additional_code, has_code_attr, xml_order,
+                   is_custom, name_text_id, description_text_id
+            FROM error_types
             WHERE device_id = ?
             ORDER BY COALESCE(xml_order, additional_code)
         """, (device_id,))
@@ -1842,13 +1849,33 @@ class IODDReconstructor:
         collection = ET.Element('ErrorTypeCollection')
 
         for error in error_types:
-            # StdErrorTypeRef has code (optional) and additionalCode
-            error_ref = ET.SubElement(collection, 'StdErrorTypeRef')
-            # PQA: Only output code attribute if it was in the original
-            has_code = error['has_code_attr'] if 'has_code_attr' in error.keys() else True
-            if has_code:
-                error_ref.set('code', str(error['code']))
-            error_ref.set('additionalCode', str(error['additional_code']))
+            is_custom = error['is_custom'] if 'is_custom' in error.keys() else False
+
+            if is_custom:
+                # PQA Fix #37: Custom ErrorType with Name and Description children
+                error_elem = ET.SubElement(collection, 'ErrorType')
+                error_elem.set('code', str(error['code']))
+                error_elem.set('additionalCode', str(error['additional_code']))
+
+                # Add Name element with textId
+                name_text_id = error['name_text_id'] if 'name_text_id' in error.keys() else None
+                if name_text_id:
+                    name_elem = ET.SubElement(error_elem, 'Name')
+                    name_elem.set('textId', name_text_id)
+
+                # Add Description element with textId
+                desc_text_id = error['description_text_id'] if 'description_text_id' in error.keys() else None
+                if desc_text_id:
+                    desc_elem = ET.SubElement(error_elem, 'Description')
+                    desc_elem.set('textId', desc_text_id)
+            else:
+                # StdErrorTypeRef has code (optional) and additionalCode
+                error_ref = ET.SubElement(collection, 'StdErrorTypeRef')
+                # PQA: Only output code attribute if it was in the original
+                has_code = error['has_code_attr'] if 'has_code_attr' in error.keys() else True
+                if has_code:
+                    error_ref.set('code', str(error['code']))
+                error_ref.set('additionalCode', str(error['additional_code']))
 
         return collection
 

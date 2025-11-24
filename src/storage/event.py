@@ -73,11 +73,12 @@ class ErrorTypeSaver(BaseSaver):
         self._delete_existing('error_types', device_id)
 
         # Prepare bulk insert
+        # PQA Fix #37: Added is_custom, name_text_id, description_text_id
         query = """
             INSERT INTO error_types (
                 device_id, code, additional_code, name, description,
-                has_code_attr, xml_order
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                has_code_attr, xml_order, is_custom, name_text_id, description_text_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -90,6 +91,9 @@ class ErrorTypeSaver(BaseSaver):
                 getattr(error, 'description', None),
                 1 if getattr(error, 'has_code_attr', True) else 0,  # PQA
                 getattr(error, 'xml_order', None),  # PQA
+                1 if getattr(error, 'is_custom', False) else 0,  # PQA Fix #37
+                getattr(error, 'name_text_id', None),  # PQA Fix #37
+                getattr(error, 'description_text_id', None),  # PQA Fix #37
             ))
 
         if params_list:
