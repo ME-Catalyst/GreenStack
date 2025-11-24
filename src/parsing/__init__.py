@@ -2350,9 +2350,10 @@ class IODDParser:
                     simple_datatype_elem = None  # Ensure it's None for SingleValue extraction
 
                 # PQA Fix #21: Extract SingleValue elements from RecordItem/SimpleDatatype
+                # PQA Fix #74: Added xml_order for proper reconstruction ordering
                 item_single_values = []
                 if simple_datatype_elem is not None:
-                    for sv_elem in simple_datatype_elem.findall('iodd:SingleValue', self.NAMESPACES):
+                    for sv_idx, sv_elem in enumerate(simple_datatype_elem.findall('iodd:SingleValue', self.NAMESPACES)):
                         sv_value = sv_elem.get('value')
                         sv_xsi_type = sv_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
                         sv_name_elem = sv_elem.find('iodd:Name', self.NAMESPACES)
@@ -2363,7 +2364,8 @@ class IODDParser:
                                 value=sv_value,
                                 name=sv_name or '',
                                 text_id=sv_text_id,
-                                xsi_type=sv_xsi_type
+                                xsi_type=sv_xsi_type,
+                                xml_order=sv_idx,  # PQA Fix #74
                             ))
 
                 if subindex and bit_offset:

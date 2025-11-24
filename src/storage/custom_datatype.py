@@ -162,10 +162,11 @@ class CustomDatatypeSaver(BaseSaver):
         if not single_values:
             return
 
+        # PQA Fix #74: Added xml_order column for proper reconstruction ordering
         query = """
             INSERT INTO custom_datatype_record_item_single_values (
-                record_item_id, value, name, name_text_id, xsi_type
-            ) VALUES (?, ?, ?, ?, ?)
+                record_item_id, value, name, name_text_id, xsi_type, xml_order
+            ) VALUES (?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -176,6 +177,7 @@ class CustomDatatypeSaver(BaseSaver):
                 getattr(sv, 'name', None),
                 getattr(sv, 'text_id', None),
                 getattr(sv, 'xsi_type', None),
+                getattr(sv, 'xml_order', None),  # PQA Fix #74
             ))
 
         if params_list:

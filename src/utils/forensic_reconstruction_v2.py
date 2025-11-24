@@ -1285,11 +1285,12 @@ class IODDReconstructor:
                                                        parent: ET.Element) -> None:
         """PQA Fix #21: Add SingleValue elements to RecordItem/SimpleDatatype for custom datatypes"""
         cursor = conn.cursor()
+        # PQA Fix #74: Order by xml_order to preserve original IODD order
         cursor.execute("""
             SELECT value, name, name_text_id, xsi_type
             FROM custom_datatype_record_item_single_values
             WHERE record_item_id = ?
-            ORDER BY id
+            ORDER BY COALESCE(xml_order, id)
         """, (record_item_id,))
         single_values = cursor.fetchall()
 
