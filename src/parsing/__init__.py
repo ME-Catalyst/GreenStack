@@ -1961,15 +1961,20 @@ class IODDParser:
             for xml_order, item_info in enumerate(pd_ref.findall('.//iodd:ProcessDataRecordItemInfo', self.NAMESPACES)):
                 subindex = item_info.get('subindex')
                 if subindex is not None:
+                    # PQA Fix #60b: Store original string format for gradient/offset
+                    gradient_str = item_info.get('gradient')
+                    offset_str = item_info.get('offset')
                     ui_info_list.append(ProcessDataUIInfo(
                         process_data_id=process_data_id,
                         subindex=int(subindex),
-                        gradient=float(item_info.get('gradient')) if item_info.get('gradient') else None,
-                        offset=float(item_info.get('offset')) if item_info.get('offset') else None,
+                        gradient=float(gradient_str) if gradient_str else None,
+                        offset=float(offset_str) if offset_str else None,
                         unit_code=item_info.get('unitCode'),
                         display_format=item_info.get('displayFormat'),
                         xml_order=xml_order,
-                        pd_ref_order=pd_ref_order  # PQA Fix #42
+                        pd_ref_order=pd_ref_order,  # PQA Fix #42
+                        gradient_str=gradient_str,  # PQA Fix #60b
+                        offset_str=offset_str  # PQA Fix #60b
                     ))
 
         logger.info(f"Extracted {len(ui_info_list)} process data UI info entries")

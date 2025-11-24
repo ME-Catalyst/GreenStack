@@ -683,11 +683,13 @@ class IODDReconstructor:
 
         ui_elem = ET.SubElement(parent, 'UIInfo')
 
-        # PQA Fix #60: Use proper number formatting for gradient/offset (can be decimals)
+        # PQA Fix #60b: Use original string format if available, else format number
         if ui_info['gradient'] is not None:
-            ui_elem.set('gradient', self._format_number(ui_info['gradient']))
+            gradient_str = ui_info.get('gradient_str') if hasattr(ui_info, 'get') else ui_info['gradient_str'] if 'gradient_str' in ui_info.keys() else None
+            ui_elem.set('gradient', gradient_str if gradient_str else self._format_number(ui_info['gradient']))
         if ui_info['offset'] is not None:
-            ui_elem.set('offset', self._format_number(ui_info['offset']))
+            offset_str = ui_info.get('offset_str') if hasattr(ui_info, 'get') else ui_info['offset_str'] if 'offset_str' in ui_info.keys() else None
+            ui_elem.set('offset', offset_str if offset_str else self._format_number(ui_info['offset']))
         if ui_info['unit_code']:
             ui_elem.set('unitCode', ui_info['unit_code'])
         if ui_info['display_format']:
@@ -1459,11 +1461,13 @@ class IODDReconstructor:
                 # Add ProcessDataRecordItemInfo
                 item_info = ET.SubElement(current_pd_ref, 'ProcessDataRecordItemInfo')
                 item_info.set('subindex', str(ui_info['subindex']))
-                # PQA Fix #60: Use proper number formatting for gradient/offset (can be decimals)
+                # PQA Fix #60b: Use original string format if available, else format number
                 if ui_info['gradient'] is not None:
-                    item_info.set('gradient', self._format_number(ui_info['gradient']))
+                    gradient_str = ui_info['gradient_str'] if 'gradient_str' in ui_info.keys() and ui_info['gradient_str'] else None
+                    item_info.set('gradient', gradient_str if gradient_str else self._format_number(ui_info['gradient']))
                 if ui_info['offset'] is not None:
-                    item_info.set('offset', self._format_number(ui_info['offset']))
+                    offset_str = ui_info['offset_str'] if 'offset_str' in ui_info.keys() and ui_info['offset_str'] else None
+                    item_info.set('offset', offset_str if offset_str else self._format_number(ui_info['offset']))
                 if ui_info['unit_code']:
                     item_info.set('unitCode', ui_info['unit_code'])
                 if ui_info['display_format']:

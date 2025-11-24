@@ -191,11 +191,12 @@ class ProcessDataSaver(BaseSaver):
         """Save UI rendering metadata (gradient, offset, unit codes)"""
         # PQA Fix #41: Include xml_order column
         # PQA Fix #42: Include pd_ref_order column
+        # PQA Fix #60b: Include gradient_str and offset_str columns
         query = """
             INSERT INTO process_data_ui_info (
                 process_data_id, subindex, gradient, offset, unit_code, display_format,
-                xml_order, pd_ref_order
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                xml_order, pd_ref_order, gradient_str, offset_str
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params_list = []
@@ -212,6 +213,8 @@ class ProcessDataSaver(BaseSaver):
                     getattr(ui_info, 'display_format', None),
                     getattr(ui_info, 'xml_order', None),  # PQA Fix #41
                     getattr(ui_info, 'pd_ref_order', None),  # PQA Fix #42
+                    getattr(ui_info, 'gradient_str', None),  # PQA Fix #60b
+                    getattr(ui_info, 'offset_str', None),  # PQA Fix #60b
                 ))
 
         if params_list:

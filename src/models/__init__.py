@@ -333,6 +333,9 @@ class ProcessDataUIInfo:
     display_format: Optional[str] = None
     xml_order: Optional[int] = None  # PQA Fix #41: preserve original element order
     pd_ref_order: Optional[int] = None  # PQA Fix #42: preserve ProcessDataRef order
+    # PQA Fix #60b: Store original string format for gradient/offset
+    gradient_str: Optional[str] = None
+    offset_str: Optional[str] = None
 
 
 @dataclass
