@@ -923,22 +923,22 @@ class IODDParser:
                         item_bit_length = int(simple_dt.get('bitLength')) if simple_dt.get('bitLength') else None
 
                         # Extract inline single values
+                        # PQA Fix #51: Include SingleValue even if name text is empty
                         for single_val in simple_dt.findall('.//iodd:SingleValue', self.NAMESPACES):
                             value = single_val.get('value')
-                            name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
-                            if name_elem is not None and value is not None:
-                                text_id = name_elem.get('textId')
-                                text_value = self._resolve_text(text_id)
-                                if text_value:
-                                    desc_elem = single_val.find('.//iodd:Description', self.NAMESPACES)
-                                    desc_id = desc_elem.get('textId') if desc_elem is not None else None
-                                    description = self._resolve_text(desc_id)
-                                    single_values.append(SingleValue(
-                                        value=value,
-                                        name=text_value,
-                                        description=description,
-                                        text_id=text_id  # PQA: Store original textId for reconstruction
-                                    ))
+                            if value is not None:  # Only require value, not name
+                                name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
+                                text_id = name_elem.get('textId') if name_elem is not None else None
+                                text_value = self._resolve_text(text_id) if text_id else ''
+                                desc_elem = single_val.find('.//iodd:Description', self.NAMESPACES)
+                                desc_id = desc_elem.get('textId') if desc_elem is not None else None
+                                description = self._resolve_text(desc_id) if desc_id else None
+                                single_values.append(SingleValue(
+                                    value=value,
+                                    name=text_value or '',
+                                    description=description,
+                                    text_id=text_id  # PQA: Store original textId for reconstruction
+                                ))
 
                         # Extract ValueRange from SimpleDatatype (PQA reconstruction)
                         vr_elem = simple_dt.find('iodd:ValueRange', self.NAMESPACES)
@@ -1065,22 +1065,22 @@ class IODDParser:
                         item_bit_length = int(simple_dt.get('bitLength')) if simple_dt.get('bitLength') else None
 
                         # Extract inline single values
+                        # PQA Fix #51: Include SingleValue even if name text is empty
                         for single_val in simple_dt.findall('.//iodd:SingleValue', self.NAMESPACES):
                             value = single_val.get('value')
-                            name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
-                            if name_elem is not None and value is not None:
-                                text_id = name_elem.get('textId')
-                                text_value = self._resolve_text(text_id)
-                                if text_value:
-                                    desc_elem = single_val.find('.//iodd:Description', self.NAMESPACES)
-                                    desc_id = desc_elem.get('textId') if desc_elem is not None else None
-                                    description = self._resolve_text(desc_id)
-                                    single_values.append(SingleValue(
-                                        value=value,
-                                        name=text_value,
-                                        description=description,
-                                        text_id=text_id  # PQA: Store original textId for reconstruction
-                                    ))
+                            if value is not None:  # Only require value, not name
+                                name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
+                                text_id = name_elem.get('textId') if name_elem is not None else None
+                                text_value = self._resolve_text(text_id) if text_id else ''
+                                desc_elem = single_val.find('.//iodd:Description', self.NAMESPACES)
+                                desc_id = desc_elem.get('textId') if desc_elem is not None else None
+                                description = self._resolve_text(desc_id) if desc_id else None
+                                single_values.append(SingleValue(
+                                    value=value,
+                                    name=text_value or '',
+                                    description=description,
+                                    text_id=text_id  # PQA: Store original textId for reconstruction
+                                ))
 
                         # Extract ValueRange from SimpleDatatype (PQA reconstruction)
                         vr_elem = simple_dt.find('iodd:ValueRange', self.NAMESPACES)
