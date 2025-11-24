@@ -1340,12 +1340,13 @@ class IODDReconstructor:
                     menu_elem.set('menuId', menu_id)
 
         # PQA Fix #31: Add ProcessDataRefCollection if UI info exists
+        # PQA Fix #36: Order by direction (output before input) to match original IODD convention
         cursor.execute("""
-            SELECT pdui.*, pd.pd_id
+            SELECT pdui.*, pd.pd_id, pd.direction
             FROM process_data_ui_info pdui
             JOIN process_data pd ON pdui.process_data_id = pd.id
             WHERE pd.device_id = ?
-            ORDER BY pd.id, pdui.subindex
+            ORDER BY CASE pd.direction WHEN 'output' THEN 0 ELSE 1 END, pd.pd_id, pdui.subindex
         """, (device_id,))
         ui_info_rows = cursor.fetchall()
 
