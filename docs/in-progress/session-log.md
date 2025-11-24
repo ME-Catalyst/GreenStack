@@ -1799,3 +1799,21 @@ Re-import required to store NULL for missing subindexAccessSupported attributes.
 **Expected Impact**: ~10 issues resolved (requires re-import)
 
 **Status**: COMMITTED - Requires re-import to populate data
+
+---
+
+### Fix #60: ProcessDataRecordItemInfo gradient/offset decimal values (135 issues)
+**Commit**: (pending)
+
+**Problem**: Fix #50/#52 incorrectly converted gradient/offset to integers using `str(int(...))`. This truncated decimal values like `0.0007234` to `0`.
+
+**Root Cause**: The original issues (#50/#52) were likely about different value formatting, but the fix overcorrected by forcing integer conversion on all gradient/offset values.
+
+**Changes Made**:
+1. `src/utils/forensic_reconstruction_v2.py` - Use `_format_number()` instead of `str(int(...))` for gradient/offset in two locations:
+   - `_add_process_data_ui_info()` (line ~688)
+   - `_create_user_interface()` ProcessDataRecordItemInfo (line ~1464)
+
+**Expected Impact**: ~135 issues resolved (96 gradient + 39 offset)
+
+**Status**: COMMITTED
