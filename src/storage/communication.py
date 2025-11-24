@@ -34,13 +34,14 @@ class CommunicationSaver(BaseSaver):
         if hasattr(communication_profile, 'wire_config') and communication_profile.wire_config:
             wire_config_json = json.dumps(communication_profile.wire_config)
 
+        # PQA Fix #44: Include physics attribute
         query = """
             INSERT INTO communication_profile (
                 device_id, iolink_revision, compatible_with, bitrate,
                 min_cycle_time, msequence_capability, sio_supported,
                 connection_type, wire_config, connection_symbol, test_xsi_type,
-                product_ref_id, connection_description_text_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                product_ref_id, connection_description_text_id, physics
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -57,6 +58,7 @@ class CommunicationSaver(BaseSaver):
             getattr(communication_profile, 'test_xsi_type', None),  # PQA Fix #23
             getattr(communication_profile, 'product_ref_id', None),  # PQA Fix #26
             getattr(communication_profile, 'connection_description_text_id', None),  # PQA Fix #39
+            getattr(communication_profile, 'physics', None),  # PQA Fix #44
         )
 
         self._execute(query, params)

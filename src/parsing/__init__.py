@@ -1628,9 +1628,11 @@ class IODDParser:
         min_cycle_time = None
         msequence_capability = None
         sio_supported = False
+        physics = None  # PQA Fix #44
 
         if physical_layer is not None:
-            bitrate = physical_layer.get('bitrate')
+            # PQA Fix #44: Extract both baudrate (correct attr name) and bitrate (legacy)
+            bitrate = physical_layer.get('baudrate') or physical_layer.get('bitrate')
             min_cycle_time_str = physical_layer.get('minCycleTime')
             if min_cycle_time_str:
                 min_cycle_time = int(min_cycle_time_str)
@@ -1638,6 +1640,7 @@ class IODDParser:
             if msequence_cap_str:
                 msequence_capability = int(msequence_cap_str)
             sio_supported = physical_layer.get('sioSupported', 'false').lower() == 'true'
+            physics = physical_layer.get('physics')  # PQA Fix #44
 
         # Get connection info
         connection_elem = comm_profile_elem.find('.//iodd:Connection', self.NAMESPACES)
@@ -1691,7 +1694,8 @@ class IODDParser:
             connection_symbol=connection_symbol,  # PQA Fix #19b
             test_xsi_type=test_xsi_type,  # PQA Fix #23
             product_ref_id=product_ref_id,  # PQA Fix #26
-            connection_description_text_id=connection_description_text_id  # PQA Fix #39
+            connection_description_text_id=connection_description_text_id,  # PQA Fix #39
+            physics=physics  # PQA Fix #44
         )
 
     def _extract_ui_menus(self) -> Optional[UserInterfaceMenus]:

@@ -1454,8 +1454,13 @@ class IODDReconstructor:
         # Create PhysicalLayer
         physical_layer = ET.SubElement(transport_layers, 'PhysicalLayer')
 
+        # PQA Fix #44: Add physics attribute if present
+        physics = comm_profile['physics'] if 'physics' in comm_profile.keys() else None
+        if physics:
+            physical_layer.set('physics', physics)
         if comm_profile['bitrate']:
-            physical_layer.set('bitrate', comm_profile['bitrate'])
+            # Note: attribute is named 'baudrate' in IODD, stored as 'bitrate' in DB
+            physical_layer.set('baudrate', comm_profile['bitrate'])
         if comm_profile['min_cycle_time']:
             physical_layer.set('minCycleTime', str(comm_profile['min_cycle_time']))
         if comm_profile['sio_supported'] is not None:
