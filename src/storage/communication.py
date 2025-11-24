@@ -35,13 +35,14 @@ class CommunicationSaver(BaseSaver):
             wire_config_json = json.dumps(communication_profile.wire_config)
 
         # PQA Fix #44: Include physics attribute
+        # PQA Fix: Include uses_baudrate to track original attribute name
         query = """
             INSERT INTO communication_profile (
                 device_id, iolink_revision, compatible_with, bitrate,
                 min_cycle_time, msequence_capability, sio_supported,
                 connection_type, wire_config, connection_symbol, test_xsi_type,
-                product_ref_id, connection_description_text_id, physics
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                product_ref_id, connection_description_text_id, physics, uses_baudrate
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -59,6 +60,7 @@ class CommunicationSaver(BaseSaver):
             getattr(communication_profile, 'product_ref_id', None),  # PQA Fix #26
             getattr(communication_profile, 'connection_description_text_id', None),  # PQA Fix #39
             getattr(communication_profile, 'physics', None),  # PQA Fix #44
+            1 if getattr(communication_profile, 'uses_baudrate', False) else 0,  # PQA Fix: baudrate vs bitrate
         )
 
         self._execute(query, params)

@@ -243,7 +243,7 @@ class CommunicationProfile:
     """IO-Link communication network profile"""
     iolink_revision: Optional[str] = None
     compatible_with: Optional[str] = None
-    bitrate: Optional[str] = None  # Note: stored as bitrate, but attribute name is baudrate
+    bitrate: Optional[str] = None  # Value from baudrate or bitrate attribute
     min_cycle_time: Optional[int] = None  # microseconds
     msequence_capability: Optional[int] = None
     sio_supported: bool = False
@@ -254,6 +254,7 @@ class CommunicationProfile:
     product_ref_id: Optional[str] = None  # PQA Fix #26: Connection/ProductRef@productId
     connection_description_text_id: Optional[str] = None  # PQA Fix #39: Connection/Description@textId
     physics: Optional[str] = None  # PQA Fix #44: PhysicalLayer@physics attribute
+    uses_baudrate: bool = False  # PQA Fix: Track if original used baudrate vs bitrate attr name
 
 
 @dataclass

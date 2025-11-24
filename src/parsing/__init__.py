@@ -1633,10 +1633,18 @@ class IODDParser:
         msequence_capability = None
         sio_supported = False
         physics = None  # PQA Fix #44
+        uses_baudrate = False  # PQA Fix: Track which attribute name was used
 
         if physical_layer is not None:
-            # PQA Fix #44: Extract both baudrate (correct attr name) and bitrate (legacy)
-            bitrate = physical_layer.get('baudrate') or physical_layer.get('bitrate')
+            # PQA Fix: Track which attribute name was used (baudrate vs bitrate)
+            baudrate_val = physical_layer.get('baudrate')
+            bitrate_val = physical_layer.get('bitrate')
+            if baudrate_val is not None:
+                bitrate = baudrate_val
+                uses_baudrate = True
+            elif bitrate_val is not None:
+                bitrate = bitrate_val
+                uses_baudrate = False
             min_cycle_time_str = physical_layer.get('minCycleTime')
             if min_cycle_time_str:
                 min_cycle_time = int(min_cycle_time_str)
@@ -1699,7 +1707,8 @@ class IODDParser:
             test_xsi_type=test_xsi_type,  # PQA Fix #23
             product_ref_id=product_ref_id,  # PQA Fix #26
             connection_description_text_id=connection_description_text_id,  # PQA Fix #39
-            physics=physics  # PQA Fix #44
+            physics=physics,  # PQA Fix #44
+            uses_baudrate=uses_baudrate  # PQA Fix: Track baudrate vs bitrate
         )
 
     def _extract_ui_menus(self) -> Optional[UserInterfaceMenus]:
@@ -2057,7 +2066,9 @@ class IODDParser:
 
             xsi_type = datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
             bit_length = datatype_elem.get('bitLength')
-            subindex_access = datatype_elem.get('subindexAccessSupported', 'false').lower() == 'true'
+            # PQA Fix: Only store subindexAccessSupported if actually present in XML
+            subindex_access_attr = datatype_elem.get('subindexAccessSupported')
+            subindex_access = subindex_access_attr.lower() == 'true' if subindex_access_attr is not None else None
 
             # Extract single values (direct children only, not those inside RecordItem/SimpleDatatype)
             # PQA Fix #21b: Changed from .//iodd:SingleValue to iodd:SingleValue to prevent duplication

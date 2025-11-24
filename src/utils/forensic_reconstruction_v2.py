@@ -1465,8 +1465,10 @@ class IODDReconstructor:
         if physics:
             physical_layer.set('physics', physics)
         if comm_profile['bitrate']:
-            # Note: attribute is named 'baudrate' in IODD, stored as 'bitrate' in DB
-            physical_layer.set('baudrate', comm_profile['bitrate'])
+            # PQA Fix: Use the original attribute name (baudrate or bitrate)
+            uses_baudrate = comm_profile['uses_baudrate'] if 'uses_baudrate' in comm_profile.keys() else True
+            attr_name = 'baudrate' if uses_baudrate else 'bitrate'
+            physical_layer.set(attr_name, comm_profile['bitrate'])
         if comm_profile['min_cycle_time']:
             physical_layer.set('minCycleTime', str(comm_profile['min_cycle_time']))
         if comm_profile['sio_supported'] is not None:
