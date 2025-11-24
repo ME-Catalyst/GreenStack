@@ -2133,6 +2133,9 @@ class IODDParser:
 
             xsi_type = datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
             bit_length = datatype_elem.get('bitLength')
+            # PQA Fix #59: Extract StringT/OctetStringT fixedLength and encoding attributes
+            fixed_length = datatype_elem.get('fixedLength')
+            encoding = datatype_elem.get('encoding')
             # PQA Fix: Only store subindexAccessSupported if actually present in XML
             subindex_access_attr = datatype_elem.get('subindexAccessSupported')
             subindex_access = subindex_access_attr.lower() == 'true' if subindex_access_attr is not None else None
@@ -2266,7 +2269,9 @@ class IODDParser:
                 min_value=dt_min_value,
                 max_value=dt_max_value,
                 value_range_xsi_type=dt_vr_xsi_type,
-                value_range_name_text_id=dt_vr_name_text_id
+                value_range_name_text_id=dt_vr_name_text_id,
+                string_fixed_length=int(fixed_length) if fixed_length else None,  # PQA Fix #59
+                string_encoding=encoding  # PQA Fix #59
             ))
 
         logger.info(f"Extracted {len(datatypes)} custom datatypes")

@@ -1022,6 +1022,12 @@ class IODDReconstructor:
             if dt['bit_length']:
                 datatype_elem.set('bitLength', str(dt['bit_length']))
 
+            # PQA Fix #59: Add fixedLength and encoding for StringT/OctetStringT
+            if 'string_fixed_length' in dt.keys() and dt['string_fixed_length']:
+                datatype_elem.set('fixedLength', str(dt['string_fixed_length']))
+            if 'string_encoding' in dt.keys() and dt['string_encoding']:
+                datatype_elem.set('encoding', dt['string_encoding'])
+
             # Add SingleValue enumerations
             self._add_single_values(conn, datatype_elem, dt['id'])
 

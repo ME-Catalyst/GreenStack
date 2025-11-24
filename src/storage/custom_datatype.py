@@ -59,12 +59,14 @@ class CustomDatatypeSaver(BaseSaver):
 
     def _save_datatype(self, device_id: int, datatype) -> int:
         """Save main custom datatype entry"""
+        # PQA Fix #59: Added string_fixed_length, string_encoding
         query = """
             INSERT INTO custom_datatypes (
                 device_id, datatype_id, datatype_xsi_type,
                 bit_length, subindex_access_supported,
-                min_value, max_value, value_range_xsi_type, value_range_name_text_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                min_value, max_value, value_range_xsi_type, value_range_name_text_id,
+                string_fixed_length, string_encoding
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         # PQA Fix: Preserve None for subindex_access_supported (don't output if not in original)
@@ -81,6 +83,8 @@ class CustomDatatypeSaver(BaseSaver):
             getattr(datatype, 'max_value', None),  # PQA Fix #30b
             getattr(datatype, 'value_range_xsi_type', None),  # PQA Fix #30b
             getattr(datatype, 'value_range_name_text_id', None),  # PQA Fix #30b
+            getattr(datatype, 'string_fixed_length', None),  # PQA Fix #59
+            getattr(datatype, 'string_encoding', None),  # PQA Fix #59
         )
 
         self._execute(query, params)

@@ -1780,3 +1780,22 @@ Re-import required to store NULL for missing subindexAccessSupported attributes.
 **Expected Impact**: ~14 issues resolved (requires re-import)
 
 **Status**: COMMITTED - Requires re-import to populate data
+
+---
+
+### Fix #59: Datatype encoding/fixedLength (10 issues)
+**Commit**: (pending)
+
+**Problem**: StringT and OctetStringT datatypes have `fixedLength` and `encoding` attributes that were not being extracted, stored, or reconstructed.
+
+**Example**: `<Datatype xsi:type="StringT" fixedLength="16" encoding="UTF-8" />`
+
+**Changes Made**:
+1. `src/parsing/__init__.py` - Extract fixedLength and encoding from Datatype elements
+2. `src/storage/custom_datatype.py` - Save string_fixed_length and string_encoding to custom_datatypes table
+3. `src/utils/forensic_reconstruction_v2.py` - Output fixedLength and encoding attributes when present
+4. `alembic/versions/086_add_datatype_encoding_fixedlength.py` - Add columns to custom_datatypes
+
+**Expected Impact**: ~10 issues resolved (requires re-import)
+
+**Status**: COMMITTED - Requires re-import to populate data
