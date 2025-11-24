@@ -1572,3 +1572,60 @@ After re-import, run PQA analysis to verify improvements.
 Re-import required to populate new fields for Fixes #41, #42, #44, #46.
 
 After re-import, run PQA analysis to verify improvements. Expected final score should be very close to 100% for most IODD devices.
+
+---
+
+## REGRESSION FIXES (Session 2025-11-23 continued)
+
+### Post Re-import Analysis - REGRESSIONS DISCOVERED
+
+After re-import, scores went DOWN instead of up:
+- 0 devices at 100% (was 88)
+- 1136 total diffs (was 521)
+
+Two major regressions identified:
+
+### Fix #45 Regression: subindexAccessSupported output when not present (593 issues)
+
+**Problem**: Parser stored `False` (0 in SQLite) when attribute was not present.
+Reconstruction checked `is not None` which returned True for 0.
+
+**Root Cause**: The parser was storing:
+```python
+subindex_access = datatype_elem.get('subindexAccessSupported', 'false').lower() == 'true'
+```
+This stored `False` (0) when attribute not present, but reconstruction checked:
+```python
+if dt['subindex_access_supported'] is not None:  # True for 0!
+```
+
+**Fix**: Changed parser to only store when attribute is actually present:
+```python
+subindex_access_attr = datatype_elem.get('subindexAccessSupported')
+subindex_access = subindex_access_attr.lower() == 'true' if subindex_access_attr is not None else None
+```
+
+### Fix #44 Regression: bitrate vs baudrate attribute naming (296 issues)
+
+**Problem**: Assumed all IODDs use `baudrate` attribute name, but some use `bitrate`.
+- 148 `missing_attribute:PhysicalLayer@bitrate`
+- 148 `extra_element:PhysicalLayer@baudrate`
+
+**Root Cause**: Changed reconstruction from `bitrate` to `baudrate` without tracking which
+attribute name was used in the original IODD.
+
+**Fix**: Track which attribute name was used:
+1. Added `uses_baudrate` field to CommunicationProfile model
+2. Parser tracks which attribute was present (baudrate or bitrate)
+3. Storage saves uses_baudrate flag
+4. Reconstruction uses correct attribute name based on flag
+5. Migration 080 adds uses_baudrate column
+
+**Commit**: `48869e3` fix(pqa): Fix regressions from Fix #44 and Fix #45
+
+### Migrations Added
+- 080: uses_baudrate in communication_profile
+
+### READY FOR RE-IMPORT (2nd attempt)
+
+Re-import required to fix regressions and apply regression fixes.
