@@ -87,19 +87,18 @@ class StorageManager:
             # The save method returns existing ID if device already exists
             device_id = device_saver.save(None, profile)
 
-            # Check if this was an existing device (by checking if it returned early)
-            # If device already existed, DeviceSaver.save() would have returned early
-            # We can detect this by checking if the device was just created
+            # Check if device exists with same checksum (file unchanged)
+            # If DeviceSaver found an existing device, check if the XML changed
             cursor.execute(
                 "SELECT id FROM devices WHERE vendor_id = ? AND device_id = ? AND checksum = ?",
                 (profile.device_info.vendor_id, profile.device_info.device_id,
                  hashlib.sha256(profile.raw_xml.encode()).hexdigest())
             )
-            device_just_created = cursor.fetchone()
+            existing_with_same_checksum = cursor.fetchone()
 
-            if not device_just_created:
-                # Device already existed, skip saving data
-                logger.info(f"Device {device_id} already exists, skipping data save")
+            if existing_with_same_checksum:
+                # Device exists with same checksum (file unchanged), skip saving data
+                logger.info(f"Device {device_id} already exists with same checksum, skipping data save")
                 conn.close()
                 return device_id
 
