@@ -110,10 +110,28 @@ class IODDReconstructor:
         Returns:
             Dict with 'namespace' and 'xsd' keys
         """
-        if schema_version in self.SCHEMA_CONFIGS:
-            return self.SCHEMA_CONFIGS[schema_version]
+        # PQA Fix #99: Normalize schema version (e.g., "1.00" -> "1.0", "1.10" -> "1.1")
+        normalized_version = schema_version
+        if schema_version and schema_version not in self.SCHEMA_CONFIGS:
+            # Try normalizing: remove trailing zeros after decimal point
+            # "1.00" -> "1.0", "1.10" -> "1.1", "1.0.10" -> "1.0.1"
+            parts = schema_version.split('.')
+            if len(parts) >= 2:
+                # Remove trailing zeros from each part
+                normalized_parts = [parts[0]]  # Keep major version as is
+                for part in parts[1:]:
+                    # Convert to int and back to string to remove leading zeros
+                    try:
+                        normalized_parts.append(str(int(part)))
+                    except ValueError:
+                        normalized_parts.append(part)
+                normalized_version = '.'.join(normalized_parts)
+
+        if normalized_version in self.SCHEMA_CONFIGS:
+            return self.SCHEMA_CONFIGS[normalized_version]
+
         # Fallback to default
-        logger.warning(f"Unknown schema version '{schema_version}', falling back to {self.DEFAULT_SCHEMA_VERSION}")
+        logger.warning(f"Unknown schema version '{schema_version}' (normalized: '{normalized_version}'), falling back to {self.DEFAULT_SCHEMA_VERSION}")
         return self.SCHEMA_CONFIGS[self.DEFAULT_SCHEMA_VERSION]
 
     def reconstruct_iodd(self, device_id: int) -> str:
