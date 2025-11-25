@@ -1650,14 +1650,15 @@ class IODDReconstructor:
                 connection.set('connectionSymbol', conn_symbol)
 
             # PQA Fix #26: Use stored product_ref_id from communication_profile, fallback to device_variants
-            product_ref_id = comm_profile['product_ref_id'] if 'product_ref_id' in comm_profile.keys() and comm_profile['product_ref_id'] else None
-            if not product_ref_id:
+            # PQA Fix #100: Check 'is not None' to output ProductRef even with empty productId
+            product_ref_id = comm_profile['product_ref_id'] if 'product_ref_id' in comm_profile.keys() else None
+            if product_ref_id is None:
                 # Fallback to device_variants
                 cursor.execute("SELECT product_id FROM device_variants WHERE device_id = ? LIMIT 1", (device_id,))
                 variant_row = cursor.fetchone()
-                if variant_row and variant_row['product_id']:
+                if variant_row:
                     product_ref_id = variant_row['product_id']
-            if product_ref_id:
+            if product_ref_id is not None:
                 product_ref = ET.SubElement(connection, 'ProductRef')
                 product_ref.set('productId', product_ref_id)
 
