@@ -66,26 +66,38 @@ Previous imports showed 6x duplicates. Current import shows 3x duplicates. This 
 - `src/storage/menu.py`: Simple loop, no duplication logic ✓
 - `scripts/setup.bat`: Cleanup code fixed ✓
 
-## Next Steps
+## ROOT CAUSE IDENTIFIED
 
-### Option 1: Deep Debug (Recommended)
-1. Add logging to parser to track menu extraction
-2. Test parser directly on SL-x-TRIO file in isolation
-3. Compare parsed menu structure vs database structure
-4. Verify XPath selector behavior
+**Date:** 2025-11-25
 
-### Option 2: Nuclear Restart
-1. Kill ALL Python processes
-2. Delete ALL `__pycache__` directories manually
-3. Delete database
-4. Restart backend with fresh Python process
-5. Re-upload and verify
+### The Actual Bug
 
-### Option 3: Code Review
-1. Re-examine Fix #86-92 implementation
-2. Verify XPath namespace handling
-3. Check if `MenuCollection` element structure is as expected
-4. Add unit tests for menu extraction
+Line 1932 in `src/parsing/__init__.py` used a **descendant selector** for MenuCollection:
+
+```python
+menu_collection = ui_elem.find('.//iodd:MenuCollection', self.NAMESPACES)
+```
+
+The `.//iodd:MenuCollection` finds MenuCollection ANYWHERE under UserInterface, **including nested inside RoleMenuSets**. This caused the same menus to be extracted multiple times from different locations in the XML tree.
+
+### The Fix
+
+Changed to **direct child selector**:
+
+```python
+menu_collection = ui_elem.find('iodd:MenuCollection', self.NAMESPACES)
+```
+
+This only finds the top-level MenuCollection under UserInterface, not the nested ones inside RoleMenuSets.
+
+### Why Previous Attempts Failed
+
+The original "Fix #86-92" (commit 6d171c2) changed the wrong selectors:
+- Changed `menu_collection.findall('iodd:Menu', ...)` ✓ (was already correct)
+- Changed `menu_elem.findall('iodd:VariableRef', ...)` ✓ (was already correct)
+- **Missed** `ui_elem.find('.//iodd:MenuCollection', ...)` ✗ (the actual bug!)
+
+The bug was in HOW we found MenuCollection, not how we extracted children from it.
 
 ## Test Case
 

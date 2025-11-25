@@ -1929,7 +1929,8 @@ class IODDParser:
         menus = []
 
         # Extract all menus from MenuCollection only (not from RoleMenuSets)
-        menu_collection = ui_elem.find('.//iodd:MenuCollection', self.NAMESPACES)
+        # Use direct child selector to avoid finding MenuCollection inside RoleMenuSets
+        menu_collection = ui_elem.find('iodd:MenuCollection', self.NAMESPACES)
         if menu_collection is None:
             return None
         
