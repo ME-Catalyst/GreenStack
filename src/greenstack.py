@@ -2211,10 +2211,10 @@ MIT
 
 class IODDManager:
     """Main IODD management system"""
-    
+
     def __init__(self, storage_path: str = "./iodd_storage", db_path: str = "greenstack.db"):
         self.ingester = IODDIngester(Path(storage_path))
-        self.storage = StorageManager(db_path)
+        self.storage = ModularStorageManager(db_path)  # Use modular storage with PQA fixes
         self.generators = {
             'node-red': NodeREDGenerator()
         }
