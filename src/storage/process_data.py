@@ -129,8 +129,8 @@ class ProcessDataSaver(BaseSaver):
                     process_data_id, subindex, name,
                     bit_offset, bit_length, data_type, default_value, name_text_id, description_text_id,
                     min_value, max_value, value_range_xsi_type, value_range_name_text_id, access_right_restriction,
-                    fixed_length, encoding
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    fixed_length, encoding, simpledatatype_name_text_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
             params = (
@@ -150,6 +150,7 @@ class ProcessDataSaver(BaseSaver):
                 getattr(item, 'access_right_restriction', None),  # PQA: RecordItem attribute
                 getattr(item, 'fixed_length', None),  # PQA Fix #65
                 getattr(item, 'encoding', None),  # PQA Fix #65
+                getattr(item, 'simpledatatype_name_text_id', None),  # PQA Fix #95
             )
 
             self._execute(query, params)

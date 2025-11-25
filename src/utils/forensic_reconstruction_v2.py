@@ -787,6 +787,12 @@ class IODDReconstructor:
                     if dt_id:
                         simple_dt.set('id', dt_id)
 
+                    # PQA Fix #95: Add Name element inside SimpleDatatype when present
+                    sdt_name_text_id = item['simpledatatype_name_text_id'] if 'simpledatatype_name_text_id' in item.keys() else None
+                    if sdt_name_text_id:
+                        sdt_name_elem = ET.SubElement(simple_dt, 'Name')
+                        sdt_name_elem.set('textId', sdt_name_text_id)
+
                     # Add SingleValue elements for this SimpleDatatype (PQA reconstruction)
                     # PQA Fix #61: Include xsi_type in query
                     cursor.execute("""

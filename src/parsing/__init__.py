@@ -530,6 +530,7 @@ class IODDParser:
             value_range_xsi_type=datatype_info.get('value_range_xsi_type'),  # ValueRange xsi:type
             value_range_name_text_id=datatype_info.get('value_range_name_text_id'),  # ValueRange Name textId
             xml_order=xml_order,  # Original order in XML document
+            datatype_name_text_id=datatype_info.get('datatype_name_text_id'),  # PQA Fix #95: Datatype/Name textId
         )
 
         # Store RecordItemInfo as an attribute (not in Parameter model, will be saved separately)
@@ -833,6 +834,7 @@ class IODDParser:
             fixed_length = None
             encoding = None
             datatype_id = None
+            simpledatatype_name_text_id = None  # PQA Fix #95: SimpleDatatype/Name@textId
 
             if datatype_ref is not None:
                 data_type = datatype_ref.get('datatypeId', 'Unknown')
@@ -845,6 +847,10 @@ class IODDParser:
                 fixed_length = int(simple_dt.get('fixedLength')) if simple_dt.get('fixedLength') else None
                 encoding = simple_dt.get('encoding')
                 datatype_id = simple_dt.get('id')
+
+                # PQA Fix #95: Extract SimpleDatatype/Name textId
+                sdt_name_elem = simple_dt.find('iodd:Name', self.NAMESPACES)
+                simpledatatype_name_text_id = sdt_name_elem.get('textId') if sdt_name_elem is not None else None
 
                 # Extract SingleValues from SimpleDatatype
                 for sv_elem in simple_dt.findall('iodd:SingleValue', self.NAMESPACES):
@@ -894,6 +900,7 @@ class IODDParser:
                 fixed_length=fixed_length,  # PQA: SimpleDatatype@fixedLength
                 encoding=encoding,  # PQA: SimpleDatatype@encoding
                 datatype_id=datatype_id,  # PQA: SimpleDatatype@id
+                simpledatatype_name_text_id=simpledatatype_name_text_id,  # PQA Fix #95
             ))
 
         return record_items

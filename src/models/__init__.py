@@ -153,6 +153,7 @@ class RecordItem:
     fixed_length: Optional[int] = None  # SimpleDatatype@fixedLength
     encoding: Optional[str] = None  # SimpleDatatype@encoding
     datatype_id: Optional[str] = None  # SimpleDatatype@id
+    simpledatatype_name_text_id: Optional[str] = None  # PQA Fix #95: SimpleDatatype/Name@textId
 
 
 @dataclass
