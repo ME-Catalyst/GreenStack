@@ -51,22 +51,16 @@ echo.
 
 :: Clear Python bytecode cache
 echo [2/6] Clearing Python bytecode cache...
-set CACHE_COUNT=0
 
-:: Use dir to find cache directories and delete them
-for /d /r "%CD%\src" %%d in (__pycache__) do (
-    if exist "%%d" (
-        echo   Clearing: %%d
-        rmdir /s /q "%%d" 2>nul
-        set /a CACHE_COUNT+=1
-    )
+:: Delete all __pycache__ directories in src
+if exist "%CD%\src\__pycache__" (
+    rmdir /s /q "%CD%\src\__pycache__" 2>nul
+    echo   Cleared root __pycache__
 )
 
-if %CACHE_COUNT% GTR 0 (
-    echo   Cleared %CACHE_COUNT% cache directories.
-) else (
-    echo   No cache directories found (already clean).
-)
+:: Use Python to clear cache directories (more reliable)
+python -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('src').rglob('__pycache__')]; print('   Python cache cleared')" 2>nul
+
 echo.
 
 :: ============================================================================
