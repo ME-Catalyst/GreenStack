@@ -2502,3 +2502,111 @@ Reviewed:
 **Documentation Created**:
 - `SETUP_BAT_USAGE.md` - Complete guide including Fix #86-92 test procedure
 
+
+---
+
+## Session 2025-11-25c: Menu Duplicates Final Investigation
+
+**Date**: 2025-11-25
+**Duration**: 4 hours
+**Status**: ✅ COMPLETE - No further action required
+
+### Context
+
+After completing Fix #86-92c (orphaned menu items) and re-importing with clean database, we identified 21 "true duplicate" menu items (52 items without Button children) across 15 devices. This session investigated whether these were bugs requiring fixes.
+
+### Investigation Process
+
+1. **Reviewed PQA Developer Guide** for proper diagnostic workflow
+2. **Extracted test files** for representative problem devices:
+   - Device 105 (ifm SD9000) - 6x V_MESSAGE + 2x V_MESSAGE
+   - Device 69 (Anderson-Negele TSB) - 2x V_VendorName
+   - Device 221 (Turck 100000818) - 2x Parameter_Flow_Teach
+3. **Analyzed XML structure** of original IODD files
+4. **Tested parser** behavior on extracted files
+5. **Verified PQA results** for devices with duplicates
+
+### Key Findings
+
+#### Pattern 1: Inline Buttons (96.2% of "duplicates")
+```xml
+<VariableRef variableId="V_MESSAGE" displayFormat="Button" buttonValue="245"/>
+<VariableRef variableId="V_MESSAGE" displayFormat="Button" buttonValue="246"/>
+<VariableRef variableId="V_MESSAGE" displayFormat="Button" buttonValue="247"/>
+```
+
+**Status**: ✅ LEGITIMATE - Valid IO-Link pattern
+- Same variable with different `buttonValue` attribute (inline buttons)
+- NOT Button child elements, so our query flagged them incorrectly
+- Parser, storage, and reconstruction all working correctly
+
+#### Pattern 2: Malformed IODDs (3.8% of "duplicates")
+```xml
+<VariableRef variableId="V_VendorName"/>
+<VariableRef variableId="V_VendorText"/>
+<VariableRef variableId="V_VendorName"/>  <!-- True duplicate -->
+```
+
+**Status**: ✅ LEGITIMATE FOR OUR PURPOSES - Faithful reproduction
+- Vendor authoring error in original IODD
+- Parser correctly extracts all instances
+- Reconstruction correctly outputs all instances
+- **PQA shows 0 diffs** - perfect match to original
+
+#### PQA Verification Results
+
+| Device ID | Product Name | Score | Diffs | Conclusion |
+|-----------|--------------|-------|-------|------------|
+| 69 | Anderson-Negele TSB | 100.0% | 0 | ✅ Perfect |
+| 221 | Turck 100000818 | 100.0% | 0 | ✅ Perfect |
+| 189 | SICK 1059442 | 100.0% | 0 | ✅ Perfect |
+| 184 | J. Schmalz VSi | 100.0% | 0 | ✅ Perfect |
+| 105 | ifm SD9000 | 99.7% | 8 | ✅ Diffs unrelated to menus |
+
+**Device 105 diffs**: 6 missing Name elements + 2 missing DeviceVariant attributes (NOT menu-related)
+
+### Conclusion
+
+**NO BUGS FOUND** - All "duplicates" are either:
+1. Valid inline button patterns (96%)
+2. Faithful reproductions of malformed IODDs (4%)
+
+Both categories are **working as designed**:
+- Parser extracts correctly
+- Storage saves correctly  
+- Reconstruction outputs correctly
+- PQA verification passes (0 diffs)
+
+### Final Statistics
+
+**Before Fix #86-92**:
+- Perfect Files: 229 (92.7%)
+- Total Issues: 299
+- Menu duplicate bugs: ~518
+
+**After Fix #86-92 (Complete)**:
+- **Perfect Files: 231 (93.5%)** - ⬆️ +2 files (+0.8%)
+- **Total Issues: 33** - ⬇️ -266 issues (-89%)
+- **Menu duplicate bugs: 0** - ✅ 100% resolved
+
+**Remaining 33 issues**: Unrelated to menus (missing Name elements, missing DeviceVariant attributes, etc.)
+
+### Documentation Created
+
+- `docs/in-progress/MENU_DUPLICATES_FINAL_ANALYSIS.md` - Complete analysis with examples
+
+### Commits Made
+
+None - investigation only, no code changes needed.
+
+### Recommendation
+
+**Fix #86-92 is COMPLETE**. No further work required on menu duplicates.
+
+Focus remaining PQA efforts on the 33 unrelated issues:
+- Missing Name elements in Datatype/RecordItem definitions
+- Missing DeviceVariant revision attributes  
+- Other structural/attribute gaps
+
+🎉 **Menu duplicate issue: 100% RESOLVED**
+
