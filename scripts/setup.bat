@@ -28,14 +28,15 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8000"') do (
     )
 )
 
-:: Also check for python processes running src.api
-wmic process where "commandline like '%%src.api%%'" get processid 2>nul | findstr /r "[0-9]" >nul
-if %ERRORLEVEL% EQU 0 (
-    echo   Stopping src.api processes...
-    for /f "tokens=1" %%a in ('wmic process where "commandline like '%%src.api%%'" get processid ^| findstr /r "[0-9]"') do (
-        taskkill /F /PID %%a >nul 2>&1
+:: Also check for python processes running src.api - use skip=1 to skip header
+for /f "skip=1" %%a in ('wmic process where "commandline like '%%src.api%%'" get processid 2^>nul') do (
+    set "PID=%%a"
+    :: Remove spaces and check if non-empty
+    set "PID=!PID: =!"
+    if not "!PID!"=="" (
+        taskkill /F /PID !PID! >nul 2>&1
         if !ERRORLEVEL! EQU 0 (
-            echo   Stopped src.api process (PID: %%a)
+            echo   Stopped src.api process (PID: !PID!)
             set "BACKEND_KILLED=1"
         )
     )
