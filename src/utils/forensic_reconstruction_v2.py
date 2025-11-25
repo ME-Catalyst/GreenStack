@@ -1085,6 +1085,16 @@ class IODDReconstructor:
             if 'string_encoding' in dt.keys() and dt['string_encoding']:
                 datatype_elem.set('encoding', dt['string_encoding'])
 
+            # PQA Fix #96: Add SimpleDatatype child element for ArrayT types
+            if dt['datatype_xsi_type'] == 'ArrayT':
+                array_elem_type = dt['array_element_type'] if 'array_element_type' in dt.keys() else None
+                array_elem_bit_length = dt['array_element_bit_length'] if 'array_element_bit_length' in dt.keys() else None
+                if array_elem_type:
+                    simple_dt_elem = ET.SubElement(datatype_elem, 'SimpleDatatype')
+                    simple_dt_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', array_elem_type)
+                    if array_elem_bit_length:
+                        simple_dt_elem.set('bitLength', str(array_elem_bit_length))
+
             # Add SingleValue enumerations
             self._add_single_values(conn, datatype_elem, dt['id'])
 

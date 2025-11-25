@@ -2431,6 +2431,16 @@ class IODDParser:
                 vr_name_elem = dt_vr_elem.find('iodd:Name', self.NAMESPACES)
                 dt_vr_name_text_id = vr_name_elem.get('textId') if vr_name_elem is not None else None
 
+            # PQA Fix #96: Extract ArrayT SimpleDatatype child element
+            array_element_type = None
+            array_element_bit_length = None
+            if xsi_type == 'ArrayT':
+                simple_dt_child = datatype_elem.find('iodd:SimpleDatatype', self.NAMESPACES)
+                if simple_dt_child is not None:
+                    array_element_type = simple_dt_child.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                    array_bit_length_attr = simple_dt_child.get('bitLength')
+                    array_element_bit_length = int(array_bit_length_attr) if array_bit_length_attr else None
+
             datatypes.append(CustomDatatype(
                 datatype_id=datatype_id,
                 datatype_xsi_type=xsi_type or 'Unknown',
@@ -2443,7 +2453,9 @@ class IODDParser:
                 value_range_xsi_type=dt_vr_xsi_type,
                 value_range_name_text_id=dt_vr_name_text_id,
                 string_fixed_length=int(fixed_length) if fixed_length else None,  # PQA Fix #59
-                string_encoding=encoding  # PQA Fix #59
+                string_encoding=encoding,  # PQA Fix #59
+                array_element_type=array_element_type,  # PQA Fix #96
+                array_element_bit_length=array_element_bit_length  # PQA Fix #96
             ))
 
         logger.info(f"Extracted {len(datatypes)} custom datatypes")

@@ -416,6 +416,9 @@ class CustomDatatype:
     # PQA Fix #59: StringT/OctetStringT specific attributes
     string_fixed_length: Optional[int] = None
     string_encoding: Optional[str] = None
+    # PQA Fix #96: ArrayT SimpleDatatype child element
+    array_element_type: Optional[str] = None  # xsi:type of SimpleDatatype child
+    array_element_bit_length: Optional[int] = None  # bitLength of SimpleDatatype child
 
 
 @dataclass
