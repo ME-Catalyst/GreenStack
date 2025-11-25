@@ -25,10 +25,26 @@ class MenuSaver(BaseSaver):
             logger.debug(f"No UI menus to save for device {device_id}")
             return
 
-        # Delete existing menus and related data (only tables with device_id)
+        # Delete existing menus and related data
+        # First delete child tables (ui_menu_buttons, ui_menu_items) that don't have device_id
+        # by joining with ui_menus
+        self._execute("""
+            DELETE FROM ui_menu_buttons
+            WHERE menu_item_id IN (
+                SELECT mi.id FROM ui_menu_items mi
+                JOIN ui_menus m ON mi.menu_id = m.id
+                WHERE m.device_id = ?
+            )
+        """, (device_id,))
+        self._execute("""
+            DELETE FROM ui_menu_items
+            WHERE menu_id IN (
+                SELECT id FROM ui_menus WHERE device_id = ?
+            )
+        """, (device_id,))
+        # Now delete parent tables that have device_id
         self._delete_existing('ui_menus', device_id)
         self._delete_existing('ui_menu_roles', device_id)
-        # Note: Child tables (ui_menu_items, ui_menu_buttons) will be recreated
 
         # Save each menu
         for menu in ui_menus.menus:
