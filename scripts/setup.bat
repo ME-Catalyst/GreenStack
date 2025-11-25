@@ -53,12 +53,12 @@ echo.
 echo [2/6] Clearing Python bytecode cache...
 set CACHE_COUNT=0
 
-for /r "%CD%\src" %%d in (__pycache__) do (
+:: Use dir to find cache directories and delete them
+for /d /r "%CD%\src" %%d in (__pycache__) do (
     if exist "%%d" (
+        echo   Clearing: %%d
         rmdir /s /q "%%d" 2>nul
-        if !ERRORLEVEL! EQU 0 (
-            set /a CACHE_COUNT+=1
-        )
+        set /a CACHE_COUNT+=1
     )
 )
 
