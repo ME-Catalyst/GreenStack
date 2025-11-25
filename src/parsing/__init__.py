@@ -2225,8 +2225,9 @@ class IODDParser:
             # PQA Fix #19: Extract connectionSymbol attribute
             connection_symbol = connection.get('connectionSymbol')
 
-            # Extract wire information (Wire1, Wire2, Wire3, Wire4, Wire5)
-            for wire_num in range(1, 6):
+            # PQA Fix #101: Extract wire information (Wire1 through Wire8)
+            # M12-8 connectors use up to 8 wires
+            for wire_num in range(1, 9):
                 wire_elem = connection.find(f'.//iodd:Wire{wire_num}', self.NAMESPACES)
                 if wire_elem is not None:
                     # Get wire description from Name element
