@@ -2305,23 +2305,23 @@ class IODDParser:
             # Extract single values (direct children only, not those inside RecordItem/SimpleDatatype)
             # PQA Fix #21b: Changed from .//iodd:SingleValue to iodd:SingleValue to prevent duplication
             # PQA Fix #38: Added xml_order to preserve original order
+            # PQA Fix #97: Include SingleValue elements without Name children (special constants)
             single_values = []
             for sv_idx, single_val in enumerate(datatype_elem.findall('iodd:SingleValue', self.NAMESPACES)):
                 value = single_val.get('value')
-                name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
-                if name_elem is not None and value is not None:
-                    text_id = name_elem.get('textId')
-                    text_value = self._resolve_text(text_id)
+                if value is not None:
+                    name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
+                    text_id = name_elem.get('textId') if name_elem is not None else None
+                    text_value = self._resolve_text(text_id) if text_id else None
                     # Get xsi:type attribute for PQA reconstruction (e.g., BooleanValueT)
                     sv_xsi_type = single_val.get('{http://www.w3.org/2001/XMLSchema-instance}type')
-                    if text_value:
-                        single_values.append(SingleValue(
-                            value=value,
-                            name=text_value,
-                            text_id=text_id,  # Preserve original textId for PQA
-                            xsi_type=sv_xsi_type,  # Preserve xsi:type for PQA
-                            xml_order=sv_idx  # PQA Fix #38: Preserve original order
-                        ))
+                    single_values.append(SingleValue(
+                        value=value,
+                        name=text_value or '',  # Empty string if no Name element
+                        text_id=text_id,  # None if no Name element
+                        xsi_type=sv_xsi_type,  # Preserve xsi:type for PQA
+                        xml_order=sv_idx  # PQA Fix #38: Preserve original order
+                    ))
 
             # Extract record items (for RecordT types)
             record_items = []
