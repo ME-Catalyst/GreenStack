@@ -187,6 +187,7 @@ class ProcessData:
     datatype_ref_id: Optional[str] = None  # datatypeId attribute if using DatatypeRef
     datatype_name_text_id: Optional[str] = None  # PQA Fix #72: Datatype/Name textId (direct child)
     datatype_has_bit_length: bool = False  # PQA Fix #77: Track if Datatype element had bitLength attribute
+    array_count: Optional[int] = None  # PQA Fix #98: ArrayT count attribute on Datatype
 
 
 @dataclass
@@ -419,6 +420,8 @@ class CustomDatatype:
     # PQA Fix #96: ArrayT SimpleDatatype child element
     array_element_type: Optional[str] = None  # xsi:type of SimpleDatatype child
     array_element_bit_length: Optional[int] = None  # bitLength of SimpleDatatype child
+    # PQA Fix #98: ArrayT count attribute
+    array_count: Optional[int] = None  # count attribute for ArrayT types
 
 
 @dataclass

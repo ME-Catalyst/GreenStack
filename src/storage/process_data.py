@@ -88,12 +88,14 @@ class ProcessDataSaver(BaseSaver):
         # PQA Fix #53: Added uses_datatype_ref and datatype_ref_id columns
         # PQA Fix #72: Added datatype_name_text_id column
         # PQA Fix #77: Added datatype_has_bit_length column
+        # PQA Fix #98: Added array_count column
         query = """
             INSERT INTO process_data (
                 device_id, pd_id, name, direction, bit_length, data_type, description,
                 name_text_id, subindex_access_supported, wrapper_id,
-                uses_datatype_ref, datatype_ref_id, datatype_name_text_id, datatype_has_bit_length
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                uses_datatype_ref, datatype_ref_id, datatype_name_text_id, datatype_has_bit_length,
+                array_count
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -111,6 +113,7 @@ class ProcessDataSaver(BaseSaver):
             getattr(pd, 'datatype_ref_id', None),  # PQA Fix #53
             getattr(pd, 'datatype_name_text_id', None),  # PQA Fix #72
             1 if getattr(pd, 'datatype_has_bit_length', False) else 0,  # PQA Fix #77
+            getattr(pd, 'array_count', None),  # PQA Fix #98
         )
 
         self._execute(query, params)

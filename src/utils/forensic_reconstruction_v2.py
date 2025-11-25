@@ -666,6 +666,10 @@ class IODDReconstructor:
             datatype_has_bit_length = pd.get('datatype_has_bit_length', False) if hasattr(pd, 'get') else pd['datatype_has_bit_length'] if 'datatype_has_bit_length' in pd.keys() else False
             if pd['bit_length'] and datatype_has_bit_length:
                 datatype.set('bitLength', str(pd['bit_length']))
+            # PQA Fix #98: Add count attribute for ArrayT types
+            array_count = pd.get('array_count') if hasattr(pd, 'get') else pd['array_count'] if 'array_count' in pd.keys() else None
+            if array_count is not None:
+                datatype.set('count', str(array_count))
             # Add subindexAccessSupported attribute (PQA accuracy)
             subindex_access = pd['subindex_access_supported'] if 'subindex_access_supported' in pd.keys() else None
             if subindex_access is not None:
@@ -1078,6 +1082,10 @@ class IODDReconstructor:
             # Add bitLength attribute if present
             if dt['bit_length']:
                 datatype_elem.set('bitLength', str(dt['bit_length']))
+
+            # PQA Fix #98: Add count attribute for ArrayT types
+            if 'array_count' in dt.keys() and dt['array_count'] is not None:
+                datatype_elem.set('count', str(dt['array_count']))
 
             # PQA Fix #59: Add fixedLength and encoding for StringT/OctetStringT
             if 'string_fixed_length' in dt.keys() and dt['string_fixed_length']:

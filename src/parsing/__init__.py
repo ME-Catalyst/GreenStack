@@ -985,6 +985,8 @@ class IODDParser:
             datatype_name_text_id = None
             # PQA Fix #77: Initialize datatype_has_bit_length
             datatype_has_bit_length = False
+            # PQA Fix #98: Initialize array_count
+            array_count = None
 
             if datatype_ref_elem is not None:
                 # Uses DatatypeRef - reference to custom datatype
@@ -997,9 +999,13 @@ class IODDParser:
                 subindex_attr = datatype_elem.get('subindexAccessSupported')
                 if subindex_attr is not None:
                     subindex_access_supported = subindex_attr.lower() == 'true'
-                
+
                 # PQA Fix #77: Track if Datatype element has bitLength attribute
                 datatype_has_bit_length = datatype_elem.get('bitLength') is not None
+
+                # PQA Fix #98: Extract ArrayT count attribute
+                count_attr = datatype_elem.get('count')
+                array_count = int(count_attr) if count_attr else None
 
                 # PQA Fix #71: Extract direct SingleValue children of Datatype (for non-RecordT types)
                 direct_single_values = []
@@ -1151,6 +1157,7 @@ class IODDParser:
                 datatype_ref_id=datatype_ref_id,  # PQA Fix #53
                 datatype_name_text_id=datatype_name_text_id,  # PQA Fix #72
                 datatype_has_bit_length=datatype_has_bit_length,  # PQA Fix #77
+                array_count=array_count,  # PQA Fix #98
             )
             collection.inputs.append(process_data)
             collection.total_input_bits += bit_length
@@ -1183,6 +1190,8 @@ class IODDParser:
             datatype_name_text_id = None
             # PQA Fix #77: Initialize datatype_has_bit_length
             datatype_has_bit_length = False
+            # PQA Fix #98: Initialize array_count
+            array_count = None
 
             if datatype_ref_elem is not None:
                 # Uses DatatypeRef - reference to custom datatype
@@ -1195,9 +1204,13 @@ class IODDParser:
                 subindex_attr = datatype_elem.get('subindexAccessSupported')
                 if subindex_attr is not None:
                     subindex_access_supported = subindex_attr.lower() == 'true'
-                
+
                 # PQA Fix #77: Track if Datatype element has bitLength attribute
                 datatype_has_bit_length = datatype_elem.get('bitLength') is not None
+
+                # PQA Fix #98: Extract ArrayT count attribute
+                count_attr = datatype_elem.get('count')
+                array_count = int(count_attr) if count_attr else None
 
                 # PQA Fix #71: Extract direct SingleValue children of Datatype (for non-RecordT types)
                 for sv in datatype_elem.findall('iodd:SingleValue', self.NAMESPACES):
@@ -1348,6 +1361,7 @@ class IODDParser:
                 datatype_ref_id=datatype_ref_id,  # PQA Fix #53
                 datatype_name_text_id=datatype_name_text_id,  # PQA Fix #72
                 datatype_has_bit_length=datatype_has_bit_length,  # PQA Fix #77
+                array_count=array_count,  # PQA Fix #98
             )
             collection.outputs.append(process_data)
             collection.total_output_bits += bit_length
@@ -2298,6 +2312,9 @@ class IODDParser:
             # PQA Fix #59: Extract StringT/OctetStringT fixedLength and encoding attributes
             fixed_length = datatype_elem.get('fixedLength')
             encoding = datatype_elem.get('encoding')
+            # PQA Fix #98: Extract ArrayT count attribute
+            count_attr = datatype_elem.get('count')
+            array_count = int(count_attr) if count_attr else None
             # PQA Fix: Only store subindexAccessSupported if actually present in XML
             subindex_access_attr = datatype_elem.get('subindexAccessSupported')
             subindex_access = subindex_access_attr.lower() == 'true' if subindex_access_attr is not None else None
@@ -2455,7 +2472,8 @@ class IODDParser:
                 string_fixed_length=int(fixed_length) if fixed_length else None,  # PQA Fix #59
                 string_encoding=encoding,  # PQA Fix #59
                 array_element_type=array_element_type,  # PQA Fix #96
-                array_element_bit_length=array_element_bit_length  # PQA Fix #96
+                array_element_bit_length=array_element_bit_length,  # PQA Fix #96
+                array_count=array_count  # PQA Fix #98
             ))
 
         logger.info(f"Extracted {len(datatypes)} custom datatypes")
