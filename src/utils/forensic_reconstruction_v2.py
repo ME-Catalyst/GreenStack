@@ -402,9 +402,10 @@ class IODDReconstructor:
             device_variant.set('deviceIcon', variant_row['device_icon'])
 
         # PQA Fix #58: Add hardware/firmware revision attributes
-        if variant_row and 'hardware_revision' in variant_row.keys() and variant_row['hardware_revision']:
+        # Output even when empty string (but not when NULL/None)
+        if variant_row and 'hardware_revision' in variant_row.keys() and variant_row['hardware_revision'] is not None:
             device_variant.set('hardwareRevision', variant_row['hardware_revision'])
-        if variant_row and 'firmware_revision' in variant_row.keys() and variant_row['firmware_revision']:
+        if variant_row and 'firmware_revision' in variant_row.keys() and variant_row['firmware_revision'] is not None:
             device_variant.set('firmwareRevision', variant_row['firmware_revision'])
 
         # PQA Fix #40: Output correct element type based on what was present in original
