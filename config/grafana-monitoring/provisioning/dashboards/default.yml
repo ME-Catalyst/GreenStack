@@ -1,0 +1,21 @@
+# =============================================================================
+# Grafana Dashboard Provisioning
+# =============================================================================
+# Purpose: Auto-load dashboards from filesystem
+# Created: 2025-11-25
+# =============================================================================
+
+apiVersion: 1
+
+providers:
+  # Dashboard provider for GreenStack monitoring dashboards
+  - name: 'GreenStack Dashboards'
+    orgId: 1
+    folder: 'GreenStack'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: true

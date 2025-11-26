@@ -1,0 +1,46 @@
+# =============================================================================
+# Grafana Datasource: Prometheus
+# =============================================================================
+# Purpose: Configure Prometheus as data source for Grafana dashboards
+# Created: 2025-11-25
+# =============================================================================
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+
+    # URL accessible from Grafana container
+    url: http://prometheus:9090
+
+    # Make this the default datasource
+    isDefault: true
+
+    # Enable/disable this datasource
+    editable: true
+
+    # JSON data for additional configuration
+    jsonData:
+      # Query timeout
+      timeInterval: 15s
+
+      # HTTP method for queries
+      httpMethod: POST
+
+      # Custom query parameters
+      # customQueryParameters: ''
+
+      # Prometheus version (leave empty for auto-detect)
+      # prometheusType: 'Prometheus'
+      # prometheusVersion: '2.40.0'
+
+    # Optional: Basic auth
+    # basicAuth: false
+    # basicAuthUser: username
+    # secureJsonData:
+    #   basicAuthPassword: password
+
+    # Health check
+    # version: 1

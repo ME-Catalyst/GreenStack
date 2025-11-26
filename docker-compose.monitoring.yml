@@ -1,0 +1,190 @@
+# =============================================================================
+# GreenStack Monitoring Stack
+# =============================================================================
+# Purpose: Prometheus metrics collection and Grafana visualization
+# Created: 2025-11-25
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Prometheus - Metrics Collection
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: greenstack-prometheus
+    restart: unless-stopped
+
+    # Ports
+    ports:
+      - "9090:9090"
+
+    # Configuration and data volumes
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+    # Command line options
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    # Network
+    networks:
+      - iodd-network
+
+    # Labels
+    labels:
+      - "com.greenstack.description=Prometheus Metrics Collection"
+      - "com.greenstack.version=2.48.0"
+
+  # ============================================================================
+  # Grafana - Visualization and Dashboards
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: greenstack-grafana-monitoring
+    restart: unless-stopped
+
+    # Ports (using 3001 to avoid conflict with existing Grafana on 3000)
+    ports:
+      - "3001:3000"
+
+    # Environment variables
+    environment:
+      # Admin credentials (change in production!)
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+
+      # Disable user sign-up
+      - GF_USERS_ALLOW_SIGN_UP=false
+
+      # Anonymous access (disabled for security)
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+
+      # Server settings
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+
+      # Logging
+      - GF_LOG_LEVEL=info
+      - GF_LOG_MODE=console
+
+      # Install plugins (optional)
+      # - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+
+    # Volumes
+    volumes:
+      # Grafana data (dashboards, users, etc.)
+      - grafana-monitoring-data:/var/lib/grafana
+
+      # Provisioning (auto-load datasources and dashboards)
+      - ./config/grafana-monitoring/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana-monitoring/dashboards:/etc/grafana/provisioning/dashboards:ro
+
+    # User override (run as user 472 - grafana user)
+    user: "472"
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    # Network
+    networks:
+      - iodd-network
+
+    # Dependencies
+    depends_on:
+      - prometheus
+
+    # Labels
+    labels:
+      - "com.greenstack.description=Grafana Monitoring Dashboard"
+      - "com.greenstack.version=10.2.3"
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  iodd-network:
+    external: true
+    # If network doesn't exist yet, create it:
+    # docker network create iodd-network
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  prometheus-data:
+    driver: local
+    labels:
+      - "com.greenstack.description=Prometheus metrics data"
+
+  grafana-monitoring-data:
+    driver: local
+    labels:
+      - "com.greenstack.description=Grafana dashboards and configuration"
+
+# =============================================================================
+# Usage Examples
+# =============================================================================
+#
+# Start monitoring stack:
+#   docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+#
+# Stop monitoring stack:
+#   docker-compose -f docker-compose.monitoring.yml down
+#
+# View logs:
+#   docker-compose -f docker-compose.monitoring.yml logs -f prometheus
+#   docker-compose -f docker-compose.monitoring.yml logs -f grafana
+#
+# Access Prometheus:
+#   http://localhost:9090
+#
+# Access Grafana:
+#   http://localhost:3001
+#   Default credentials: admin / admin (change on first login!)
+#
+# Restart to reload Prometheus config:
+#   docker-compose -f docker-compose.monitoring.yml restart prometheus
+#
+# =============================================================================
