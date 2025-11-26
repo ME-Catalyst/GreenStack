@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Test PQA Dashboard API Endpoints"""
 import requests
 import sys
+import io
+
+# Force UTF-8 encoding for Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 API_BASE = "http://localhost:8000"
 
