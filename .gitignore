@@ -78,14 +78,8 @@ ticket_attachments/
 *.db-shm
 *.db-wal
 
-# Test data (exclude test files but keep structure)
-test-data/eds-files/*
-test-data/iodd-files/*
-test-data/output/*
-!test-data/eds-files/.gitkeep
-!test-data/iodd-files/.gitkeep
-!test-data/output/.gitkeep
-!test-data/README.md
+# Test data (local only - not tracked in repository)
+test-data/
 
 # Environment variables
 .env
