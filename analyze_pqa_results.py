@@ -39,33 +39,36 @@ def analyze_pqa_results():
     cursor.execute("""
         SELECT
             COUNT(*) as total,
-            ROUND(AVG(overall_score), 2) as avg_overall,
-            ROUND(MIN(overall_score), 2) as min_overall,
-            ROUND(MAX(overall_score), 2) as max_overall,
-            ROUND(AVG(structural_score), 2) as avg_structural,
-            ROUND(AVG(attribute_score), 2) as avg_attribute,
-            ROUND(AVG(value_score), 2) as avg_value,
-            ROUND(AVG(data_loss_percentage), 2) as avg_data_loss,
+            AVG(overall_score) as avg_overall,
+            MIN(overall_score) as min_overall,
+            MAX(overall_score) as max_overall,
+            AVG(structural_score) as avg_structural,
+            AVG(attribute_score) as avg_attribute,
+            AVG(value_score) as avg_value,
+            AVG(data_loss_percentage) as avg_data_loss,
             SUM(CASE WHEN critical_data_loss = 1 THEN 1 ELSE 0 END) as critical_count,
-            SUM(CASE WHEN passed_threshold = 1 THEN 1 ELSE 0 END) as passed_count
+            SUM(CASE WHEN passed_threshold = 1 THEN 1 ELSE 0 END) as passed_count,
+            SUM(CASE WHEN overall_score = 100.0 THEN 1 ELSE 0 END) as perfect_count
         FROM pqa_quality_metrics
         WHERE file_type = 'IODD'
     """)
 
     stats = cursor.fetchone()
     print(f"Total Analyzed: {stats['total']}")
-    print(f"\nOverall Scores:")
-    print(f"  Average: {stats['avg_overall']}%")
-    print(f"  Range: {stats['min_overall']}% - {stats['max_overall']}%")
-    print(f"\nComponent Scores:")
-    print(f"  Structural (40%): {stats['avg_structural']}%")
-    print(f"  Attribute (35%):  {stats['avg_attribute']}%")
-    print(f"  Value (25%):      {stats['avg_value']}%")
+    print(f"\nOverall Scores (Full Precision):")
+    print(f"  Average: {stats['avg_overall']:.4f}%")
+    print(f"  Range: {stats['min_overall']:.4f}% - {stats['max_overall']:.4f}%")
+    print(f"\nComponent Scores (Full Precision):")
+    print(f"  Structural (40%): {stats['avg_structural']:.4f}%")
+    print(f"  Attribute (35%):  {stats['avg_attribute']:.4f}%")
+    print(f"  Value (25%):      {stats['avg_value']:.4f}%")
     print(f"\nQuality Gates:")
-    print(f"  Passed Threshold (>=95%): {stats['passed_count']} ({stats['passed_count']/stats['total']*100:.1f}%)")
+    print(f"  Perfect Devices (100.0000%): {stats['perfect_count']} ({stats['perfect_count']/stats['total']*100:.2f}%)")
+    print(f"  Near-Perfect (99.9-99.99%): {stats['passed_count'] - stats['perfect_count']} ({(stats['passed_count']-stats['perfect_count'])/stats['total']*100:.2f}%)")
+    print(f"  Passed Threshold (>=95%): {stats['passed_count']} ({stats['passed_count']/stats['total']*100:.2f}%)")
     print(f"  Failed Threshold (<95%): {stats['total'] - stats['passed_count']}")
     print(f"  Critical Data Loss: {stats['critical_count']}")
-    print(f"  Avg Data Loss: {stats['avg_data_loss']}%")
+    print(f"  Avg Data Loss: {stats['avg_data_loss']:.4f}%")
 
     # 3. Score Distribution Buckets
     print("\n## 3. SCORE DISTRIBUTION\n")
@@ -170,21 +173,33 @@ def analyze_pqa_results():
 
     cursor.execute("""
         SELECT
-            ROUND(AVG(phase1_score), 2) as avg_phase1,
-            ROUND(AVG(phase2_score), 2) as avg_phase2,
-            ROUND(AVG(phase3_score), 2) as avg_phase3,
-            ROUND(AVG(phase4_score), 2) as avg_phase4,
-            ROUND(AVG(phase5_score), 2) as avg_phase5
+            AVG(phase1_score) as avg_phase1,
+            AVG(phase2_score) as avg_phase2,
+            AVG(phase3_score) as avg_phase3,
+            AVG(phase4_score) as avg_phase4,
+            AVG(phase5_score) as avg_phase5,
+            SUM(CASE WHEN phase1_score = 100.0 THEN 1 ELSE 0 END) as p1_perfect,
+            SUM(CASE WHEN phase2_score = 100.0 THEN 1 ELSE 0 END) as p2_perfect,
+            SUM(CASE WHEN phase3_score = 100.0 THEN 1 ELSE 0 END) as p3_perfect,
+            SUM(CASE WHEN phase4_score = 100.0 THEN 1 ELSE 0 END) as p4_perfect,
+            SUM(CASE WHEN phase5_score = 100.0 THEN 1 ELSE 0 END) as p5_perfect
         FROM pqa_quality_metrics
         WHERE file_type = 'IODD'
     """)
 
     phases = cursor.fetchone()
-    print(f"Phase 1 (UI Rendering):          {phases['avg_phase1']}%")
-    print(f"Phase 2 (Variants & Conditions): {phases['avg_phase2']}%")
-    print(f"Phase 3 (Menu Buttons):          {phases['avg_phase3']}%")
-    print(f"Phase 4 (Wiring & Test Config):  {phases['avg_phase4']}%")
-    print(f"Phase 5 (Custom Datatypes):      {phases['avg_phase5']}%")
+    total = stats['total']
+
+    def format_phase(score, perfect_count):
+        status = "Perfect" if score == 100.0 else f"{perfect_count}/{total} perfect"
+        indicator = "✓" if score == 100.0 else "⚠" if score >= 99.0 else "!"
+        return f"{score:.4f}%  {indicator} {status}"
+
+    print(f"Phase 1 (UI Rendering):          {format_phase(phases['avg_phase1'], phases['p1_perfect'])}")
+    print(f"Phase 2 (Variants & Conditions): {format_phase(phases['avg_phase2'], phases['p2_perfect'])}")
+    print(f"Phase 3 (Menu Buttons):          {format_phase(phases['avg_phase3'], phases['p3_perfect'])}")
+    print(f"Phase 4 (Wiring & Test Config):  {format_phase(phases['avg_phase4'], phases['p4_perfect'])}")
+    print(f"Phase 5 (Custom Datatypes):      {format_phase(phases['avg_phase5'], phases['p5_perfect'])}")
 
     # 8. Tickets Generated
     print("\n## 8. PQA TICKETS GENERATED\n")
