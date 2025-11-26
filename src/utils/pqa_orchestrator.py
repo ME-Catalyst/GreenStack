@@ -12,6 +12,9 @@ from typing import Dict, List, Optional, Tuple, Union
 from datetime import datetime
 from enum import Enum
 
+# Import version info
+from src import __version__
+
 # Import reconstruction engines
 from .forensic_reconstruction_v2 import IODDReconstructor
 from .eds_reconstruction import EDSReconstructor
@@ -215,7 +218,7 @@ class UnifiedPQAOrchestrator:
                 file_hash,
                 content.encode('utf-8'),
                 file_size,
-                "1.0.0"  # TODO: Get from version info
+                __version__
             ))
 
             archive_id = cursor.lastrowid
@@ -287,7 +290,7 @@ class UnifiedPQAOrchestrator:
                     metrics.data_loss_percentage, metrics.critical_data_loss,
                     metrics.phase1_score, metrics.phase2_score, metrics.phase3_score,
                     metrics.phase4_score, metrics.phase5_score,
-                    passed, not passed, 0, 0  # TODO: Track actual times
+                    passed, not passed, 0, 0  # Performance timing tracked in Issue #5 (08-GITHUB-ISSUES-TODO.md)
                 ))
             else:  # EDS
                 # Map EDS metrics to common structure

@@ -1,0 +1,13 @@
+./frontend/dist/assets/cytoscape.esm-BnkdMOzK.js:88:        vec2 position = aPosition; // TODO make this a vec3, simplifies some code below
+./src/generation/__init__.py:127:                    // TODO: Implement IO-Link read
+./src/generation/__init__.py:138:                    // TODO: Implement IO-Link write
+./src/generation/__init__.py:148:                    // TODO: Implement process data handling
+./src/greenstack.py:1995:                    // TODO: Implement IO-Link read
+./src/greenstack.py:2006:                    // TODO: Implement IO-Link write
+./src/greenstack.py:2016:                    // TODO: Implement process data handling
+./src/tasks/dlq_handler.py:66:    # TODO: Store in database for analysis
+./src/tasks/dlq_handler.py:67:    # TODO: Send alert/notification (email, Slack, PagerDuty, etc.)
+./src/tasks/dlq_handler.py:68:    # TODO: Attempt recovery if applicable
+./src/tasks/dlq_handler.py:134:    # TODO: Query database for DLQ statistics
+./src/utils/pqa_orchestrator.py:218:                "1.0.0"  # TODO: Get from version info
+./src/utils/pqa_orchestrator.py:290:                    passed, not passed, 0, 0  # TODO: Track actual times
