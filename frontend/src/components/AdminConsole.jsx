@@ -1905,9 +1905,11 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
   const [scoreDistribution, setScoreDistribution] = useState(null);
   const [diffDistribution, setDiffDistribution] = useState(null);
   const [xpathPatterns, setXpathPatterns] = useState(null);
+  const [phaseBreakdown, setPhaseBreakdown] = useState(null);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [deviceAnalysis, setDeviceAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchEnhancedData();
@@ -1918,15 +1920,17 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
       setLoading(true);
       const fileTypeParam = fileType !== 'ALL' ? `?file_type=${fileType}` : '';
 
-      const [scoreRes, diffRes, xpathRes] = await Promise.all([
+      const [scoreRes, diffRes, xpathRes, phaseRes] = await Promise.all([
         axios.get(`${API_BASE}/api/pqa/dashboard/score-distribution${fileTypeParam}`).catch(() => null),
         axios.get(`${API_BASE}/api/pqa/dashboard/diff-distribution${fileTypeParam}`).catch(() => null),
-        axios.get(`${API_BASE}/api/pqa/dashboard/xpath-patterns${fileTypeParam}&limit=10`).catch(() => null)
+        axios.get(`${API_BASE}/api/pqa/dashboard/xpath-patterns${fileTypeParam}&limit=10`).catch(() => null),
+        axios.get(`${API_BASE}/api/pqa/dashboard/phase-breakdown${fileTypeParam}`).catch(() => null)
       ]);
 
       setScoreDistribution(scoreRes?.data || null);
       setDiffDistribution(diffRes?.data || null);
       setXpathPatterns(xpathRes?.data || null);
+      setPhaseBreakdown(phaseRes?.data || null);
     } catch (err) {
       console.error('Failed to load enhanced PQA data:', err);
     } finally {
@@ -1941,6 +1945,87 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
       setSelectedDevice(deviceId);
     } catch (err) {
       console.error('Failed to load device analysis:', err);
+    }
+  };
+
+  const exportPQAReport = async (format = 'json') => {
+    try {
+      setExporting(true);
+      const fileTypeParam = fileType !== 'ALL' ? `?file_type=${fileType}` : '';
+
+      // Fetch all data for export
+      const [summaryRes, scoreRes, diffRes, xpathRes, phaseRes] = await Promise.all([
+        axios.get(`${API_BASE}/api/pqa/dashboard/summary${fileTypeParam}`),
+        axios.get(`${API_BASE}/api/pqa/dashboard/score-distribution${fileTypeParam}`),
+        axios.get(`${API_BASE}/api/pqa/dashboard/diff-distribution${fileTypeParam}`),
+        axios.get(`${API_BASE}/api/pqa/dashboard/xpath-patterns${fileTypeParam}&limit=50`),
+        axios.get(`${API_BASE}/api/pqa/dashboard/phase-breakdown${fileTypeParam}`)
+      ]);
+
+      const exportData = {
+        generated_at: new Date().toISOString(),
+        file_type: fileType,
+        summary: summaryRes.data,
+        score_distribution: scoreRes.data,
+        diff_distribution: diffRes.data,
+        xpath_patterns: xpathRes.data,
+        phase_breakdown: phaseRes.data
+      };
+
+      if (format === 'json') {
+        // Export as JSON
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `pqa_report_${fileType}_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else if (format === 'csv') {
+        // Export as CSV (summary data)
+        const csvRows = [];
+        csvRows.push('PQA Summary Report');
+        csvRows.push(`Generated: ${new Date().toLocaleString()}`);
+        csvRows.push(`File Type: ${fileType}`);
+        csvRows.push('');
+        csvRows.push('Overall Metrics');
+        csvRows.push('Metric,Value');
+        csvRows.push(`Total Analyses,${exportData.summary.total_analyses}`);
+        csvRows.push(`Average Score,${exportData.summary.average_score.toFixed(4)}%`);
+        csvRows.push(`Passed Analyses,${exportData.summary.passed_analyses}`);
+        csvRows.push(`Failed Analyses,${exportData.summary.failed_analyses}`);
+        csvRows.push(`Critical Failures,${exportData.summary.critical_failures}`);
+        csvRows.push('');
+        csvRows.push('Score Distribution');
+        csvRows.push('Range,Count,Percentage');
+        exportData.score_distribution.buckets.forEach(bucket => {
+          const pct = (bucket.count / exportData.score_distribution.total * 100).toFixed(2);
+          csvRows.push(`${bucket.label},${bucket.count},${pct}%`);
+        });
+        csvRows.push('');
+        csvRows.push('Phase Breakdown');
+        csvRows.push('Phase,Name,Avg Score,Perfect Count,Issues Count');
+        exportData.phase_breakdown.phases.forEach(phase => {
+          csvRows.push(`${phase.phase},${phase.name},${phase.avg_score.toFixed(4)}%,${phase.perfect_count},${phase.issues_count}`);
+        });
+
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `pqa_report_${fileType}_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error('Failed to export PQA report:', err);
+      alert('Failed to export report. Please try again.');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -2142,6 +2227,126 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Phase Breakdown */}
+      {phaseBreakdown && phaseBreakdown.phases && phaseBreakdown.phases.length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <Activity className="w-5 h-5 text-brand-green" />
+              Phase-Specific Breakdown (IODD Features)
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Analysis across 5 IODD feature phases • {phaseBreakdown.total_devices} devices analyzed
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {phaseBreakdown.phases.map((phase) => {
+                const scoreFormatted = formatScore(phase.avg_score);
+                const isPerfect = phase.avg_score === 100.0;
+                const hasIssues = phase.issues_count > 0;
+
+                return (
+                  <div
+                    key={phase.phase}
+                    className={`p-4 rounded-lg border transition-all ${
+                      isPerfect ? 'bg-success/5 border-success/30' :
+                      hasIssues ? 'bg-warning/5 border-warning/30' :
+                      'bg-secondary/30 border-border'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className={isPerfect ? 'bg-success text-white' : 'bg-warning text-white'}>
+                            Phase {phase.phase}
+                          </Badge>
+                          {scoreFormatted.badge && (
+                            <Badge className={scoreFormatted.badgeClass}>
+                              {scoreFormatted.badge}
+                            </Badge>
+                          )}
+                        </div>
+                        <h4 className="text-sm font-semibold text-foreground mb-1">{phase.name}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          {phase.perfect_count} perfect ({phase.perfect_percentage}%) • {phase.issues_count} with issues
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-brand-green">{scoreFormatted.display}</p>
+                      </div>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Perfect Devices</span>
+                        <span>{phase.perfect_count} / {phaseBreakdown.total_devices}</span>
+                      </div>
+                      <div className="h-2 bg-secondary/40 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            phase.perfect_percentage >= 99 ? 'bg-success' :
+                            phase.perfect_percentage >= 95 ? 'bg-brand-green' :
+                            phase.perfect_percentage >= 90 ? 'bg-cyan-400' :
+                            'bg-warning'
+                          }`}
+                          style={{ width: `${phase.perfect_percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Export Actions */}
+      <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30">
+        <CardHeader>
+          <CardTitle className="text-foreground flex items-center gap-2">
+            <Download className="w-5 h-5 text-primary" />
+            Export PQA Report
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Download comprehensive analysis report in your preferred format
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              onClick={() => exportPQAReport('json')}
+              disabled={exporting}
+              className="bg-primary hover:bg-primary/80 flex items-center gap-2"
+            >
+              {exporting ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              Export as JSON
+            </Button>
+            <Button
+              onClick={() => exportPQAReport('csv')}
+              disabled={exporting}
+              className="bg-secondary hover:bg-secondary/80 flex items-center gap-2"
+            >
+              {exporting ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              Export as CSV
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            JSON format includes full details (scores, diffs, patterns, phases). CSV format includes summary metrics and phase breakdown.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Device Analysis Modal */}
       {selectedDevice && deviceAnalysis && (
