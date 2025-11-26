@@ -65,10 +65,35 @@ def analyze_pqa_results():
     print(f"\nQuality Gates:")
     print(f"  Perfect Devices (100.0000%): {stats['perfect_count']} ({stats['perfect_count']/stats['total']*100:.2f}%)")
     print(f"  Near-Perfect (99.9-99.99%): {stats['passed_count'] - stats['perfect_count']} ({(stats['passed_count']-stats['perfect_count'])/stats['total']*100:.2f}%)")
-    print(f"  Passed Threshold (>=95%): {stats['passed_count']} ({stats['passed_count']/stats['total']*100:.2f}%)")
-    print(f"  Failed Threshold (<95%): {stats['total'] - stats['passed_count']}")
+    print(f"  Passed Threshold: {stats['passed_count']} ({stats['passed_count']/stats['total']*100:.2f}%)")
+    print(f"  Failed Threshold: {stats['total'] - stats['passed_count']}")
     print(f"  Critical Data Loss: {stats['critical_count']}")
     print(f"  Avg Data Loss: {stats['avg_data_loss']:.4f}%")
+
+    # Get threshold configuration
+    cursor.execute('SELECT min_overall_score, max_data_loss_percentage FROM pqa_thresholds WHERE active = 1')
+    threshold = cursor.fetchone()
+    if threshold:
+        print(f"\nActive Threshold Configuration:")
+        print(f"  Min Overall Score: {threshold[0]}%")
+        print(f"  Max Data Loss: {threshold[1]}%")
+
+        # Check why devices failed
+        cursor.execute('''
+            SELECT
+                SUM(CASE WHEN overall_score < ? THEN 1 ELSE 0 END) as failed_score,
+                SUM(CASE WHEN data_loss_percentage > ? THEN 1 ELSE 0 END) as failed_data_loss,
+                SUM(CASE WHEN overall_score >= ? AND data_loss_percentage > ? THEN 1 ELSE 0 END) as failed_only_data_loss
+            FROM pqa_quality_metrics
+            WHERE file_type = 'IODD' AND passed_threshold = 0
+        ''', (threshold[0], threshold[1], threshold[0], threshold[1]))
+
+        failures = cursor.fetchone()
+        if failures and (stats['total'] - stats['passed_count']) > 0:
+            print(f"\nFailure Breakdown:")
+            print(f"  Failed due to low score (<{threshold[0]}%): {failures[0] or 0}")
+            print(f"  Failed due to data loss (>{threshold[1]}%): {failures[1] or 0}")
+            print(f"  Failed ONLY data loss (good score!): {failures[2] or 0}")
 
     # 3. Score Distribution Buckets
     print("\n## 3. SCORE DISTRIBUTION\n")
