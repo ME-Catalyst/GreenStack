@@ -1921,12 +1921,25 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
       const fileTypeParam = fileType !== 'ALL' ? `?file_type=${fileType}` : '';
       const xpathParam = fileType !== 'ALL' ? `${fileTypeParam}&limit=10` : '?limit=10';
 
+      console.log('[PQA Enhanced] Fetching data with fileType:', fileType);
+
       const [scoreRes, diffRes, xpathRes, phaseRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/pqa/dashboard/score-distribution${fileTypeParam}`).catch(() => null),
-        axios.get(`${API_BASE}/api/pqa/dashboard/diff-distribution${fileTypeParam}`).catch(() => null),
-        axios.get(`${API_BASE}/api/pqa/dashboard/xpath-patterns${xpathParam}`).catch(() => null),
-        axios.get(`${API_BASE}/api/pqa/dashboard/phase-breakdown${fileTypeParam}`).catch(() => null)
+        axios.get(`${API_BASE}/api/pqa/dashboard/score-distribution${fileTypeParam}`)
+          .catch((err) => { console.error('[PQA] Score distribution failed:', err.message); return null; }),
+        axios.get(`${API_BASE}/api/pqa/dashboard/diff-distribution${fileTypeParam}`)
+          .catch((err) => { console.error('[PQA] Diff distribution failed:', err.message); return null; }),
+        axios.get(`${API_BASE}/api/pqa/dashboard/xpath-patterns${xpathParam}`)
+          .catch((err) => { console.error('[PQA] XPath patterns failed:', err.message); return null; }),
+        axios.get(`${API_BASE}/api/pqa/dashboard/phase-breakdown${fileTypeParam}`)
+          .catch((err) => { console.error('[PQA] Phase breakdown failed:', err.message); return null; })
       ]);
+
+      console.log('[PQA Enhanced] Results:', {
+        scoreDistribution: !!scoreRes?.data,
+        diffDistribution: !!diffRes?.data,
+        xpathPatterns: !!xpathRes?.data,
+        phaseBreakdown: !!phaseRes?.data
+      });
 
       setScoreDistribution(scoreRes?.data || null);
       setDiffDistribution(diffRes?.data || null);
@@ -2035,12 +2048,24 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
     return (
       <div className="flex items-center justify-center py-8">
         <RefreshCw className="w-5 h-5 animate-spin text-brand-green" />
+        <p className="text-sm text-muted-foreground ml-2">Loading enhanced visualizations...</p>
       </div>
     );
   }
 
-  if (!scoreDistribution && !diffDistribution) {
-    return null; // No data available
+  // Don't hide completely if some data is available
+  const hasAnyData = scoreDistribution || diffDistribution || xpathPatterns || phaseBreakdown;
+
+  if (!hasAnyData) {
+    return (
+      <div className="flex items-center justify-center py-8 bg-secondary/20 rounded-lg border border-border">
+        <div className="text-center">
+          <AlertTriangle className="w-8 h-8 text-warning mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Enhanced visualizations not available</p>
+          <p className="text-xs text-muted-foreground mt-1">API endpoints may not be responding</p>
+        </div>
+      </div>
+    );
   }
 
   return (
