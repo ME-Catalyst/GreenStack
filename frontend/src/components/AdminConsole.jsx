@@ -1551,6 +1551,21 @@ const SystemTab = ({ systemInfo, overview }) => (
 );
 
 /**
+ * Helper function to format PQA scores with appropriate precision and badges
+ */
+const formatScore = (score) => {
+  if (score === 100.0) {
+    return { display: '100.000%', badge: 'Perfect', badgeClass: 'bg-success text-white' };
+  } else if (score >= 99.99) {
+    return { display: `${score.toFixed(3)}%`, badge: 'Near-Perfect', badgeClass: 'bg-success/70 text-white' };
+  } else if (score >= 99.9) {
+    return { display: `${score.toFixed(3)}%`, badge: 'Excellent', badgeClass: 'bg-brand-green text-white' };
+  } else {
+    return { display: `${score.toFixed(3)}%`, badge: null, badgeClass: '' };
+  }
+};
+
+/**
  * PQA Metrics Display Component
  * Shows detailed Parser Quality Assurance statistics
  */
@@ -1676,12 +1691,19 @@ const PQAMetricsDisplay = ({ API_BASE }) => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Average Score</span>
-                <span className="text-xl font-bold text-brand-green">{ioddData.average_score.toFixed(1)}%</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold text-brand-green">{formatScore(ioddData.average_score).display}</span>
+                  {formatScore(ioddData.average_score).badge && (
+                    <Badge className={formatScore(ioddData.average_score).badgeClass}>
+                      {formatScore(ioddData.average_score).badge}
+                    </Badge>
+                  )}
+                </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Pass Rate</span>
                 <span className="text-lg font-semibold text-success">
-                  {ioddData.total_analyses > 0 ? ((ioddData.passed_analyses / ioddData.total_analyses) * 100).toFixed(1) : 0}%
+                  {ioddData.total_analyses > 0 ? ((ioddData.passed_analyses / ioddData.total_analyses) * 100).toFixed(2) : 0}%
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -1704,12 +1726,19 @@ const PQAMetricsDisplay = ({ API_BASE }) => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Average Score</span>
-                <span className="text-xl font-bold text-cyan-400">{edsData.average_score.toFixed(1)}%</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-bold text-cyan-400">{formatScore(edsData.average_score).display}</span>
+                  {formatScore(edsData.average_score).badge && (
+                    <Badge className={formatScore(edsData.average_score).badgeClass}>
+                      {formatScore(edsData.average_score).badge}
+                    </Badge>
+                  )}
+                </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Pass Rate</span>
                 <span className="text-lg font-semibold text-success">
-                  {edsData.total_analyses > 0 ? ((edsData.passed_analyses / edsData.total_analyses) * 100).toFixed(1) : 0}%
+                  {edsData.total_analyses > 0 ? ((edsData.passed_analyses / edsData.total_analyses) * 100).toFixed(2) : 0}%
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -1769,8 +1798,13 @@ const PQAMetricsDisplay = ({ API_BASE }) => {
           </div>
           <div className="text-right">
             <p className="text-5xl font-bold bg-gradient-to-r from-brand-green to-cyan-400 bg-clip-text text-transparent">
-              {pqaData.average_score.toFixed(1)}%
+              {formatScore(pqaData.average_score).display}
             </p>
+            {formatScore(pqaData.average_score).badge && (
+              <Badge className={`${formatScore(pqaData.average_score).badgeClass} mt-2`}>
+                {formatScore(pqaData.average_score).badge}
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -1826,14 +1860,22 @@ const PQAMetricsDisplay = ({ API_BASE }) => {
                     analysis.overall_score >= 60 ? 'text-warning' :
                     'text-error'
                   }`}>
-                    {analysis.overall_score.toFixed(1)}%
+                    {formatScore(analysis.overall_score).display}
                   </p>
+                  {formatScore(analysis.overall_score).badge && (
+                    <Badge className={`${formatScore(analysis.overall_score).badgeClass} text-xs mt-1`}>
+                      {formatScore(analysis.overall_score).badge}
+                    </Badge>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* Enhanced Visualizations */}
+      <PQAEnhancedDashboard API_BASE={API_BASE} fileType={fileTypeFilter} />
 
       {/* Info Banner */}
       <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
@@ -1851,6 +1893,362 @@ const PQAMetricsDisplay = ({ API_BASE }) => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+/**
+ * PQA Enhanced Dashboard Component
+ * Score distributions, diff breakdowns, and device drill-down
+ */
+const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
+  const [scoreDistribution, setScoreDistribution] = useState(null);
+  const [diffDistribution, setDiffDistribution] = useState(null);
+  const [xpathPatterns, setXpathPatterns] = useState(null);
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [deviceAnalysis, setDeviceAnalysis] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEnhancedData();
+  }, [fileType]);
+
+  const fetchEnhancedData = async () => {
+    try {
+      setLoading(true);
+      const fileTypeParam = fileType !== 'ALL' ? `?file_type=${fileType}` : '';
+
+      const [scoreRes, diffRes, xpathRes] = await Promise.all([
+        axios.get(`${API_BASE}/api/pqa/dashboard/score-distribution${fileTypeParam}`).catch(() => null),
+        axios.get(`${API_BASE}/api/pqa/dashboard/diff-distribution${fileTypeParam}`).catch(() => null),
+        axios.get(`${API_BASE}/api/pqa/dashboard/xpath-patterns${fileTypeParam}&limit=10`).catch(() => null)
+      ]);
+
+      setScoreDistribution(scoreRes?.data || null);
+      setDiffDistribution(diffRes?.data || null);
+      setXpathPatterns(xpathRes?.data || null);
+    } catch (err) {
+      console.error('Failed to load enhanced PQA data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDeviceAnalysis = async (deviceId) => {
+    try {
+      const response = await axios.get(`${API_BASE}/api/pqa/device/${deviceId}/analysis`);
+      setDeviceAnalysis(response.data);
+      setSelectedDevice(deviceId);
+    } catch (err) {
+      console.error('Failed to load device analysis:', err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <RefreshCw className="w-5 h-5 animate-spin text-brand-green" />
+      </div>
+    );
+  }
+
+  if (!scoreDistribution && !diffDistribution) {
+    return null; // No data available
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Score Distribution Histogram */}
+      {scoreDistribution && (
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-brand-green" />
+              Score Distribution
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Breakdown of quality scores across {scoreDistribution.total} analyzed devices
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Perfect Devices Highlight */}
+              <div className="bg-success/10 border border-success/30 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Perfect Devices (100.0000%)</p>
+                    <p className="text-3xl font-bold text-success">{scoreDistribution.perfect_count}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Percentage</p>
+                    <p className="text-2xl font-bold text-success">
+                      {((scoreDistribution.perfect_count / scoreDistribution.total) * 100).toFixed(2)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Near-Perfect Highlight */}
+              <div className="bg-brand-green/10 border border-brand-green/30 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Near-Perfect (99.9-99.999%)</p>
+                    <p className="text-3xl font-bold text-brand-green">{scoreDistribution.near_perfect_count}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Percentage</p>
+                    <p className="text-2xl font-bold text-brand-green">
+                      {((scoreDistribution.near_perfect_count / scoreDistribution.total) * 100).toFixed(2)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Histogram Buckets */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-foreground">Distribution by Score Range</h4>
+                {scoreDistribution.buckets.map((bucket, idx) => {
+                  const percentage = (bucket.count / scoreDistribution.total) * 100;
+                  const barWidth = Math.max(5, percentage);
+
+                  return (
+                    <div key={idx} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-foreground font-medium">{bucket.label}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">{bucket.count} devices</span>
+                          <Badge className="bg-muted text-foreground">
+                            {percentage.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="h-6 bg-secondary/40 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            bucket.label.includes('Perfect') ? 'bg-success' :
+                            bucket.label.includes('Excellent') ? 'bg-brand-green' :
+                            bucket.label.includes('Good') ? 'bg-cyan-400' :
+                            bucket.label.includes('Acceptable') ? 'bg-warning' :
+                            'bg-error'
+                          }`}
+                          style={{ width: `${barWidth}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Diff Type Distribution */}
+      {diffDistribution && diffDistribution.diff_types.length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              Diff Type Breakdown
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {diffDistribution.total_diffs} total differences found • Avg {diffDistribution.avg_diffs_per_device.toFixed(1)} per device
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {diffDistribution.diff_types.slice(0, 10).map((diff, idx) => {
+                const percentage = (diff.count / diffDistribution.total_diffs) * 100;
+                const severityColor = {
+                  CRITICAL: 'text-error border-error/30 bg-error/10',
+                  HIGH: 'text-warning border-warning/30 bg-warning/10',
+                  MEDIUM: 'text-warning border-warning/30 bg-warning/10',
+                  LOW: 'text-primary border-primary/30 bg-primary/10'
+                };
+
+                return (
+                  <div key={idx} className={`p-4 rounded-lg border ${severityColor[diff.severity] || 'border-border'}`}>
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <Badge className="mb-1 text-xs">{diff.severity}</Badge>
+                        <p className="text-sm font-semibold text-foreground">{diff.diff_type}</p>
+                      </div>
+                      <p className="text-2xl font-bold">{diff.count}</p>
+                    </div>
+                    <div className="h-2 bg-secondary/40 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          diff.severity === 'CRITICAL' ? 'bg-error' :
+                          diff.severity === 'HIGH' ? 'bg-warning' :
+                          diff.severity === 'MEDIUM' ? 'bg-warning/70' :
+                          'bg-primary'
+                        }`}
+                        style={{ width: `${Math.max(5, percentage)}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{percentage.toFixed(1)}% of all diffs</p>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* XPath Patterns */}
+      {xpathPatterns && xpathPatterns.patterns.length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <Search className="w-5 h-5 text-brand-green" />
+              Most Common Issue Patterns
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Click on a pattern to see affected devices and recommended fixes
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {xpathPatterns.patterns.map((pattern, idx) => (
+                <div
+                  key={idx}
+                  className="p-3 bg-secondary/30 rounded-lg border border-border/50 hover:border-brand-green/50 hover:bg-secondary/50 transition-all cursor-pointer"
+                  onClick={() => {
+                    if (pattern.affected_devices.length > 0) {
+                      fetchDeviceAnalysis(pattern.affected_devices[0]);
+                    }
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge className="text-xs">{pattern.severity}</Badge>
+                        <Badge className="bg-muted text-foreground text-xs">{pattern.diff_type}</Badge>
+                      </div>
+                      <p className="text-sm font-mono text-foreground break-all">
+                        {pattern.xpath.length > 80 ? pattern.xpath.substring(0, 80) + '...' : pattern.xpath}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Affects {pattern.count} locations across {pattern.affected_devices.length} devices
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-brand-green">{pattern.count}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Device Analysis Modal */}
+      {selectedDevice && deviceAnalysis && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDevice(null)}>
+          <div className="bg-card border border-border rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-foreground">Device Analysis: {deviceAnalysis.device.product_name}</h3>
+                <p className="text-sm text-muted-foreground">{deviceAnalysis.device.manufacturer} • Device ID: {selectedDevice}</p>
+              </div>
+              <button
+                onClick={() => setSelectedDevice(null)}
+                className="p-2 hover:bg-secondary rounded-lg transition-colors"
+              >
+                <XCircle className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Scores */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-brand-green/10 border border-brand-green/30 rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">Overall Score</p>
+                  <p className="text-2xl font-bold text-brand-green">{formatScore(deviceAnalysis.latest_pqa.overall_score).display}</p>
+                </div>
+                <div className="p-4 bg-secondary/30 border border-border rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">Structural</p>
+                  <p className="text-xl font-bold text-foreground">{deviceAnalysis.latest_pqa.structural_score.toFixed(2)}%</p>
+                </div>
+                <div className="p-4 bg-secondary/30 border border-border rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">Attribute</p>
+                  <p className="text-xl font-bold text-foreground">{deviceAnalysis.latest_pqa.attribute_score.toFixed(2)}%</p>
+                </div>
+                <div className="p-4 bg-secondary/30 border border-border rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">Value</p>
+                  <p className="text-xl font-bold text-foreground">{deviceAnalysis.latest_pqa.value_score.toFixed(2)}%</p>
+                </div>
+              </div>
+
+              {/* Diff Summary */}
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-3">Diff Summary by Type</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {Object.entries(deviceAnalysis.diff_summary).map(([type, count]) => (
+                    <div key={type} className="p-3 bg-secondary/30 border border-border rounded-lg">
+                      <p className="text-xs text-muted-foreground mb-1">{type}</p>
+                      <p className="text-xl font-bold text-foreground">{count}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recommended Fixes */}
+              {deviceAnalysis.recommended_fixes && deviceAnalysis.recommended_fixes.length > 0 && (
+                <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    Recommended Fixes
+                  </h4>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    {deviceAnalysis.recommended_fixes.map((fix, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-primary mt-1">•</span>
+                        <span>{fix}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* All Diffs */}
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-3">All Differences ({deviceAnalysis.all_diffs.length})</h4>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {deviceAnalysis.all_diffs.slice(0, 50).map((diff, idx) => (
+                    <div key={idx} className="p-3 bg-secondary/30 rounded-lg border border-border/50 text-xs">
+                      <div className="flex items-start justify-between mb-2">
+                        <Badge className={
+                          diff.severity === 'CRITICAL' ? 'bg-error/20 text-error border-error/50' :
+                          diff.severity === 'HIGH' ? 'bg-warning/20 text-warning border-warning/50' :
+                          'bg-primary/20 text-primary border-primary/50'
+                        }>
+                          {diff.severity}
+                        </Badge>
+                        <Badge className="bg-muted text-foreground">{diff.diff_type}</Badge>
+                      </div>
+                      <p className="font-mono text-foreground mb-1 break-all">{diff.xpath}</p>
+                      <p className="text-muted-foreground">{diff.description}</p>
+                      {diff.expected_value && (
+                        <div className="mt-2 space-y-1">
+                          <p className="text-success">Expected: {diff.expected_value}</p>
+                          <p className="text-error">Actual: {diff.actual_value || '(missing)'}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {deviceAnalysis.all_diffs.length > 50 && (
+                    <p className="text-sm text-muted-foreground text-center py-2">
+                      Showing first 50 of {deviceAnalysis.all_diffs.length} differences
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
