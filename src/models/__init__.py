@@ -50,14 +50,14 @@ class DeviceInfo:
     hardware_revision: Optional[str] = None
     firmware_revision: Optional[str] = None
     software_revision: Optional[str] = None
-    device_name_text_id: Optional[str] = None  # PQA: Store original DeviceName@textId
-    # PQA Fix #24: Store original DeviceIdentity textIds
+    device_name_text_id: Optional[str] = None  # Stores original DeviceName@textId for reconstruction
+    # Stores original DeviceIdentity textIds for accurate reconstruction
     vendor_text_text_id: Optional[str] = None  # VendorText@textId
     vendor_url_text_id: Optional[str] = None  # VendorUrl@textId
     device_family_text_id: Optional[str] = None  # DeviceFamily@textId
-    # PQA Fix #62: Store original string format for deviceId (preserves leading zeros)
+    # Stores original deviceId format to preserve leading zeros
     device_id_str: Optional[str] = None
-    # PQA Fix #85: Store additionalDeviceIds attribute
+    # Stores additionalDeviceIds attribute for reconstruction
     additional_device_ids: Optional[str] = None
 
 
@@ -74,9 +74,9 @@ class SingleValue:
     value: str
     name: str
     description: Optional[str] = None
-    text_id: Optional[str] = None  # Original textId from IODD for PQA reconstruction
-    xsi_type: Optional[str] = None  # xsi:type attribute (e.g., BooleanValueT) for PQA
-    xml_order: Optional[int] = None  # PQA Fix #38: Original XML order for reconstruction
+    text_id: Optional[str] = None  # Original textId from IODD for reconstruction
+    xsi_type: Optional[str] = None  # xsi:type attribute (e.g., BooleanValueT) for reconstruction
+    xml_order: Optional[int] = None  # Preserves original XML element order for forensic reconstruction
 
 
 @dataclass
@@ -112,22 +112,22 @@ class Parameter:
     array_element_bit_length: Optional[int] = None  # SimpleDatatype bitLength
     array_element_fixed_length: Optional[int] = None  # OctetStringT/StringT fixedLength
     subindex_access_supported: Optional[bool] = None  # ArrayT/RecordT subindexAccessSupported
-    # PQA Fix #30c: ArrayT SimpleDatatype ValueRange
+    # ArrayT SimpleDatatype ValueRange fields for reconstruction
     array_element_min_value: Optional[str] = None
     array_element_max_value: Optional[str] = None
     array_element_value_range_xsi_type: Optional[str] = None
     array_element_value_range_name_text_id: Optional[str] = None
-    # StringT/OctetStringT specific fields (PQA Fix #20)
+    # StringT/OctetStringT specific fields for reconstruction
     string_fixed_length: Optional[int] = None  # Datatype@fixedLength for StringT/OctetStringT
     string_encoding: Optional[str] = None  # Datatype@encoding for StringT
-    # PQA reconstruction fields
+    # Forensic reconstruction fields
     name_text_id: Optional[str] = None  # Original textId for Name element
     description_text_id: Optional[str] = None  # Original textId for Description element
-    datatype_ref: Optional[str] = None  # DatatypeRef datatypeId (e.g., D_Colors) for PQA reconstruction
+    datatype_ref: Optional[str] = None  # DatatypeRef datatypeId (e.g., D_Colors) for reconstruction
     value_range_xsi_type: Optional[str] = None  # ValueRange xsi:type (e.g., UIntegerValueRangeT)
     value_range_name_text_id: Optional[str] = None  # ValueRange Name textId
-    xml_order: Optional[int] = None  # Original order in XML document (for PQA reconstruction)
-    datatype_name_text_id: Optional[str] = None  # PQA Fix #70: Datatype/Name textId (direct child)
+    xml_order: Optional[int] = None  # Original order in XML document for reconstruction
+    datatype_name_text_id: Optional[str] = None  # Stores Datatype/Name textId (direct child) for reconstruction
 
 
 @dataclass
@@ -135,25 +135,25 @@ class RecordItem:
     """Record item within process data"""
     subindex: int
     name: str
-    bit_offset: Optional[int]  # None when not explicitly in original IODD (PQA Fix #32)
-    bit_length: Optional[int]  # None when not explicitly in original IODD (PQA)
+    bit_offset: Optional[int]  # None when not explicitly in original IODD (preserves original structure)
+    bit_length: Optional[int]  # None when not explicitly in original IODD (preserves original structure)
     data_type: str
     default_value: Optional[str] = None
     single_values: List[SingleValue] = field(default_factory=list)
-    name_text_id: Optional[str] = None  # Original textId for Name element (PQA)
-    description: Optional[str] = None  # Description text (PQA)
-    description_text_id: Optional[str] = None  # Original textId for Description element (PQA)
-    # ValueRange inside SimpleDatatype (PQA reconstruction)
+    name_text_id: Optional[str] = None  # Original textId for Name element
+    description: Optional[str] = None  # Description text
+    description_text_id: Optional[str] = None  # Original textId for Description element
+    # ValueRange inside SimpleDatatype for reconstruction
     min_value: Optional[str] = None
     max_value: Optional[str] = None
     value_range_xsi_type: Optional[str] = None
-    value_range_name_text_id: Optional[str] = None  # PQA Fix #30: ValueRange/Name@textId
-    access_right_restriction: Optional[str] = None  # RecordItem@accessRightRestriction (PQA)
-    # SimpleDatatype attributes (PQA reconstruction)
+    value_range_name_text_id: Optional[str] = None  # Stores ValueRange/Name@textId for reconstruction
+    access_right_restriction: Optional[str] = None  # RecordItem@accessRightRestriction for reconstruction
+    # SimpleDatatype attributes for reconstruction
     fixed_length: Optional[int] = None  # SimpleDatatype@fixedLength
     encoding: Optional[str] = None  # SimpleDatatype@encoding
     datatype_id: Optional[str] = None  # SimpleDatatype@id
-    simpledatatype_name_text_id: Optional[str] = None  # PQA Fix #95: SimpleDatatype/Name@textId
+    simpledatatype_name_text_id: Optional[str] = None  # Stores SimpleDatatype/Name@textId for reconstruction
 
 
 @dataclass
@@ -161,7 +161,7 @@ class ProcessDataCondition:
     """Conditional process data definition"""
     variable_id: str
     value: str
-    subindex: Optional[str] = None  # PQA: Condition element can have subindex attribute
+    subindex: Optional[str] = None  # Condition element can have subindex attribute
 
 
 @dataclass
@@ -172,22 +172,22 @@ class ProcessData:
     bit_length: int
     data_type: str
     record_items: List[RecordItem] = field(default_factory=list)
-    single_values: List[SingleValue] = field(default_factory=list)  # PQA Fix #71: Direct Datatype children
+    single_values: List[SingleValue] = field(default_factory=list)  # Direct Datatype children for reconstruction
     description: Optional[str] = None
     # Phase 2: Conditional process data
     condition: Optional[ProcessDataCondition] = None
-    # PQA: Store original textId for accurate reconstruction
+    # Stores original textId for accurate reconstruction
     name_text_id: Optional[str] = None
-    # PQA: Store subindexAccessSupported attribute from Datatype
+    # Stores subindexAccessSupported attribute from Datatype
     subindex_access_supported: Optional[bool] = None
-    # PQA: Store wrapper ProcessData element ID for accurate reconstruction
+    # Stores wrapper ProcessData element ID for accurate reconstruction
     wrapper_id: Optional[str] = None
-    # PQA Fix #53: Track if original uses DatatypeRef vs inline Datatype
+    # Tracks if original uses DatatypeRef vs inline Datatype
     uses_datatype_ref: bool = False
     datatype_ref_id: Optional[str] = None  # datatypeId attribute if using DatatypeRef
-    datatype_name_text_id: Optional[str] = None  # PQA Fix #72: Datatype/Name textId (direct child)
-    datatype_has_bit_length: bool = False  # PQA Fix #77: Track if Datatype element had bitLength attribute
-    array_count: Optional[int] = None  # PQA Fix #98: ArrayT count attribute on Datatype
+    datatype_name_text_id: Optional[str] = None  # Stores Datatype/Name textId (direct child) for reconstruction
+    datatype_has_bit_length: bool = False  # Tracks if Datatype element had bitLength attribute
+    array_count: Optional[int] = None  # Stores ArrayT count attribute on Datatype
 
 
 @dataclass
@@ -206,10 +206,10 @@ class ErrorType:
     additional_code: int
     name: Optional[str] = None
     description: Optional[str] = None
-    # PQA: Track whether code attribute was in original and element order
+    # Tracks whether code attribute was in original and element order
     has_code_attr: bool = True  # Most have code, so default True
     xml_order: Optional[int] = None
-    # PQA Fix #37: Distinguish ErrorType (custom) vs StdErrorTypeRef (standard)
+    # Distinguishes ErrorType (custom) vs StdErrorTypeRef (standard) for reconstruction
     is_custom: bool = False  # True for ErrorType elements, False for StdErrorTypeRef
     name_text_id: Optional[str] = None  # Original textId for custom ErrorType
     description_text_id: Optional[str] = None  # Original textId for custom ErrorType
@@ -222,11 +222,11 @@ class Event:
     name: Optional[str] = None
     description: Optional[str] = None
     event_type: Optional[str] = None  # Notification, Warning, Error
-    # PQA: Store original textIds for accurate reconstruction
+    # Stores original textIds for accurate reconstruction
     name_text_id: Optional[str] = None
     description_text_id: Optional[str] = None
     order_index: Optional[int] = None  # Preserve original order in IODD
-    mode: Optional[str] = None  # PQA Fix #46: Event@mode attribute (e.g., AppearDisappear)
+    mode: Optional[str] = None  # Stores Event@mode attribute (e.g., AppearDisappear) for reconstruction
 
 
 @dataclass
@@ -247,9 +247,9 @@ class DeviceFeatures:
     access_locks_local_parameterization: bool = False
     access_locks_local_user_interface: bool = False
     access_locks_parameter: bool = False
-    # Track whether SupportedAccessLocks element was present in original IODD
+    # Tracks whether SupportedAccessLocks element was present in original IODD
     has_supported_access_locks: bool = False
-    # PQA Fix #57: Track whether dataStorage attribute was present in original IODD
+    # Tracks whether dataStorage attribute was present in original IODD for reconstruction
     has_data_storage: bool = False
 
 
@@ -260,17 +260,17 @@ class CommunicationProfile:
     compatible_with: Optional[str] = None
     bitrate: Optional[str] = None  # Value from baudrate or bitrate attribute
     min_cycle_time: Optional[int] = None  # microseconds
-    msequence_capability: Optional[str] = None  # PQA Fix #82: Keep as string to preserve leading zeros
+    msequence_capability: Optional[str] = None  # Stored as string to preserve leading zeros
     sio_supported: bool = False
     connection_type: Optional[str] = None
     wire_config: Dict[str, str] = field(default_factory=dict)
-    connection_symbol: Optional[str] = None  # PQA: Connection@connectionSymbol attribute
-    test_xsi_type: Optional[str] = None  # PQA Fix #23: Test@xsi:type attribute
-    has_test_element: bool = False  # PQA Fix #84: Track if Test element was present in original
-    product_ref_id: Optional[str] = None  # PQA Fix #26: Connection/ProductRef@productId
-    connection_description_text_id: Optional[str] = None  # PQA Fix #39: Connection/Description@textId
-    physics: Optional[str] = None  # PQA Fix #44: PhysicalLayer@physics attribute
-    uses_baudrate: bool = False  # PQA Fix: Track if original used baudrate vs bitrate attr name
+    connection_symbol: Optional[str] = None  # Connection@connectionSymbol attribute
+    test_xsi_type: Optional[str] = None  # Stores Test@xsi:type attribute for reconstruction
+    has_test_element: bool = False  # Tracks if Test element was present in original
+    product_ref_id: Optional[str] = None  # Stores Connection/ProductRef@productId for reconstruction
+    connection_description_text_id: Optional[str] = None  # Stores Connection/Description@textId for reconstruction
+    physics: Optional[str] = None  # Stores PhysicalLayer@physics attribute for reconstruction
+    uses_baudrate: bool = False  # Tracks if original used baudrate vs bitrate attribute name
 
 
 @dataclass

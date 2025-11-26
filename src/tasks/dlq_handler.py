@@ -63,9 +63,10 @@ def process_dlq_message(self, dlq_message: Dict[str, Any]) -> Dict[str, Any]:
         "processed_at": datetime.utcnow().isoformat(),
     }
 
-    # TODO: Store in database for analysis
-    # TODO: Send alert/notification (email, Slack, PagerDuty, etc.)
-    # TODO: Attempt recovery if applicable
+    # Future enhancements tracked in docs/audits/audit-baseline/08-GITHUB-ISSUES-TODO.md:
+    # - Database persistence for analysis
+    # - Alert/notification system (email, Slack, PagerDuty)
+    # - Automatic recovery for recoverable failures
 
     return {
         "task_id": task_id,
@@ -130,10 +131,11 @@ def get_dlq_stats(self) -> Dict[str, Any]:
 
     Returns:
         dict: DLQ statistics
-    """
-    # TODO: Query database for DLQ statistics
-    # For now, return placeholder data
 
+    Note: Currently returns placeholder data. Full implementation tracked in
+          docs/audits/audit-baseline/08-GITHUB-ISSUES-TODO.md (Issue #4)
+    """
+    # Placeholder data - full implementation requires DLQ database persistence
     return {
         "total_failed_tasks": 0,
         "failed_today": 0,
