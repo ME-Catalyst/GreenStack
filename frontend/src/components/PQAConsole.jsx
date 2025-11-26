@@ -370,12 +370,12 @@ const PQAConsole = ({ API_BASE, toast }) => {
           <text
             x="75"
             y="75"
-            className="text-3xl font-bold fill-current text-foreground rotate-90"
+            className="text-2xl font-bold fill-current text-foreground rotate-90"
             textAnchor="middle"
             dominantBaseline="middle"
             transform="rotate(90 75 75)"
           >
-            {score.toFixed(1)}
+            {score.toFixed(3)}
           </text>
         </svg>
         <p className="text-sm text-muted-foreground mt-2">{label}</p>
@@ -516,7 +516,7 @@ const PQAConsole = ({ API_BASE, toast }) => {
                     <div>
                       <p className="text-sm text-muted-foreground">Average Score</p>
                       <p className={`text-3xl font-bold ${getScoreColor(summary.average_score || 0)}`}>
-                        {(summary.average_score || 0).toFixed(1)}%
+                        {(summary.average_score || 0).toFixed(3)}%
                       </p>
                     </div>
                     <TrendingUp className="w-10 h-10 text-success/50" />
@@ -579,7 +579,7 @@ const PQAConsole = ({ API_BASE, toast }) => {
                         <span className="text-muted-foreground">Pass Rate</span>
                         <span className={getScoreColor(summary.average_score || 0)}>
                           {summary.total_analyses > 0
-                            ? ((summary.passed_analyses / summary.total_analyses) * 100).toFixed(1)
+                            ? ((summary.passed_analyses / summary.total_analyses) * 100).toFixed(2)
                             : 0}%
                         </span>
                       </div>
@@ -625,7 +625,7 @@ const PQAConsole = ({ API_BASE, toast }) => {
                               {failure.file_type} Device #{failure.device_id}
                             </span>
                             <Badge className="bg-error/20 text-error text-xs">
-                              Score: {failure.overall_score.toFixed(1)}%
+                              Score: {failure.overall_score.toFixed(3)}%
                             </Badge>
                           </div>
                           <div className="text-sm text-muted-foreground">
@@ -954,7 +954,7 @@ const PQAConsole = ({ API_BASE, toast }) => {
                           {device.passed ? 'PASSING' : 'FAILING'}
                         </Badge>
                         <span className={`text-2xl font-bold ${getScoreColor(device.latest_score)}`}>
-                          {device.latest_score?.toFixed(1)}%
+                          {device.latest_score?.toFixed(3)}%
                         </span>
                       </div>
                       <div className="text-sm text-muted-foreground">
@@ -1036,7 +1036,7 @@ const PQAConsole = ({ API_BASE, toast }) => {
                           {metric.passed ? 'PASSED' : 'FAILED'}
                         </Badge>
                         <span className={`text-2xl font-bold ${getScoreColor(metric.overall_score)}`}>
-                          {metric.overall_score.toFixed(1)}%
+                          {metric.overall_score.toFixed(3)}%
                         </span>
                       </div>
                       <div className="text-sm text-muted-foreground">

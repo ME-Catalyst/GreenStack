@@ -1919,11 +1919,12 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
     try {
       setLoading(true);
       const fileTypeParam = fileType !== 'ALL' ? `?file_type=${fileType}` : '';
+      const xpathParam = fileType !== 'ALL' ? `${fileTypeParam}&limit=10` : '?limit=10';
 
       const [scoreRes, diffRes, xpathRes, phaseRes] = await Promise.all([
         axios.get(`${API_BASE}/api/pqa/dashboard/score-distribution${fileTypeParam}`).catch(() => null),
         axios.get(`${API_BASE}/api/pqa/dashboard/diff-distribution${fileTypeParam}`).catch(() => null),
-        axios.get(`${API_BASE}/api/pqa/dashboard/xpath-patterns${fileTypeParam}&limit=10`).catch(() => null),
+        axios.get(`${API_BASE}/api/pqa/dashboard/xpath-patterns${xpathParam}`).catch(() => null),
         axios.get(`${API_BASE}/api/pqa/dashboard/phase-breakdown${fileTypeParam}`).catch(() => null)
       ]);
 
@@ -1952,13 +1953,14 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
     try {
       setExporting(true);
       const fileTypeParam = fileType !== 'ALL' ? `?file_type=${fileType}` : '';
+      const xpathExportParam = fileType !== 'ALL' ? `${fileTypeParam}&limit=50` : '?limit=50';
 
       // Fetch all data for export
       const [summaryRes, scoreRes, diffRes, xpathRes, phaseRes] = await Promise.all([
         axios.get(`${API_BASE}/api/pqa/dashboard/summary${fileTypeParam}`),
         axios.get(`${API_BASE}/api/pqa/dashboard/score-distribution${fileTypeParam}`),
         axios.get(`${API_BASE}/api/pqa/dashboard/diff-distribution${fileTypeParam}`),
-        axios.get(`${API_BASE}/api/pqa/dashboard/xpath-patterns${fileTypeParam}&limit=50`),
+        axios.get(`${API_BASE}/api/pqa/dashboard/xpath-patterns${xpathExportParam}`),
         axios.get(`${API_BASE}/api/pqa/dashboard/phase-breakdown${fileTypeParam}`)
       ]);
 
