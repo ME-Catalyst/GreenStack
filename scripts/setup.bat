@@ -11,42 +11,19 @@ echo ╚════════════════════════
 echo.
 
 :: ============================================================================
-:: STEP 1: Clean Restart - Stop existing backends and clear cache
+:: STEP 1: Clean Restart - Kill ALL Python processes for clean slate
 :: ============================================================================
-echo [1/6] Cleaning up existing backend instances...
+echo [1/6] Ensuring clean Python environment...
 
-:: Find and kill processes using port 8000 (GreenStack backend)
-set "BACKEND_KILLED=0"
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8000"') do (
-    set PID=%%a
-    if defined PID (
-        taskkill /F /PID !PID! >nul 2>&1
-        if !ERRORLEVEL! EQU 0 (
-            echo   Stopped backend process (PID: !PID!)
-            set "BACKEND_KILLED=1"
-        )
-    )
-)
-
-:: Also check for python processes running src.api - use skip=1 to skip header
-for /f "skip=1" %%a in ('wmic process where "commandline like '%%src.api%%'" get processid 2^>nul') do (
-    set "PID=%%a"
-    :: Remove spaces and check if non-empty
-    set "PID=!PID: =!"
-    if not "!PID!"=="" (
-        taskkill /F /PID !PID! >nul 2>&1
-        if !ERRORLEVEL! EQU 0 (
-            echo   Stopped src.api process (PID: !PID!)
-            set "BACKEND_KILLED=1"
-        )
-    )
-)
-
-if "%BACKEND_KILLED%"=="0" (
-    echo   No existing backend processes found.
-) else (
-    echo   Existing backends stopped.
+:: Kill ALL python.exe processes to ensure no stale code is running
+:: This is CRITICAL - old Python processes can serve stale cached code
+taskkill /F /IM python.exe /T >nul 2>&1
+if !ERRORLEVEL! EQU 0 (
+    echo   Killed all Python processes for clean restart
+    :: Wait for processes to fully terminate
     timeout /t 2 /nobreak >nul
+) else (
+    echo   No Python processes were running
 )
 echo.
 
