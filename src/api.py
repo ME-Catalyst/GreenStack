@@ -908,7 +908,14 @@ async def upload_iodd(
                 logger.info(f"Cleaned up temp file after error: {tmp_path}")
             except Exception:
                 pass
+
+        # DEBUG: Log full exception details
+        logger.error(f"!!! EXCEPTION IN UPLOAD HANDLER !!!")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Exception message: {str(e)}")
+        logger.error(f"File: {file.filename if file else 'None'}")
         logger.error(f"Failed to import IODD file {file.filename}: {str(e)}", exc_info=True)
+
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/iodd", 
