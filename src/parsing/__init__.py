@@ -2439,6 +2439,8 @@ class IODDParser:
                 # PQA Fix #69: Initialize fixedLength and encoding
                 item_fixed_length = None
                 item_encoding = None
+                # PQA Fix: Initialize SimpleDatatype@id attribute
+                simple_datatype_id = None
                 # ValueRange info (PQA reconstruction)
                 item_min_value = None
                 item_max_value = None
@@ -2450,6 +2452,8 @@ class IODDParser:
                     # DatatypeRef doesn't have bitLength (it's in referenced datatype)
                 elif simple_datatype_elem is not None:
                     datatype_ref = simple_datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                    # PQA Fix: Extract SimpleDatatype@id attribute
+                    simple_datatype_id = simple_datatype_elem.get('id')
                     # PQA: Only store bitLength if explicitly present in SimpleDatatype
                     if simple_datatype_elem.get('bitLength'):
                         item_bit_length = int(simple_datatype_elem.get('bitLength'))
@@ -2506,6 +2510,7 @@ class IODDParser:
                         access_right_restriction=item_access_right_restriction,  # PQA
                         fixed_length=item_fixed_length,  # PQA Fix #69
                         encoding=item_encoding,  # PQA Fix #69
+                        datatype_id=simple_datatype_id,  # PQA Fix: SimpleDatatype@id attribute
                     ))
 
             # PQA Fix #30b: Extract ValueRange at Datatype level (not inside RecordItem)

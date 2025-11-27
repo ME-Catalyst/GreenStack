@@ -1299,6 +1299,10 @@ class IODDReconstructor:
                     # Base type - use SimpleDatatype with xsi:type
                     datatype = ET.SubElement(record_elem, 'SimpleDatatype')
                     datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', item['datatype_ref'])
+                    # PQA Fix: Add SimpleDatatype@id attribute if present
+                    simple_dt_id = item['simple_datatype_id'] if 'simple_datatype_id' in item.keys() else None
+                    if simple_dt_id:
+                        datatype.set('id', simple_dt_id)
                     if item['bit_length']:
                         datatype.set('bitLength', str(item['bit_length']))
                     # PQA Fix #69: Add fixedLength and encoding attributes
@@ -1334,11 +1338,15 @@ class IODDReconstructor:
             elif item['bit_length']:
                 # Fallback: create SimpleDatatype with bit_length
                 datatype = ET.SubElement(record_elem, 'SimpleDatatype')
-                if item['bit_length']:
-                    datatype.set('bitLength', str(item['bit_length']))
                 xsi_type = item['xsi_type'] if 'xsi_type' in item.keys() else None
                 if xsi_type:
                     datatype.set('{http://www.w3.org/2001/XMLSchema-instance}type', xsi_type)
+                # PQA Fix: Add SimpleDatatype@id attribute if present
+                simple_dt_id = item['simple_datatype_id'] if 'simple_datatype_id' in item.keys() else None
+                if simple_dt_id:
+                    datatype.set('id', simple_dt_id)
+                if item['bit_length']:
+                    datatype.set('bitLength', str(item['bit_length']))
                 # PQA Fix #21: Add SingleValue elements inside SimpleDatatype
                 self._add_custom_datatype_record_item_single_values(conn, item['id'], datatype)
                 # Add ValueRange element if present (PQA reconstruction)
