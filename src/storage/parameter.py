@@ -24,8 +24,10 @@ class ParameterSaver(BaseSaver):
             parameters: List of Parameter objects
         """
         if not parameters:
-            logger.debug(f"No parameters to save for device {device_id}")
+            logger.warning(f"!!! PARAMETER SAVER: No parameters to save for device {device_id}")
             return
+
+        logger.warning(f"!!! PARAMETER SAVER: Saving {len(parameters)} parameters for device {device_id}")
 
         # Delete existing - must delete child tables first (FK cascade is disabled)
         # Get existing parameter IDs for this device

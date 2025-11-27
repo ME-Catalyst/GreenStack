@@ -38,8 +38,10 @@ class StdVariableRefSaver(BaseSaver):
             None (inserts multiple records)
         """
         if not std_variable_refs:
-            logger.debug(f"No StdVariableRef data to save for device {device_id}")
+            logger.warning(f"!!! STD_VARIABLE_REF SAVER: No StdVariableRef data to save for device {device_id}")
             return None
+
+        logger.warning(f"!!! STD_VARIABLE_REF SAVER: Saving {len(std_variable_refs)} StdVariableRefs for device {device_id}")
 
         # Delete existing records for this device (cascade will delete single values)
         self._delete_existing('std_variable_refs', device_id)

@@ -22,8 +22,10 @@ class EventSaver(BaseSaver):
             events: List of Event objects
         """
         if not events:
-            logger.debug(f"No events to save for device {device_id}")
+            logger.warning(f"!!! EVENT SAVER: No events to save for device {device_id}")
             return
+
+        logger.warning(f"!!! EVENT SAVER: Saving {len(events)} events for device {device_id}")
 
         # Delete existing
         self._delete_existing('events', device_id)
