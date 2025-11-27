@@ -19,7 +19,7 @@ conn = sqlite3.connect('greenstack.db')
 cursor = conn.cursor()
 
 cursor.execute("""
-    SELECT DISTINCT a.device_id, d.vendor_id, d.device_id as device_num, d.product_name
+    SELECT DISTINCT a.id, a.device_id, a.file_content, d.vendor_id, d.device_id as device_num, d.product_name
     FROM pqa_file_archive a
     JOIN devices d ON a.device_id = d.id
     WHERE NOT EXISTS (
@@ -38,7 +38,7 @@ if not devices_to_analyze:
 
 print(f"\n[!] Found {len(devices_to_analyze)} devices needing PQA re-analysis")
 print("\nDevices to analyze:")
-for i, (device_id, vendor_id, device_num, product) in enumerate(devices_to_analyze[:10]):
+for i, (archive_id, device_id, xml_blob, vendor_id, device_num, product) in enumerate(devices_to_analyze[:10]):
     print(f"  {i+1}. Device {device_id} ({vendor_id}-{device_num}): {product}")
 if len(devices_to_analyze) > 10:
     print(f"  ... and {len(devices_to_analyze) - 10} more devices")
@@ -52,16 +52,20 @@ print("This may take several minutes...\n")
 success_count = 0
 error_count = 0
 
-for i, (device_id, vendor_id, device_num, product) in enumerate(devices_to_analyze):
+from utils.pqa_orchestrator import FileType
+
+for i, (archive_id, device_id, xml_blob, vendor_id, device_num, product) in enumerate(devices_to_analyze):
     try:
         print(f"[{i+1}/{len(devices_to_analyze)}] Analyzing device {device_id} ({vendor_id}-{device_num})...", end=" ")
 
-        # Run PQA analysis
-        from utils.pqa_orchestrator import FileType
-        result = orchestrator.run_full_analysis(device_id, FileType.IODD)
+        # Decode XML content from BLOB
+        original_xml = xml_blob.decode('utf-8') if isinstance(xml_blob, bytes) else xml_blob
 
-        if result and 'overall_score' in result:
-            score = result['overall_score']
+        # Run PQA analysis with original XML content
+        metrics, diff_items = orchestrator.run_full_analysis(device_id, FileType.IODD, original_xml)
+
+        if metrics and hasattr(metrics, 'overall_score'):
+            score = metrics.overall_score
             print(f"Score: {score:.2f}%")
             success_count += 1
         else:
