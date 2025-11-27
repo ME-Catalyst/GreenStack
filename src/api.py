@@ -46,6 +46,13 @@ from limits.strategies import STRATEGIES
 
 from src import config
 from src.config import validate_production_security
+
+# Configure logging BEFORE any other imports that use logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    force=True  # Override any existing configuration
+)
 from src.models import DeviceProfile
 from src.greenstack import IODDManager
 from src.utils.pqa_orchestrator import UnifiedPQAOrchestrator, FileType
