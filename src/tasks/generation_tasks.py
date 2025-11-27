@@ -13,7 +13,7 @@ import os
 from typing import Dict, Any, Optional
 from celery import Task
 from src.celery_app import celery_app, send_to_dlq
-from src.storage.storage_manager import StorageManager
+from src.storage import StorageManager
 from src.generation.nodered_flows import NodeREDFlowGenerator
 
 logger = logging.getLogger(__name__)

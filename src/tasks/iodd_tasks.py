@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 from celery import Task
 from src.celery_app import celery_app, send_to_dlq
 from src.parsing.iodd_parser import IODDParser
-from src.storage.storage_manager import StorageManager
+from src.storage import StorageManager
 
 logger = logging.getLogger(__name__)
 
