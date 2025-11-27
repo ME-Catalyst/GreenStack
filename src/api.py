@@ -813,6 +813,14 @@ async def upload_iodd(
     - Maximum file size: 10MB
     """
     # DEBUG: Log that endpoint was called
+    import sys
+    import datetime
+    debug_msg = f"{datetime.datetime.now()} - UPLOAD ENDPOINT CALLED - File: {file.filename if file else 'NO FILE'}\n"
+    # Write to both stderr AND a file
+    sys.stderr.write(debug_msg)
+    sys.stderr.flush()
+    with open("upload_debug.log", "a") as f:
+        f.write(debug_msg)
     logger.error(f"!!! UPLOAD ENDPOINT CALLED !!!")
     logger.error(f"File: {file.filename if file else 'NO FILE'}")
     logger.error(f"Content-Type: {file.content_type if file else 'NO FILE'}")
