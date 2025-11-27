@@ -10,7 +10,7 @@ a clean orchestrator pattern using single-responsibility saver classes.
 import logging
 import sqlite3
 import hashlib
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from .device import DeviceSaver
 from .iodd_file import IODDFileSaver
@@ -133,6 +133,59 @@ class StorageManager:
             logger.error(f"Error saving device profile: {e}")
             raise
 
+        finally:
+            conn.close()
+
+    def save_assets(self, device_id: int, assets: List[Dict[str, Any]]) -> None:
+        """Save asset files for a device
+
+        Args:
+            device_id: The device ID to associate assets with
+            assets: List of dicts with keys: file_name, file_type, file_content, file_path
+        """
+        if not assets:
+            logger.debug(f"No assets to save for device {device_id}")
+            return
+
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        try:
+            for asset in assets:
+                cursor.execute("""
+                    INSERT INTO iodd_assets (device_id, file_name, file_type, file_content, file_path)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    device_id,
+                    asset['file_name'],
+                    asset['file_type'],
+                    asset['file_content'],
+                    asset['file_path']
+                ))
+
+            conn.commit()
+            logger.info(f"Saved {len(assets)} asset file(s) for device {device_id}")
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Error saving assets for device {device_id}: {e}")
+            raise
+        finally:
+            conn.close()
+
+    def get_assets(self, device_id: int) -> List[Dict[str, Any]]:
+        """Retrieve all asset files for a device
+
+        Returns:
+            List of dicts with keys: id, file_name, file_type, file_content, file_path
+        """
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("SELECT * FROM iodd_assets WHERE device_id = ?", (device_id,))
+            assets = [dict(row) for row in cursor.fetchall()]
+            return assets
         finally:
             conn.close()
 
