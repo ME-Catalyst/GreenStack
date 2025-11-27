@@ -2376,13 +2376,13 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
       </Card>
 
       {/* Device Analysis Modal */}
-      {selectedDevice && deviceAnalysis && (
+      {selectedDevice && deviceAnalysis && deviceAnalysis.has_analysis && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDevice(null)}>
           <div className="bg-card border border-border rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-foreground">Device Analysis: {deviceAnalysis.device.product_name}</h3>
-                <p className="text-sm text-muted-foreground">{deviceAnalysis.device.manufacturer} • Device ID: {selectedDevice}</p>
+                <h3 className="text-lg font-bold text-foreground">Device Analysis: {deviceAnalysis.product_name || 'Unknown Device'}</h3>
+                <p className="text-sm text-muted-foreground">{deviceAnalysis.manufacturer || 'Unknown'} • Device ID: {selectedDevice}</p>
               </div>
               <button
                 onClick={() => setSelectedDevice(null)}
@@ -2397,19 +2397,19 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 bg-brand-green/10 border border-brand-green/30 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Overall Score</p>
-                  <p className="text-2xl font-bold text-brand-green">{formatScore(deviceAnalysis.latest_pqa.overall_score).display}</p>
+                  <p className="text-2xl font-bold text-brand-green">{formatScore(deviceAnalysis.scores.overall).display}</p>
                 </div>
                 <div className="p-4 bg-secondary/30 border border-border rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Structural</p>
-                  <p className="text-xl font-bold text-foreground">{deviceAnalysis.latest_pqa.structural_score.toFixed(2)}%</p>
+                  <p className="text-xl font-bold text-foreground">{deviceAnalysis.scores.structural.toFixed(2)}%</p>
                 </div>
                 <div className="p-4 bg-secondary/30 border border-border rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Attribute</p>
-                  <p className="text-xl font-bold text-foreground">{deviceAnalysis.latest_pqa.attribute_score.toFixed(2)}%</p>
+                  <p className="text-xl font-bold text-foreground">{deviceAnalysis.scores.attribute.toFixed(2)}%</p>
                 </div>
                 <div className="p-4 bg-secondary/30 border border-border rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Value</p>
-                  <p className="text-xl font-bold text-foreground">{deviceAnalysis.latest_pqa.value_score.toFixed(2)}%</p>
+                  <p className="text-xl font-bold text-foreground">{deviceAnalysis.scores.value.toFixed(2)}%</p>
                 </div>
               </div>
 
@@ -2417,7 +2417,7 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
               <div>
                 <h4 className="text-sm font-semibold text-foreground mb-3">Diff Summary by Type</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {Object.entries(deviceAnalysis.diff_summary).map(([type, count]) => (
+                  {Object.entries(deviceAnalysis.grouped_diffs || {}).map(([type, count]) => (
                     <div key={type} className="p-3 bg-secondary/30 border border-border rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1">{type}</p>
                       <p className="text-xl font-bold text-foreground">{count}</p>
@@ -2446,9 +2446,9 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
 
               {/* All Diffs */}
               <div>
-                <h4 className="text-sm font-semibold text-foreground mb-3">All Differences ({deviceAnalysis.all_diffs.length})</h4>
+                <h4 className="text-sm font-semibold text-foreground mb-3">All Differences ({deviceAnalysis.diffs?.length || 0})</h4>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {deviceAnalysis.all_diffs.slice(0, 50).map((diff, idx) => (
+                  {(deviceAnalysis.diffs || []).slice(0, 50).map((diff, idx) => (
                     <div key={idx} className="p-3 bg-secondary/30 rounded-lg border border-border/50 text-xs">
                       <div className="flex items-start justify-between mb-2">
                         <Badge className={
@@ -2462,17 +2462,17 @@ const PQAEnhancedDashboard = ({ API_BASE, fileType }) => {
                       </div>
                       <p className="font-mono text-foreground mb-1 break-all">{diff.xpath}</p>
                       <p className="text-muted-foreground">{diff.description}</p>
-                      {diff.expected_value && (
+                      {diff.expected && (
                         <div className="mt-2 space-y-1">
-                          <p className="text-success">Expected: {diff.expected_value}</p>
-                          <p className="text-error">Actual: {diff.actual_value || '(missing)'}</p>
+                          <p className="text-success">Expected: {diff.expected}</p>
+                          <p className="text-error">Actual: {diff.actual || '(missing)'}</p>
                         </div>
                       )}
                     </div>
                   ))}
-                  {deviceAnalysis.all_diffs.length > 50 && (
+                  {(deviceAnalysis.diffs?.length || 0) > 50 && (
                     <p className="text-sm text-muted-foreground text-center py-2">
-                      Showing first 50 of {deviceAnalysis.all_diffs.length} differences
+                      Showing first 50 of {deviceAnalysis.diffs.length} differences
                     </p>
                   )}
                 </div>

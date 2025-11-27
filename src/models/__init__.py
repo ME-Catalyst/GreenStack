@@ -188,6 +188,14 @@ class ProcessData:
     datatype_name_text_id: Optional[str] = None  # Stores Datatype/Name textId (direct child) for reconstruction
     datatype_has_bit_length: bool = False  # Tracks if Datatype element had bitLength attribute
     array_count: Optional[int] = None  # Stores ArrayT count attribute on Datatype
+    # PQA Fix #6B: ArrayT SimpleDatatype child element attributes
+    array_element_type: Optional[str] = None  # SimpleDatatype xsi:type (e.g., UIntegerT)
+    array_element_bit_length: Optional[int] = None  # SimpleDatatype bitLength
+    array_element_fixed_length: Optional[int] = None  # SimpleDatatype fixedLength (for StringT arrays)
+    array_element_min_value: Optional[str] = None  # SimpleDatatype/ValueRange lowerValue
+    array_element_max_value: Optional[str] = None  # SimpleDatatype/ValueRange upperValue
+    array_element_value_range_xsi_type: Optional[str] = None  # SimpleDatatype/ValueRange xsi:type
+    array_element_value_range_name_text_id: Optional[str] = None  # SimpleDatatype/ValueRange/Name textId
 
 
 @dataclass
@@ -398,6 +406,7 @@ class DeviceTestConfig:
     param_index: int
     test_value: str
     event_triggers: List[TestEventTrigger] = field(default_factory=list)
+    config_xsi_type: Optional[str] = None  # PQA Fix #4: xsi:type attribute (e.g., IOLinkTestConfig7T)
 
 
 @dataclass
@@ -422,6 +431,8 @@ class CustomDatatype:
     array_element_bit_length: Optional[int] = None  # bitLength of SimpleDatatype child
     # PQA Fix #98: ArrayT count attribute
     array_count: Optional[int] = None  # count attribute for ArrayT types
+    # PQA Fix #6A: Datatype/Name child element
+    datatype_name_text_id: Optional[str] = None  # Name child element textId
 
 
 @dataclass
@@ -430,6 +441,15 @@ class StdVariableRefSingleValue:
     value: str  # The value attribute
     name_text_id: Optional[str] = None  # textId for Name element (SingleValue only)
     is_std_ref: bool = False  # True for StdSingleValueRef, False for SingleValue
+    order_index: int = 0  # Original order
+
+
+@dataclass
+class StdVariableRefValueRange:
+    """ValueRange or StdValueRangeRef child of StdVariableRef - PQA Fix #5"""
+    lower_value: str  # The lowerValue attribute
+    upper_value: str  # The upperValue attribute
+    is_std_ref: bool = True  # True for StdValueRangeRef, False for ValueRange
     order_index: int = 0  # Original order
 
 
@@ -450,6 +470,7 @@ class StdVariableRef:
     excluded_from_data_storage: Optional[bool] = None
     order_index: int = 0  # Original order in IODD
     single_values: List['StdVariableRefSingleValue'] = field(default_factory=list)  # Child elements
+    value_ranges: List['StdVariableRefValueRange'] = field(default_factory=list)  # PQA Fix #5: ValueRange/StdValueRangeRef children
     record_item_refs: List['StdRecordItemRef'] = field(default_factory=list)  # StdRecordItemRef children
 
 
@@ -463,6 +484,7 @@ class DeviceProfile:
     error_types: List[ErrorType] = field(default_factory=list)
     has_error_type_collection: bool = False  # PQA Fix #56: Track if original had ErrorTypeCollection (even if empty)
     events: List[Event] = field(default_factory=list)
+    has_event_collection: bool = False  # PQA Fix: Track if original had EventCollection (even if empty)
     document_info: Optional[DocumentInfo] = None
     device_features: Optional[DeviceFeatures] = None
     communication_profile: Optional[CommunicationProfile] = None
@@ -537,6 +559,7 @@ __all__ = [
     'CustomDatatype',
     'StdVariableRef',
     'StdVariableRefSingleValue',
+    'StdVariableRefValueRange',  # PQA Fix #5
     'StdRecordItemRef',
     'DeviceProfile',
 ]

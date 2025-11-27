@@ -33,6 +33,7 @@ from src.models import (
     SingleValue,
     StdVariableRef,
     StdVariableRefSingleValue,
+    StdVariableRefValueRange,  # PQA Fix #5
     TestEventTrigger,
     UserInterfaceMenus,
     VendorInfo,
@@ -268,6 +269,7 @@ class IODDParser:
             error_types=self._extract_error_types(),
             has_error_type_collection=self._has_error_type_collection(),  # PQA Fix #56
             events=self._extract_events(),
+            has_event_collection=self._has_event_collection(),  # PQA Fix: Track EventCollection presence
             document_info=self._extract_document_info(),
             device_features=self._extract_device_features(),
             communication_profile=self._extract_communication_profile(),
@@ -987,6 +989,14 @@ class IODDParser:
             datatype_has_bit_length = False
             # PQA Fix #98: Initialize array_count
             array_count = None
+            # PQA Fix #6B: Initialize ArrayT SimpleDatatype attributes
+            array_element_type = None
+            array_element_bit_length = None
+            array_element_fixed_length = None
+            array_element_min_value = None
+            array_element_max_value = None
+            array_element_value_range_xsi_type = None
+            array_element_value_range_name_text_id = None
 
             if datatype_ref_elem is not None:
                 # Uses DatatypeRef - reference to custom datatype
@@ -1006,6 +1016,24 @@ class IODDParser:
                 # PQA Fix #98: Extract ArrayT count attribute
                 count_attr = datatype_elem.get('count')
                 array_count = int(count_attr) if count_attr else None
+
+                # PQA Fix #6B: Extract ArrayT SimpleDatatype child element attributes
+                if data_type == 'ArrayT':
+                    simple_datatype = datatype_elem.find('iodd:SimpleDatatype', self.NAMESPACES)
+                    if simple_datatype is not None:
+                        array_element_type = simple_datatype.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                        bit_len_attr = simple_datatype.get('bitLength')
+                        array_element_bit_length = int(bit_len_attr) if bit_len_attr else None
+                        fixed_len_attr = simple_datatype.get('fixedLength')
+                        array_element_fixed_length = int(fixed_len_attr) if fixed_len_attr else None
+                        # Extract ValueRange from SimpleDatatype
+                        vr_elem = simple_datatype.find('iodd:ValueRange', self.NAMESPACES)
+                        if vr_elem is not None:
+                            array_element_min_value = vr_elem.get('lowerValue')
+                            array_element_max_value = vr_elem.get('upperValue')
+                            array_element_value_range_xsi_type = vr_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                            vr_name_elem = vr_elem.find('iodd:Name', self.NAMESPACES)
+                            array_element_value_range_name_text_id = vr_name_elem.get('textId') if vr_name_elem is not None else None
 
                 # PQA Fix #71: Extract direct SingleValue children of Datatype (for non-RecordT types)
                 direct_single_values = []
@@ -1057,6 +1085,7 @@ class IODDParser:
                     # PQA Fix #65: Track fixedLength and encoding for SimpleDatatype
                     item_fixed_length = None
                     item_encoding = None
+                    item_datatype_id = None  # PQA Fix: Extract SimpleDatatype@id attribute
                     if simple_dt is not None:
                         item_type = simple_dt.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'UIntegerT')
                         # PQA: Only store bitLength if explicitly present
@@ -1064,6 +1093,8 @@ class IODDParser:
                         # PQA Fix #65: Extract fixedLength and encoding for StringT/OctetStringT
                         item_fixed_length = int(simple_dt.get('fixedLength')) if simple_dt.get('fixedLength') else None
                         item_encoding = simple_dt.get('encoding')
+                        # PQA Fix: Extract id attribute from inline SimpleDatatype elements
+                        item_datatype_id = simple_dt.get('id')
 
                         # Extract inline single values
                         # PQA Fix #51: Include SingleValue even if name text is empty
@@ -1140,6 +1171,7 @@ class IODDParser:
                         access_right_restriction=item_access_right_restriction,  # PQA
                         fixed_length=item_fixed_length,  # PQA Fix #65
                         encoding=item_encoding,  # PQA Fix #65
+                        datatype_id=item_datatype_id,  # PQA Fix: SimpleDatatype@id attribute
                     ))
 
             process_data = ProcessData(
@@ -1158,6 +1190,14 @@ class IODDParser:
                 datatype_name_text_id=datatype_name_text_id,  # PQA Fix #72
                 datatype_has_bit_length=datatype_has_bit_length,  # PQA Fix #77
                 array_count=array_count,  # PQA Fix #98
+                # PQA Fix #6B: ArrayT SimpleDatatype attributes
+                array_element_type=array_element_type,
+                array_element_bit_length=array_element_bit_length,
+                array_element_fixed_length=array_element_fixed_length,
+                array_element_min_value=array_element_min_value,
+                array_element_max_value=array_element_max_value,
+                array_element_value_range_xsi_type=array_element_value_range_xsi_type,
+                array_element_value_range_name_text_id=array_element_value_range_name_text_id,
             )
             collection.inputs.append(process_data)
             collection.total_input_bits += bit_length
@@ -1192,6 +1232,14 @@ class IODDParser:
             datatype_has_bit_length = False
             # PQA Fix #98: Initialize array_count
             array_count = None
+            # PQA Fix #6B: Initialize ArrayT SimpleDatatype attributes
+            array_element_type = None
+            array_element_bit_length = None
+            array_element_fixed_length = None
+            array_element_min_value = None
+            array_element_max_value = None
+            array_element_value_range_xsi_type = None
+            array_element_value_range_name_text_id = None
 
             if datatype_ref_elem is not None:
                 # Uses DatatypeRef - reference to custom datatype
@@ -1261,6 +1309,7 @@ class IODDParser:
                     # PQA Fix #65: Track fixedLength and encoding for SimpleDatatype
                     item_fixed_length = None
                     item_encoding = None
+                    item_datatype_id = None  # PQA Fix: Extract SimpleDatatype@id attribute
                     if simple_dt is not None:
                         item_type = simple_dt.get('{http://www.w3.org/2001/XMLSchema-instance}type', 'UIntegerT')
                         # PQA: Only store bitLength if explicitly present
@@ -1268,6 +1317,8 @@ class IODDParser:
                         # PQA Fix #65: Extract fixedLength and encoding for StringT/OctetStringT
                         item_fixed_length = int(simple_dt.get('fixedLength')) if simple_dt.get('fixedLength') else None
                         item_encoding = simple_dt.get('encoding')
+                        # PQA Fix: Extract id attribute from inline SimpleDatatype elements
+                        item_datatype_id = simple_dt.get('id')
 
                         # Extract inline single values
                         # PQA Fix #51: Include SingleValue even if name text is empty
@@ -1344,6 +1395,7 @@ class IODDParser:
                         access_right_restriction=item_access_right_restriction,  # PQA
                         fixed_length=item_fixed_length,  # PQA Fix #65
                         encoding=item_encoding,  # PQA Fix #65
+                        datatype_id=item_datatype_id,  # PQA Fix: SimpleDatatype@id attribute
                     ))
 
             process_data = ProcessData(
@@ -1362,6 +1414,14 @@ class IODDParser:
                 datatype_name_text_id=datatype_name_text_id,  # PQA Fix #72
                 datatype_has_bit_length=datatype_has_bit_length,  # PQA Fix #77
                 array_count=array_count,  # PQA Fix #98
+                # PQA Fix #6B: ArrayT SimpleDatatype attributes
+                array_element_type=array_element_type,
+                array_element_bit_length=array_element_bit_length,
+                array_element_fixed_length=array_element_fixed_length,
+                array_element_min_value=array_element_min_value,
+                array_element_max_value=array_element_max_value,
+                array_element_value_range_xsi_type=array_element_value_range_xsi_type,
+                array_element_value_range_name_text_id=array_element_value_range_name_text_id,
             )
             collection.outputs.append(process_data)
             collection.total_output_bits += bit_length
@@ -1494,6 +1554,11 @@ class IODDParser:
                 order_index += 1
 
         return events
+
+    def _has_event_collection(self) -> bool:
+        """PQA Fix: Check if EventCollection element exists (even if empty)"""
+        event_collection = self.root.find('.//iodd:EventCollection', self.NAMESPACES)
+        return event_collection is not None
 
     def _get_standard_error_name(self, code: int, additional_code: int) -> str:
         """Get standard IO-Link error name"""
@@ -2278,6 +2343,8 @@ class IODDParser:
         config7_elem = test_elem.find('.//iodd:Config7', self.NAMESPACES)
         if config7_elem is not None:
             index = config7_elem.get('index')
+            # PQA Fix #4: Extract xsi:type attribute
+            config7_xsi_type = config7_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
             if index:
                 event_triggers = []
                 for trigger_elem in config7_elem.findall('.//iodd:EventTrigger', self.NAMESPACES):
@@ -2293,7 +2360,8 @@ class IODDParser:
                     config_type='Config7',
                     param_index=int(index),
                     test_value='',
-                    event_triggers=event_triggers
+                    event_triggers=event_triggers,
+                    config_xsi_type=config7_xsi_type  # PQA Fix #4
                 ))
 
         logger.info(f"Extracted {len(test_configs)} test configurations")
@@ -2319,6 +2387,10 @@ class IODDParser:
             # PQA Fix: Only store subindexAccessSupported if actually present in XML
             subindex_access_attr = datatype_elem.get('subindexAccessSupported')
             subindex_access = subindex_access_attr.lower() == 'true' if subindex_access_attr is not None else None
+
+            # PQA Fix #6A: Extract Name child element textId
+            dt_name_elem = datatype_elem.find('iodd:Name', self.NAMESPACES)
+            dt_name_text_id = dt_name_elem.get('textId') if dt_name_elem is not None else None
 
             # Extract single values (direct children only, not those inside RecordItem/SimpleDatatype)
             # PQA Fix #21b: Changed from .//iodd:SingleValue to iodd:SingleValue to prevent duplication
@@ -2474,7 +2546,8 @@ class IODDParser:
                 string_encoding=encoding,  # PQA Fix #59
                 array_element_type=array_element_type,  # PQA Fix #96
                 array_element_bit_length=array_element_bit_length,  # PQA Fix #96
-                array_count=array_count  # PQA Fix #98
+                array_count=array_count,  # PQA Fix #98
+                datatype_name_text_id=dt_name_text_id  # PQA Fix #6A
             ))
 
         logger.info(f"Extracted {len(datatypes)} custom datatypes")
@@ -2553,6 +2626,36 @@ class IODDParser:
                 ))
                 sv_idx += 1
 
+            # PQA Fix #5: Extract StdValueRangeRef and ValueRange children
+            value_ranges = []
+            vr_idx = 0
+
+            # StdValueRangeRef children (lowerValue and upperValue attributes)
+            for vr_ref_elem in std_ref.findall('iodd:StdValueRangeRef', self.NAMESPACES):
+                lower_val = vr_ref_elem.get('lowerValue')
+                upper_val = vr_ref_elem.get('upperValue')
+                if lower_val is not None and upper_val is not None:
+                    value_ranges.append(StdVariableRefValueRange(
+                        lower_value=lower_val,
+                        upper_value=upper_val,
+                        is_std_ref=True,
+                        order_index=vr_idx
+                    ))
+                    vr_idx += 1
+
+            # ValueRange children (lowerValue and upperValue attributes, no Name child)
+            for vr_elem in std_ref.findall('iodd:ValueRange', self.NAMESPACES):
+                lower_val = vr_elem.get('lowerValue')
+                upper_val = vr_elem.get('upperValue')
+                if lower_val is not None and upper_val is not None:
+                    value_ranges.append(StdVariableRefValueRange(
+                        lower_value=lower_val,
+                        upper_value=upper_val,
+                        is_std_ref=False,
+                        order_index=vr_idx
+                    ))
+                    vr_idx += 1
+
             # Extract StdRecordItemRef children (for record variables like V_DeviceAccessLocks)
             # PQA Fix #76: Also extract SingleValue and StdSingleValueRef children
             record_item_refs = []
@@ -2601,6 +2704,7 @@ class IODDParser:
                 excluded_from_data_storage=excluded.lower() == 'true' if excluded else None,
                 order_index=idx,
                 single_values=single_values,
+                value_ranges=value_ranges,  # PQA Fix #5
                 record_item_refs=record_item_refs
             ))
 

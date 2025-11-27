@@ -41,8 +41,8 @@ class TestConfigSaver(BaseSaver):
         """Save main test configuration entry"""
         query = """
             INSERT INTO device_test_config (
-                device_id, config_type, param_index, test_value
-            ) VALUES (?, ?, ?, ?)
+                device_id, config_type, param_index, test_value, config_xsi_type
+            ) VALUES (?, ?, ?, ?, ?)
         """
 
         params = (
@@ -50,6 +50,7 @@ class TestConfigSaver(BaseSaver):
             getattr(test_config, 'config_type', None),
             getattr(test_config, 'param_index', None),
             getattr(test_config, 'test_value', None),
+            getattr(test_config, 'config_xsi_type', None),  # PQA Fix #4
         )
 
         self._execute(query, params)

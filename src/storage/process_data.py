@@ -94,8 +94,11 @@ class ProcessDataSaver(BaseSaver):
                 device_id, pd_id, name, direction, bit_length, data_type, description,
                 name_text_id, subindex_access_supported, wrapper_id,
                 uses_datatype_ref, datatype_ref_id, datatype_name_text_id, datatype_has_bit_length,
-                array_count
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                array_count,
+                array_element_type, array_element_bit_length, array_element_fixed_length,
+                array_element_min_value, array_element_max_value, array_element_value_range_xsi_type,
+                array_element_value_range_name_text_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = (
@@ -114,6 +117,14 @@ class ProcessDataSaver(BaseSaver):
             getattr(pd, 'datatype_name_text_id', None),  # PQA Fix #72
             1 if getattr(pd, 'datatype_has_bit_length', False) else 0,  # PQA Fix #77
             getattr(pd, 'array_count', None),  # PQA Fix #98
+            # PQA Fix #6B: ArrayT SimpleDatatype attributes
+            getattr(pd, 'array_element_type', None),
+            getattr(pd, 'array_element_bit_length', None),
+            getattr(pd, 'array_element_fixed_length', None),
+            getattr(pd, 'array_element_min_value', None),
+            getattr(pd, 'array_element_max_value', None),
+            getattr(pd, 'array_element_value_range_xsi_type', None),
+            getattr(pd, 'array_element_value_range_name_text_id', None),
         )
 
         self._execute(query, params)
@@ -132,8 +143,8 @@ class ProcessDataSaver(BaseSaver):
                     process_data_id, subindex, name,
                     bit_offset, bit_length, data_type, default_value, name_text_id, description_text_id,
                     min_value, max_value, value_range_xsi_type, value_range_name_text_id, access_right_restriction,
-                    fixed_length, encoding, simpledatatype_name_text_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    fixed_length, encoding, datatype_id, simpledatatype_name_text_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
             params = (
@@ -153,6 +164,7 @@ class ProcessDataSaver(BaseSaver):
                 getattr(item, 'access_right_restriction', None),  # PQA: RecordItem attribute
                 getattr(item, 'fixed_length', None),  # PQA Fix #65
                 getattr(item, 'encoding', None),  # PQA Fix #65
+                getattr(item, 'datatype_id', None),  # PQA Fix: SimpleDatatype@id attribute
                 getattr(item, 'simpledatatype_name_text_id', None),  # PQA Fix #95
             )
 

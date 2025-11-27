@@ -62,14 +62,16 @@ class CustomDatatypeSaver(BaseSaver):
         # PQA Fix #59: Added string_fixed_length, string_encoding
         # PQA Fix #96: Added array_element_type, array_element_bit_length
         # PQA Fix #98: Added array_count
+        # PQA Fix #6A: Added datatype_name_text_id
         query = """
             INSERT INTO custom_datatypes (
                 device_id, datatype_id, datatype_xsi_type,
                 bit_length, subindex_access_supported,
                 min_value, max_value, value_range_xsi_type, value_range_name_text_id,
                 string_fixed_length, string_encoding,
-                array_element_type, array_element_bit_length, array_count
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                array_element_type, array_element_bit_length, array_count,
+                datatype_name_text_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         # PQA Fix: Preserve None for subindex_access_supported (don't output if not in original)
@@ -91,6 +93,7 @@ class CustomDatatypeSaver(BaseSaver):
             getattr(datatype, 'array_element_type', None),  # PQA Fix #96
             getattr(datatype, 'array_element_bit_length', None),  # PQA Fix #96
             getattr(datatype, 'array_count', None),  # PQA Fix #98
+            getattr(datatype, 'datatype_name_text_id', None),  # PQA Fix #6A
         )
 
         self._execute(query, params)

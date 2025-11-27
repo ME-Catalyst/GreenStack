@@ -78,6 +78,19 @@ class StdVariableRefSaver(BaseSaver):
                 ]
                 self._execute_many(sv_query, sv_values)
 
+            # PQA Fix #5: Insert ValueRange/StdValueRangeRef children if any
+            if hasattr(ref, 'value_ranges') and ref.value_ranges:
+                vr_query = """
+                    INSERT INTO std_variable_ref_value_ranges
+                    (std_variable_ref_id, lower_value, upper_value, is_std_ref, order_index)
+                    VALUES (?, ?, ?, ?, ?)
+                """
+                vr_values = [
+                    (std_var_ref_id, vr.lower_value, vr.upper_value, 1 if vr.is_std_ref else 0, vr.order_index)
+                    for vr in ref.value_ranges
+                ]
+                self._execute_many(vr_query, vr_values)
+
             # Insert StdRecordItemRef children if any
             if hasattr(ref, 'record_item_refs') and ref.record_item_refs:
                 ri_query = """

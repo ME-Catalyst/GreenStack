@@ -700,6 +700,34 @@ class IODDReconstructor:
             # Add RecordItem elements for RecordT types
             if pd['data_type'] == 'RecordT':
                 self._add_process_data_record_items(conn, datatype, pd['id'])
+            # PQA Fix #6B: Add SimpleDatatype child element for ArrayT types
+            elif pd['data_type'] == 'ArrayT':
+                array_elem_type = pd['array_element_type'] if 'array_element_type' in pd.keys() else None
+                if array_elem_type:
+                    simple_dt = ET.SubElement(datatype, 'SimpleDatatype')
+                    simple_dt.set('{http://www.w3.org/2001/XMLSchema-instance}type', array_elem_type)
+                    if pd['array_element_bit_length']:
+                        simple_dt.set('bitLength', str(pd['array_element_bit_length']))
+                    if pd['array_element_fixed_length']:
+                        simple_dt.set('fixedLength', str(pd['array_element_fixed_length']))
+                    # Add ValueRange to SimpleDatatype if present
+                    ae_min = pd['array_element_min_value'] if 'array_element_min_value' in pd.keys() else None
+                    ae_max = pd['array_element_max_value'] if 'array_element_max_value' in pd.keys() else None
+                    if ae_min is not None or ae_max is not None:
+                        vr_elem = ET.SubElement(simple_dt, 'ValueRange')
+                        ae_vr_xsi_type = pd['array_element_value_range_xsi_type'] if 'array_element_value_range_xsi_type' in pd.keys() else None
+                        if ae_vr_xsi_type:
+                            vr_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', ae_vr_xsi_type)
+                        if ae_min is not None:
+                            vr_elem.set('lowerValue', str(ae_min))
+                        if ae_max is not None:
+                            vr_elem.set('upperValue', str(ae_max))
+                        ae_vr_name_text_id = pd['array_element_value_range_name_text_id'] if 'array_element_value_range_name_text_id' in pd.keys() else None
+                        if ae_vr_name_text_id:
+                            vr_name_elem = ET.SubElement(vr_elem, 'Name')
+                            vr_name_elem.set('textId', ae_vr_name_text_id)
+                    # Add SingleValues to ArrayT SimpleDatatype if present
+                    self._add_process_data_direct_single_values(conn, simple_dt, pd['id'])
             else:
                 # PQA Fix #71: Add direct SingleValue children for non-RecordT types
                 self._add_process_data_direct_single_values(conn, datatype, pd['id'])
@@ -1140,6 +1168,12 @@ class IODDReconstructor:
                 if vr_name_text_id:
                     vr_name_elem = ET.SubElement(vr_elem, 'Name')
                     vr_name_elem.set('textId', vr_name_text_id)
+
+            # PQA Fix #6A: Add Name child element if present
+            dt_name_text_id = dt['datatype_name_text_id'] if 'datatype_name_text_id' in dt.keys() else None
+            if dt_name_text_id:
+                name_elem = ET.SubElement(datatype_elem, 'Name')
+                name_elem.set('textId', dt_name_text_id)
 
             # Add RecordItem structures
             self._add_record_items(conn, datatype_elem, dt['id'])
@@ -1705,6 +1739,9 @@ class IODDReconstructor:
             for config in test_configs:
                 config_elem = ET.SubElement(test_elem, config['config_type'])
                 config_elem.set('index', str(config['param_index']))
+                # PQA Fix #4: Add xsi:type attribute if present
+                if config['config_xsi_type']:
+                    config_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', config['config_xsi_type'])
                 if config['test_value']:
                     config_elem.set('testValue', config['test_value'])
 
@@ -1838,6 +1875,27 @@ class IODDReconstructor:
                         if sv['name_text_id']:
                             name_elem = ET.SubElement(sv_elem, 'Name')
                             name_elem.set('textId', sv['name_text_id'])
+
+                # PQA Fix #5: Add StdValueRangeRef and ValueRange children
+                cursor.execute("""
+                    SELECT lower_value, upper_value, is_std_ref, order_index
+                    FROM std_variable_ref_value_ranges
+                    WHERE std_variable_ref_id = ?
+                    ORDER BY order_index
+                """, (ref['id'],))
+                value_ranges = cursor.fetchall()
+
+                for vr in value_ranges:
+                    if vr['is_std_ref']:
+                        # StdValueRangeRef - lowerValue and upperValue attributes
+                        vr_elem = ET.SubElement(std_ref, 'StdValueRangeRef')
+                        vr_elem.set('lowerValue', vr['lower_value'])
+                        vr_elem.set('upperValue', vr['upper_value'])
+                    else:
+                        # ValueRange - lowerValue and upperValue attributes
+                        vr_elem = ET.SubElement(std_ref, 'ValueRange')
+                        vr_elem.set('lowerValue', vr['lower_value'])
+                        vr_elem.set('upperValue', vr['upper_value'])
 
                 # Add StdRecordItemRef children
                 cursor2 = conn.cursor()
@@ -2150,8 +2208,21 @@ class IODDReconstructor:
         """, (device_id,))
         events = cursor.fetchall()
 
+        # PQA Fix: Check if original had EventCollection element (even if empty)
+        cursor.execute("""
+            SELECT has_event_collection
+            FROM devices
+            WHERE id = ?
+        """, (device_id,))
+        device_row = cursor.fetchone()
+        has_event_collection = device_row['has_event_collection'] if device_row else False
+
         if not events:
-            return None
+            # If original had EventCollection element, output empty element
+            if has_event_collection:
+                return ET.Element('EventCollection')
+            else:
+                return None
 
         collection = ET.Element('EventCollection')
 
