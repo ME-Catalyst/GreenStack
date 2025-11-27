@@ -99,6 +99,7 @@ class StorageManager:
             if existing_with_same_checksum:
                 # Device exists with same checksum (file unchanged), skip saving data
                 logger.info(f"Device {device_id} already exists with same checksum, skipping data save")
+                conn.commit()  # MUST commit before closing to persist the device record
                 conn.close()
                 return device_id
 
