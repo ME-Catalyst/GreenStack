@@ -47,12 +47,13 @@ from limits.strategies import STRATEGIES
 from src import config
 from src.config import validate_production_security
 
-# Configure logging BEFORE any other imports that use logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    force=True  # Override any existing configuration
-)
+# Configure logging for application loggers
+# NOTE: Don't use force=True as it breaks uvicorn's logging
+if not logging.getLogger().handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
 from src.models import DeviceProfile
 from src.greenstack import IODDManager
 from src.utils.pqa_orchestrator import UnifiedPQAOrchestrator, FileType
@@ -587,6 +588,27 @@ logger.info(
     getattr(config, "CORS_ALLOW_ALL", False),
     "*" if getattr(config, "CORS_ALLOW_ALL", False) else config.CORS_ORIGINS,
 )
+
+# ============================================================================
+# Request Logging Middleware (DEBUG)
+# ============================================================================
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all incoming HTTP requests for debugging"""
+    import sys
+    # Use print to bypass logging config issues
+    print(f"!!! REQUEST: {request.method} {request.url.path}", file=sys.stderr, flush=True)
+    logger.error(f"!!! REQUEST: {request.method} {request.url.path}")
+    try:
+        response = await call_next(request)
+        print(f"!!! RESPONSE: {request.method} {request.url.path} -> {response.status_code}", file=sys.stderr, flush=True)
+        logger.error(f"!!! RESPONSE: {request.method} {request.url.path} -> {response.status_code}")
+        return response
+    except Exception as e:
+        print(f"!!! EXCEPTION in middleware: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+        logger.error(f"!!! EXCEPTION in middleware: {type(e).__name__}: {e}")
+        raise
 
 # ============================================================================
 # Request Timeout Middleware
