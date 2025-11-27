@@ -139,9 +139,13 @@ class StorageManager:
     def save_assets(self, device_id: int, assets: List[Dict[str, Any]]) -> None:
         """Save asset files for a device
 
+        Smart merge logic:
+        - Only adds assets that don't already exist (by file_name)
+        - Prevents duplicate assets when re-importing the same device
+
         Args:
             device_id: The device ID to associate assets with
-            assets: List of dicts with keys: file_name, file_type, file_content, file_path
+            assets: List of dicts with keys: file_name, file_type, file_content, file_path, image_purpose (optional)
         """
         if not assets:
             logger.debug(f"No assets to save for device {device_id}")
@@ -150,21 +154,42 @@ class StorageManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
+        added_count = 0
+        skipped_count = 0
+
         try:
             for asset in assets:
+                # Check if asset with same file_name already exists for this device
+                cursor.execute(
+                    "SELECT id FROM iodd_assets WHERE device_id = ? AND file_name = ?",
+                    (device_id, asset['file_name'])
+                )
+                existing = cursor.fetchone()
+
+                if existing:
+                    logger.debug(f"Asset '{asset['file_name']}' already exists for device {device_id}, skipping")
+                    skipped_count += 1
+                    continue
+
+                # Insert new asset
                 cursor.execute("""
-                    INSERT INTO iodd_assets (device_id, file_name, file_type, file_content, file_path)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO iodd_assets (device_id, file_name, file_type, file_content, file_path, image_purpose)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 """, (
                     device_id,
                     asset['file_name'],
                     asset['file_type'],
                     asset['file_content'],
-                    asset['file_path']
+                    asset['file_path'],
+                    asset.get('image_purpose')  # Optional image_purpose field
                 ))
+                added_count += 1
 
             conn.commit()
-            logger.info(f"Saved {len(assets)} asset file(s) for device {device_id}")
+            if added_count > 0:
+                logger.info(f"Saved {added_count} asset file(s) for device {device_id}")
+            if skipped_count > 0:
+                logger.info(f"Skipped {skipped_count} duplicate asset file(s) for device {device_id}")
         except Exception as e:
             conn.rollback()
             logger.error(f"Error saving assets for device {device_id}: {e}")
