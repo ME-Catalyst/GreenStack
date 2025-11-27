@@ -38,8 +38,8 @@ def upgrade():
     """))
 
     conn.execute(sa.text("""
-        CREATE INDEX IF NOT EXISTS idx_parameters_index
-        ON parameters(index)
+        CREATE INDEX IF NOT EXISTS idx_parameters_param_index
+        ON parameters(param_index)
     """))
 
     conn.execute(sa.text("""
@@ -60,26 +60,26 @@ def upgrade():
     """))
 
     conn.execute(sa.text("""
-        CREATE INDEX IF NOT EXISTS idx_pqa_quality_metrics_created_at
-        ON pqa_quality_metrics(created_at DESC)
+        CREATE INDEX IF NOT EXISTS idx_pqa_quality_metrics_analysis_timestamp
+        ON pqa_quality_metrics(analysis_timestamp DESC)
     """))
 
     # Composite index for finding latest PQA result per device
     conn.execute(sa.text("""
-        CREATE INDEX IF NOT EXISTS idx_pqa_metrics_device_created
-        ON pqa_quality_metrics(device_id, created_at DESC)
+        CREATE INDEX IF NOT EXISTS idx_pqa_metrics_device_analysis_timestamp
+        ON pqa_quality_metrics(device_id, analysis_timestamp DESC)
     """))
 
-    # PQA diff details - queried by metrics_id
+    # PQA diff details - queried by metric_id
     conn.execute(sa.text("""
-        CREATE INDEX IF NOT EXISTS idx_pqa_diff_details_metrics_id
-        ON pqa_diff_details(metrics_id)
+        CREATE INDEX IF NOT EXISTS idx_pqa_diff_details_metric_id
+        ON pqa_diff_details(metric_id)
     """))
 
-    # Texts table - very frequently queried by text_id
+    # IODD text table - very frequently queried by text_id
     conn.execute(sa.text("""
-        CREATE INDEX IF NOT EXISTS idx_texts_text_id
-        ON texts(text_id)
+        CREATE INDEX IF NOT EXISTS idx_iodd_text_text_id
+        ON iodd_text(text_id)
     """))
 
     # UI menus - queried by device_id for menu rendering
@@ -129,14 +129,14 @@ def downgrade():
     # Drop all indexes created in upgrade()
     indexes = [
         'idx_parameters_device_id',
-        'idx_parameters_index',
+        'idx_parameters_param_index',
         'idx_parameters_name',
         'idx_process_data_device_id',
         'idx_pqa_quality_metrics_device_id',
-        'idx_pqa_quality_metrics_created_at',
-        'idx_pqa_metrics_device_created',
-        'idx_pqa_diff_details_metrics_id',
-        'idx_texts_text_id',
+        'idx_pqa_quality_metrics_analysis_timestamp',
+        'idx_pqa_metrics_device_analysis_timestamp',
+        'idx_pqa_diff_details_metric_id',
+        'idx_iodd_text_text_id',
         'idx_ui_menus_device_id',
         'idx_ui_menu_items_menu_id',
         'idx_events_device_id',
