@@ -2237,6 +2237,11 @@ class IODDManager:
             device_ids = []
             for pkg_profile, pkg_assets in device_packages:
                 device_id = self.storage.save_device(pkg_profile)
+
+                # DEBUG: Log storage object details before calling save_assets
+                logger.info(f"DEBUG: About to call save_assets on {type(self.storage)}")
+                logger.info(f"DEBUG: storage has save_assets = {hasattr(self.storage, 'save_assets')}")
+
                 self.storage.save_assets(device_id, pkg_assets)
                 device_ids.append(device_id)
                 logger.info(f"Successfully imported IODD for {pkg_profile.device_info.product_name} with {len(pkg_assets)} asset file(s)")
@@ -2246,6 +2251,13 @@ class IODDManager:
         else:
             # Single device import
             device_id = self.storage.save_device(profile)
+
+            # DEBUG: Log storage object details before calling save_assets
+            logger.info(f"DEBUG: About to call save_assets on {type(self.storage)}")
+            logger.info(f"DEBUG: storage class name = {type(self.storage).__name__}")
+            logger.info(f"DEBUG: storage has save_assets = {hasattr(self.storage, 'save_assets')}")
+            logger.info(f"DEBUG: storage methods = {[m for m in dir(self.storage) if not m.startswith('_')][:10]}")
+
             self.storage.save_assets(device_id, assets)
             logger.info(f"Successfully imported IODD for {profile.device_info.product_name} with {len(assets)} asset file(s)")
             return device_id
