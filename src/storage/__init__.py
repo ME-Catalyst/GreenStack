@@ -214,6 +214,36 @@ class StorageManager:
         finally:
             conn.close()
 
+    def get_device(self, device_id: int) -> Optional[Dict[str, Any]]:
+        """Retrieve device information from database
+
+        Args:
+            device_id: Database ID of the device
+
+        Returns:
+            Dictionary with device info and parameters, or None if not found
+        """
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("SELECT * FROM devices WHERE id = ?", (device_id,))
+            device = cursor.fetchone()
+
+            if device:
+                # Get parameters
+                cursor.execute("SELECT * FROM parameters WHERE device_id = ?", (device_id,))
+                parameters = cursor.fetchall()
+
+                result = dict(device)
+                result['parameters'] = [dict(p) for p in parameters]
+                return result
+
+            return None
+        finally:
+            conn.close()
+
 
 # Export main class and savers for external use
 __all__ = [
