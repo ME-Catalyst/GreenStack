@@ -783,6 +783,11 @@ async def upload_iodd(
     Limits:
     - Maximum file size: 10MB
     """
+    # DEBUG: Log that endpoint was called
+    logger.error(f"!!! UPLOAD ENDPOINT CALLED !!!")
+    logger.error(f"File: {file.filename if file else 'NO FILE'}")
+    logger.error(f"Content-Type: {file.content_type if file else 'NO FILE'}")
+
     # Validate file extension
     if not file.filename:
         raise HTTPException(
