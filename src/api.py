@@ -625,13 +625,20 @@ async def timeout_middleware(request: Request, call_next):
         raise
 
 # Initialize Greenstack
+logger.info("DEBUG API: About to create IODDManager")
 manager = IODDManager()
+logger.info(f"DEBUG API: Created IODDManager, storage type = {type(manager.storage)}")
+logger.info(f"DEBUG API: storage has save_assets = {hasattr(manager.storage, 'save_assets')}")
 
 # Wrap storage with caching layer (if Redis available)
 try:
     from src.cached_storage import create_cached_storage
+    original_storage = manager.storage
     manager.storage = create_cached_storage(manager.storage)
     logger.info("Database caching enabled")
+    logger.info(f"DEBUG API: After caching wrap, storage type = {type(manager.storage)}")
+    logger.info(f"DEBUG API: After caching wrap, storage has save_assets = {hasattr(manager.storage, 'save_assets')}")
+    logger.info(f"DEBUG API: Wrapped storage.storage = {type(manager.storage.storage)}")
 except Exception as e:
     logger.warning(f"Database caching not available: {e}")
 

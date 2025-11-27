@@ -2214,7 +2214,17 @@ class IODDManager:
 
     def __init__(self, storage_path: str = "./iodd_storage", db_path: str = "greenstack.db"):
         self.ingester = IODDIngester(Path(storage_path))
+
+        # DEBUG: Log ModularStorageManager details
+        logger.info(f"DEBUG INIT: ModularStorageManager class = {ModularStorageManager}")
+        logger.info(f"DEBUG INIT: ModularStorageManager has save_assets = {hasattr(ModularStorageManager, 'save_assets')}")
+
         self.storage = ModularStorageManager(db_path)  # Modular storage with forensic reconstruction support
+
+        # DEBUG: Log created storage instance details
+        logger.info(f"DEBUG INIT: Created storage type = {type(self.storage)}")
+        logger.info(f"DEBUG INIT: Created storage has save_assets = {hasattr(self.storage, 'save_assets')}")
+
         self.generators = {
             'node-red': NodeREDGenerator()
         }
