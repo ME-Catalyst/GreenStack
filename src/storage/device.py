@@ -35,13 +35,25 @@ class DeviceSaver(BaseSaver):
 
         # Check if device already exists by vendor_id and device_id
         self._execute(
-            "SELECT id FROM devices WHERE vendor_id = ? AND device_id = ?",
+            "SELECT id, checksum FROM devices WHERE vendor_id = ? AND device_id = ?",
             (profile.device_info.vendor_id, profile.device_info.device_id)
         )
         existing = self._fetch_one()
         if existing:
-            logger.info(f"Device already exists with ID: {existing[0]} (vendor_id={profile.device_info.vendor_id}, device_id={profile.device_info.device_id}). Will merge new assets.")
-            return existing[0]
+            existing_id = existing[0]
+            existing_checksum = existing[1]
+
+            # If checksum changed, update it
+            if existing_checksum != checksum:
+                logger.info(f"Device {existing_id} checksum changed, updating (vendor_id={profile.device_info.vendor_id}, device_id={profile.device_info.device_id})")
+                self._execute(
+                    "UPDATE devices SET checksum = ? WHERE id = ?",
+                    (checksum, existing_id)
+                )
+            else:
+                logger.info(f"Device already exists with ID: {existing_id} (vendor_id={profile.device_info.vendor_id}, device_id={profile.device_info.device_id}). Same checksum.")
+
+            return existing_id
 
         # Insert new device
         # PQA Fix #62: Include device_id_str column

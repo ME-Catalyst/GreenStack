@@ -83,25 +83,27 @@ class StorageManager:
             std_variable_ref_saver = StdVariableRefSaver(cursor)
             build_format_saver = BuildFormatSaver(cursor)
 
-            # Save core device info (may return existing device ID)
-            # The save method returns existing ID if device already exists
-            device_id = device_saver.save(None, profile)
-
-            # Check if device exists with same checksum (file unchanged)
-            # If DeviceSaver found an existing device, check if the XML changed
+            # Check if device exists with same checksum BEFORE saving
+            # This prevents the bug where we create a device record then immediately
+            # find it and skip all data saves
+            checksum = hashlib.sha256(profile.raw_xml.encode()).hexdigest()
             cursor.execute(
                 "SELECT id FROM devices WHERE vendor_id = ? AND device_id = ? AND checksum = ?",
-                (profile.device_info.vendor_id, profile.device_info.device_id,
-                 hashlib.sha256(profile.raw_xml.encode()).hexdigest())
+                (profile.device_info.vendor_id, profile.device_info.device_id, checksum)
             )
             existing_with_same_checksum = cursor.fetchone()
 
             if existing_with_same_checksum:
                 # Device exists with same checksum (file unchanged), skip saving data
+                device_id = existing_with_same_checksum[0]
                 logger.info(f"Device {device_id} already exists with same checksum, skipping data save")
-                conn.commit()  # MUST commit before closing to persist the device record
+                conn.commit()
                 conn.close()
                 return device_id
+
+            # Save core device info (may return existing device ID if vendor_id+device_id match but checksum differs)
+            # The save method returns existing ID if device already exists
+            device_id = device_saver.save(None, profile)
 
             # Save all related data in logical order
             iodd_file_saver.save(device_id, profile)
