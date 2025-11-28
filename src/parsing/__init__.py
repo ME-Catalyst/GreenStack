@@ -776,6 +776,31 @@ class IODDParser:
                         vr_name_elem = vr_elem.find('iodd:Name', self.NAMESPACES)
                         result['array_element_value_range_name_text_id'] = vr_name_elem.get('textId') if vr_name_elem is not None else None
 
+                    # PQA Fix #126: Extract SingleValues from ArrayT SimpleDatatype
+                    # SingleValues are nested inside Datatype[ArrayT]/SimpleDatatype, not direct children of Datatype
+                    # Example: Variable/Datatype[@xsi:type="ArrayT"]/SimpleDatatype[@xsi:type="UIntegerT"]/SingleValue
+                    array_single_values = []
+                    for idx, single_val in enumerate(simple_datatype.findall('iodd:SingleValue', self.NAMESPACES)):
+                        value = single_val.get('value')
+                        xsi_type = single_val.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                        name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
+                        text_id = name_elem.get('textId') if name_elem is not None else None
+                        text_value = self._resolve_text(text_id) if text_id else None
+
+                        if value is not None:
+                            # Store full SingleValue data for reconstruction
+                            array_single_values.append(SingleValue(
+                                value=value,
+                                name=text_value or '',
+                                description=None,
+                                text_id=text_id,
+                                xsi_type=xsi_type
+                            ))
+
+                    # Override single_values from direct children with ArrayT's nested SingleValues
+                    if array_single_values:
+                        result['single_values'] = array_single_values
+
             return result
 
         # Check for DatatypeRef (reference to custom datatype)

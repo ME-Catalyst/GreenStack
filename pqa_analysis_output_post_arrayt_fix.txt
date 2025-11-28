@@ -1,0 +1,126 @@
+================================================================================
+PQA RESULTS ANALYSIS - IMPORTED IODD DATASET
+================================================================================
+
+## 1. DATASET OVERVIEW
+
+Total Devices Imported: 7423
+Devices with PQA Analysis: 7423
+Analysis Coverage: 100.0%
+
+## 2. SCORE STATISTICS
+
+Total Analyzed: 7423
+
+Overall Scores (Full Precision):
+  Average: 99.9923%
+  Range: 97.7925% - 100.0000%
+
+Component Scores (Full Precision):
+  Structural (40%): 99.9811%
+  Attribute (35%):  99.9997%
+  Value (25%):      100.0000%
+
+Quality Gates:
+  Perfect Devices (100.0000%): 7020 (94.57%)
+  Near-Perfect (99.9-99.99%): 0 (0.00%)
+  Passed Threshold: 7020 (94.57%)
+  Failed Threshold: 403
+  Critical Data Loss: 0
+  Avg Data Loss: 0.0148%
+
+Active Threshold Configuration:
+  Min Overall Score: 100.0%
+  Max Data Loss: 0.0%
+
+Failure Breakdown:
+  Failed due to low score (<100.0%): 403
+  Failed due to data loss (>0.0%): 277
+  Failed ONLY data loss (good score!): 0
+
+## 3. SCORE DISTRIBUTION
+
+Grade Distribution:
+  A+ (98-100%): 7421 devices (100.0%) #################################################
+  A  (95-98%):   2 devices (  0.0%) 
+
+## 4. WORST PERFORMING DEVICES (Bottom 10)
+
+ID    Product                                   Score Struct   Attr  Value  Loss%
+------------------------------------------------------------------------------------------
+574   OBE-P3DRSERE6-A350                         97.8   94.5  100.0  100.0    2.6
+575   OBE-P3DRSERE6-A100                         97.8   94.5  100.0  100.0    2.6
+548   1235_IO-Link                               99.3   98.3  100.0  100.0    0.4
+5225  X-NUCLEO-IOD02A1                           99.4   99.1   99.3  100.0    0.9
+550   4242 IO-LINK                               99.7   99.5   99.7  100.0    0.0
+27    59401                                      99.7   99.3  100.0  100.0    0.0
+4981  1100929                                    99.7   99.3  100.0  100.0    0.7
+5237  B1N360V-QR20-IOLX3-H1141                   99.7   99.4  100.0  100.0    0.6
+5239  B1NF360V-QR20-IOLX3-H1141                  99.7   99.4  100.0  100.0    0.6
+28    59402                                      99.8   99.4  100.0  100.0    0.0
+
+## 5. MOST COMMON DIFF TYPES
+
+Diff Type                 Severity      Count
+--------------------------------------------------
+missing_element           HIGH            432
+extra_element             LOW             287
+missing_attribute         MEDIUM           12
+incorrect_attribute       MEDIUM           11
+
+## 6. MOST PROBLEMATIC ELEMENTS (Top 20)
+
+XPath (truncated)                                            Type                 Sev       Count
+----------------------------------------------------------------------------------------------------
+/IODevice/ProfileBody/DeviceFunction/VariableCollection/St.. missing_element      HIGH         98
+/IODevice/CommNetworkProfile/TransportLayers/PhysicalLayer.. extra_element        LOW          96
+/IODevice/ProfileBody/DeviceFunction/Features[unknown]       extra_element        LOW          96
+/IODevice/ProfileBody/DeviceFunction/UserInterface/MenuCol.. missing_element      HIGH         76
+/IODevice/ProfileBody/DeviceFunction/VariableCollection/Di.. missing_element      HIGH         66
+/IODevice/ProfileBody/DeviceFunction/VariableCollection/Va.. extra_element        LOW          48
+/IODevice/ProfileBody/DeviceFunction/VariableCollection/Va.. missing_element      HIGH         48
+/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_element      HIGH         42
+/IODevice/ProfileBody/DeviceFunction/ErrorTypeCollection/E.. extra_element        LOW          31
+/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_element      HIGH         21
+/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_element      HIGH         18
+/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_element      HIGH         18
+/IODevice/ProfileBody/DeviceFunction/UserInterface/Process.. missing_element      HIGH         11
+/IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_element      HIGH          8
+/IODevice/ProfileBody/DeviceFunction/ErrorTypeCollection[u.. extra_element        LOW           6
+/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. incorrect_attribute  MEDIUM        5
+/IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_element      HIGH          5
+/IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_element      HIGH          5
+/IODevice/ProfileBody/DeviceFunction/ErrorTypeCollection/E.. incorrect_attribute  MEDIUM        4
+/IODevice/CommNetworkProfile/TransportLayers/PhysicalLayer.. extra_element        LOW           3
+
+## 7. PHASE-SPECIFIC SCORES (IODD Features)
+
+Phase 1 (UI Rendering):          100.0000%  ✓ Perfect
+Phase 2 (Variants & Conditions): 99.8511%  ⚠ 7242/7423 perfect
+Phase 3 (Menu Buttons):          99.9468%  ⚠ 7384/7423 perfect
+Phase 4 (Wiring & Test Config):  100.0000%  ✓ Perfect
+Phase 5 (Custom Datatypes):      99.8484%  ⚠ 7338/7423 perfect
+
+## 8. PQA TICKETS GENERATED
+
+Total PQA Tickets: 403
+  Critical: 0
+  High:     0
+  Medium:   403
+  Open:     403
+
+## 9. EXAMPLE CRITICAL ISSUES (Sample of 10)
+
+No critical issues found!
+
+================================================================================
+## 10. SUMMARY ASSESSMENT
+================================================================================
+
+Overall Grade: EXCELLENT (99.99233634789289%)
+Status: ✅ Production Ready
+
+Key Metrics:
+  - 7020 of 7423 devices pass threshold (≥95%)
+  - 0 devices with critical data loss
+  - Average data loss: 0.014798333144481481%
