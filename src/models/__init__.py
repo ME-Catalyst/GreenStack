@@ -525,10 +525,61 @@ class DeviceProfile:
     # PQA: StdVariableRef preservation
     std_variable_refs: List[StdVariableRef] = field(default_factory=list)
 
+    # PQA Fix #131: DirectParameterOverlay preservation
+    direct_parameter_overlays: List['DirectParameterOverlay'] = field(default_factory=list)
+
     # PQA Fix #54: ProfileHeader values for accurate reconstruction
     profile_identification: Optional[str] = None
     profile_revision: Optional[str] = None
     profile_name: Optional[str] = None
+
+
+# PQA Fix #131: DirectParameterOverlay support
+@dataclass
+class DirectParameterOverlayRecordItemSingleValue:
+    """SingleValue element within RecordItem of DirectParameterOverlay"""
+    value: str
+    name: Optional[str] = None
+    name_text_id: Optional[str] = None  # For PQA reconstruction
+
+
+@dataclass
+class DirectParameterOverlayRecordItem:
+    """RecordItem within DirectParameterOverlay's RecordT Datatype"""
+    subindex: int
+    bit_offset: Optional[int] = None
+    bit_length: Optional[int] = None
+    datatype_ref: Optional[str] = None  # DatatypeRef@datatypeId
+    simple_datatype: Optional[str] = None  # SimpleDatatype xsi:type
+    name: Optional[str] = None
+    name_text_id: Optional[str] = None
+    description: Optional[str] = None
+    description_text_id: Optional[str] = None
+    access_right_restriction: Optional[str] = None
+    single_values: List[DirectParameterOverlayRecordItemSingleValue] = field(default_factory=list)
+
+
+@dataclass
+class DirectParameterOverlayRecordItemInfo:
+    """RecordItemInfo metadata for DirectParameterOverlay"""
+    subindex: int
+    default_value: Optional[str] = None
+    modifies_other_variables: bool = False
+
+
+@dataclass
+class DirectParameterOverlay:
+    """DirectParameterOverlay element from VariableCollection"""
+    overlay_id: str  # id attribute
+    access_rights: Optional[str] = None
+    dynamic: bool = False
+    modifies_other_variables: bool = False
+    excluded_from_data_storage: bool = False
+    name_text_id: Optional[str] = None
+    datatype_xsi_type: Optional[str] = None  # Datatype xsi:type (usually RecordT)
+    datatype_bit_length: Optional[int] = None
+    record_items: List[DirectParameterOverlayRecordItem] = field(default_factory=list)
+    record_item_info: List[DirectParameterOverlayRecordItemInfo] = field(default_factory=list)
 
 
 # Export all models
@@ -564,4 +615,8 @@ __all__ = [
     'StdVariableRefValueRange',  # PQA Fix #5
     'StdRecordItemRef',
     'DeviceProfile',
+    'DirectParameterOverlay',  # PQA Fix #131
+    'DirectParameterOverlayRecordItem',
+    'DirectParameterOverlayRecordItemInfo',
+    'DirectParameterOverlayRecordItemSingleValue',
 ]

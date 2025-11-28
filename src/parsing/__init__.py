@@ -17,6 +17,10 @@ from src.models import (
     DeviceProfile,
     DeviceTestConfig,
     DeviceVariant,
+    DirectParameterOverlay,  # PQA Fix #131
+    DirectParameterOverlayRecordItem,  # PQA Fix #131
+    DirectParameterOverlayRecordItemInfo,  # PQA Fix #131
+    DirectParameterOverlayRecordItemSingleValue,  # PQA Fix #131
     DocumentInfo,
     ErrorType,
     Event,
@@ -288,6 +292,8 @@ class IODDParser:
             # Phase 4: Wiring and Testing
             wire_configurations=self._extract_wire_configurations(),
             test_configurations=self._extract_test_configurations(),
+            # PQA Fix #131: DirectParameterOverlay support
+            direct_parameter_overlays=self._extract_direct_parameter_overlays(),
             # Phase 5: Custom Datatypes and metadata
             custom_datatypes=self._extract_custom_datatypes(),
             vendor_logo_filename=vendor_logo,
@@ -437,6 +443,166 @@ class IODDParser:
 
         logger.info(f"Extracted {len(parameters)} parameters")
         return parameters
+
+    def _extract_direct_parameter_overlays(self) -> List[DirectParameterOverlay]:
+        """Extract DirectParameterOverlay elements from VariableCollection
+
+        PQA Fix #131: Parse DirectParameterOverlay elements which were previously ignored
+        """
+        overlays = []
+
+        # Find all DirectParameterOverlay elements in VariableCollection (preserve XML order)
+        xml_order = 0
+        for overlay_elem in self.root.findall('.//iodd:VariableCollection/iodd:DirectParameterOverlay', self.NAMESPACES):
+            overlay = self._parse_direct_parameter_overlay(overlay_elem, xml_order)
+            if overlay:
+                overlays.append(overlay)
+            xml_order += 1
+
+        logger.info(f"Extracted {len(overlays)} DirectParameterOverlay elements")
+        return overlays
+
+    def _parse_direct_parameter_overlay(self, overlay_elem, xml_order: int = 0) -> Optional[DirectParameterOverlay]:
+        """Parse a DirectParameterOverlay element
+
+        Args:
+            overlay_elem: The DirectParameterOverlay XML element
+            xml_order: Order in the XML for reconstruction
+        """
+        # Get id attribute (required)
+        overlay_id = overlay_elem.get('id')
+        if not overlay_id:
+            return None
+
+        # Get optional attributes
+        access_rights = overlay_elem.get('accessRights')
+
+        dynamic_attr = overlay_elem.get('dynamic')
+        dynamic = dynamic_attr.lower() == 'true' if dynamic_attr is not None else False
+
+        modifies_attr = overlay_elem.get('modifiesOtherVariables')
+        modifies_other_variables = modifies_attr.lower() == 'true' if modifies_attr is not None else False
+
+        excluded_attr = overlay_elem.get('excludedFromDataStorage')
+        excluded_from_data_storage = excluded_attr.lower() == 'true' if excluded_attr is not None else False
+
+        # Get Name textId
+        name_elem = overlay_elem.find('iodd:Name', self.NAMESPACES)
+        name_text_id = name_elem.get('textId') if name_elem is not None else None
+
+        # Parse Datatype element
+        datatype_elem = overlay_elem.find('iodd:Datatype', self.NAMESPACES)
+        datatype_xsi_type = None
+        datatype_bit_length = None
+        record_items = []
+
+        if datatype_elem is not None:
+            datatype_xsi_type = datatype_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+            bit_length_str = datatype_elem.get('bitLength')
+            datatype_bit_length = int(bit_length_str) if bit_length_str else None
+
+            # Extract RecordItem elements from Datatype
+            record_items = self._extract_overlay_record_items(datatype_elem)
+
+        # Parse RecordItemInfo elements
+        record_item_info = self._extract_overlay_record_item_info(overlay_elem)
+
+        return DirectParameterOverlay(
+            overlay_id=overlay_id,
+            access_rights=access_rights,
+            dynamic=dynamic,
+            modifies_other_variables=modifies_other_variables,
+            excluded_from_data_storage=excluded_from_data_storage,
+            name_text_id=name_text_id,
+            datatype_xsi_type=datatype_xsi_type,
+            datatype_bit_length=datatype_bit_length,
+            record_items=record_items,
+            record_item_info=record_item_info
+        )
+
+    def _extract_overlay_record_items(self, datatype_elem) -> List[DirectParameterOverlayRecordItem]:
+        """Extract RecordItem elements from DirectParameterOverlay Datatype"""
+        record_items = []
+
+        for idx, ri_elem in enumerate(datatype_elem.findall('iodd:RecordItem', self.NAMESPACES)):
+            subindex = int(ri_elem.get('subindex', 0))
+            bit_offset = int(ri_elem.get('bitOffset')) if ri_elem.get('bitOffset') is not None else None
+            access_right_restriction = ri_elem.get('accessRightRestriction')
+
+            # Get name from textId
+            name_elem = ri_elem.find('iodd:Name', self.NAMESPACES)
+            name_text_id = name_elem.get('textId') if name_elem is not None else None
+            name = self._resolve_text(name_text_id) if name_text_id else None
+
+            # Get description from textId
+            desc_elem = ri_elem.find('iodd:Description', self.NAMESPACES)
+            description_text_id = desc_elem.get('textId') if desc_elem is not None else None
+            description = self._resolve_text(description_text_id) if description_text_id else None
+
+            # Determine datatype - could be DatatypeRef or SimpleDatatype
+            datatype_ref_elem = ri_elem.find('iodd:DatatypeRef', self.NAMESPACES)
+            simple_dt_elem = ri_elem.find('iodd:SimpleDatatype', self.NAMESPACES)
+
+            datatype_ref = None
+            simple_datatype = None
+            bit_length = None
+            single_values = []
+
+            if datatype_ref_elem is not None:
+                datatype_ref = datatype_ref_elem.get('datatypeId')
+            elif simple_dt_elem is not None:
+                simple_datatype = simple_dt_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                bit_length_str = simple_dt_elem.get('bitLength')
+                bit_length = int(bit_length_str) if bit_length_str else None
+
+                # Extract SingleValue elements
+                for sv_elem in simple_dt_elem.findall('iodd:SingleValue', self.NAMESPACES):
+                    sv_value = sv_elem.get('value')
+                    if sv_value is not None:
+                        sv_name_elem = sv_elem.find('iodd:Name', self.NAMESPACES)
+                        sv_name_text_id = sv_name_elem.get('textId') if sv_name_elem is not None else None
+                        sv_name = self._resolve_text(sv_name_text_id) if sv_name_text_id else None
+
+                        single_values.append(DirectParameterOverlayRecordItemSingleValue(
+                            value=sv_value,
+                            name=sv_name,
+                            name_text_id=sv_name_text_id
+                        ))
+
+            record_items.append(DirectParameterOverlayRecordItem(
+                subindex=subindex,
+                bit_offset=bit_offset,
+                bit_length=bit_length,
+                datatype_ref=datatype_ref,
+                simple_datatype=simple_datatype,
+                name=name,
+                name_text_id=name_text_id,
+                description=description,
+                description_text_id=description_text_id,
+                access_right_restriction=access_right_restriction,
+                single_values=single_values
+            ))
+
+        return record_items
+
+    def _extract_overlay_record_item_info(self, overlay_elem) -> List[DirectParameterOverlayRecordItemInfo]:
+        """Extract RecordItemInfo elements from DirectParameterOverlay"""
+        record_item_info = []
+
+        for ri_info_elem in overlay_elem.findall('iodd:RecordItemInfo', self.NAMESPACES):
+            subindex = int(ri_info_elem.get('subindex', 0))
+            default_value = ri_info_elem.get('defaultValue')
+
+            modifies_attr = ri_info_elem.get('modifiesOtherVariables')
+            modifies_other_variables = modifies_attr.lower() == 'true' if modifies_attr is not None else False
+
+            record_item_info.append(DirectParameterOverlayRecordItemInfo(
+                subindex=subindex,
+                default_value=default_value,
+                modifies_other_variables=modifies_other_variables
+            ))
+
+        return record_item_info
 
     def _parse_variable_element(self, var_elem, xml_order: int = 0, is_std_direct_parameter_ref: bool = False) -> Optional[Parameter]:
         """Parse a Variable or StdDirectParameterRef element into a Parameter object

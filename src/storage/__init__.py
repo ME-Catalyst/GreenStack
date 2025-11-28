@@ -25,6 +25,7 @@ from .custom_datatype import CustomDatatypeSaver
 from .test_config import TestConfigSaver
 from .std_variable_ref import StdVariableRefSaver
 from .build_format import BuildFormatSaver
+from .direct_parameter_overlay import DirectParameterOverlaySaver  # PQA Fix #131
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,7 @@ class StorageManager:
             test_config_saver = TestConfigSaver(cursor)
             std_variable_ref_saver = StdVariableRefSaver(cursor)
             build_format_saver = BuildFormatSaver(cursor)
+            direct_parameter_overlay_saver = DirectParameterOverlaySaver(cursor)  # PQA Fix #131
 
             # Check if device exists with same checksum BEFORE saving
             # This prevents the bug where we create a device record then immediately
@@ -122,6 +124,8 @@ class StorageManager:
             custom_datatype_saver.save(device_id, getattr(profile, 'custom_datatypes', []))
             test_config_saver.save(device_id, getattr(profile, 'test_configurations', []))
             std_variable_ref_saver.save(device_id, getattr(profile, 'std_variable_refs', []))
+            # PQA Fix #131: DirectParameterOverlay support
+            direct_parameter_overlay_saver.save(device_id, getattr(profile, 'direct_parameter_overlays', []))
 
             # Extract and save build format metadata from raw XML
             if hasattr(profile, 'raw_xml') and profile.raw_xml:
@@ -268,4 +272,5 @@ __all__ = [
     'TestConfigSaver',
     'StdVariableRefSaver',
     'BuildFormatSaver',
+    'DirectParameterOverlaySaver',  # PQA Fix #131
 ]

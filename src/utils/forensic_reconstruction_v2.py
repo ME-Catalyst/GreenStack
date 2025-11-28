@@ -2154,6 +2154,110 @@ class IODDReconstructor:
             if param['data_type'] == 'RecordT':
                 self._add_variable_record_item_info(conn, param['id'], variable)
 
+        # PQA Fix #131: Reconstruct DirectParameterOverlay elements
+        cursor.execute("""
+            SELECT * FROM direct_parameter_overlays
+            WHERE device_id = ?
+            ORDER BY xml_order
+        """, (device_id,))
+        overlays = cursor.fetchall()
+
+        for overlay in overlays:
+            overlay_elem = ET.SubElement(collection, 'DirectParameterOverlay')
+            overlay_elem.set('id', overlay['overlay_id'])
+
+            if overlay['access_rights']:
+                overlay_elem.set('accessRights', overlay['access_rights'])
+            if overlay['dynamic']:
+                overlay_elem.set('dynamic', 'true')
+            if overlay['modifies_other_variables']:
+                overlay_elem.set('modifiesOtherVariables', 'true')
+            if overlay['excluded_from_data_storage']:
+                overlay_elem.set('excludedFromDataStorage', 'true')
+
+            # Add Datatype child
+            if overlay['datatype_xsi_type']:
+                datatype_elem = ET.SubElement(overlay_elem, 'Datatype')
+                datatype_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', overlay['datatype_xsi_type'])
+                if overlay['datatype_bit_length'] is not None:
+                    datatype_elem.set('bitLength', str(overlay['datatype_bit_length']))
+
+                # Add RecordItem children
+                cursor2 = conn.cursor()
+                cursor2.execute("""
+                    SELECT * FROM direct_parameter_overlay_record_items
+                    WHERE overlay_id = ?
+                    ORDER BY order_index
+                """, (overlay['id'],))
+                record_items = cursor2.fetchall()
+
+                for ri in record_items:
+                    ri_elem = ET.SubElement(datatype_elem, 'RecordItem')
+                    ri_elem.set('subindex', str(ri['subindex']))
+                    if ri['bit_offset'] is not None:
+                        ri_elem.set('bitOffset', str(ri['bit_offset']))
+                    if ri['access_right_restriction']:
+                        ri_elem.set('accessRightRestriction', ri['access_right_restriction'])
+
+                    # Add SimpleDatatype or DatatypeRef
+                    if ri['simple_datatype']:
+                        simple_dt = ET.SubElement(ri_elem, 'SimpleDatatype')
+                        simple_dt.set('{http://www.w3.org/2001/XMLSchema-instance}type', ri['simple_datatype'])
+                        if ri['bit_length'] is not None:
+                            simple_dt.set('bitLength', str(ri['bit_length']))
+
+                        # Add SingleValue children
+                        cursor3 = conn.cursor()
+                        cursor3.execute("""
+                            SELECT * FROM direct_parameter_overlay_record_item_single_values
+                            WHERE record_item_id = ?
+                            ORDER BY order_index
+                        """, (ri['id'],))
+                        single_values = cursor3.fetchall()
+
+                        for sv in single_values:
+                            sv_elem = ET.SubElement(simple_dt, 'SingleValue')
+                            sv_elem.set('value', sv['value'])
+                            if sv['name_text_id']:
+                                sv_name = ET.SubElement(sv_elem, 'Name')
+                                sv_name.set('textId', sv['name_text_id'])
+
+                    elif ri['datatype_ref']:
+                        dt_ref = ET.SubElement(ri_elem, 'DatatypeRef')
+                        dt_ref.set('datatypeId', ri['datatype_ref'])
+
+                    # Add Name child
+                    if ri['name_text_id']:
+                        ri_name = ET.SubElement(ri_elem, 'Name')
+                        ri_name.set('textId', ri['name_text_id'])
+
+                    # Add Description child
+                    if ri['description_text_id']:
+                        ri_desc = ET.SubElement(ri_elem, 'Description')
+                        ri_desc.set('textId', ri['description_text_id'])
+
+            # Add RecordItemInfo children
+            cursor2 = conn.cursor()
+            cursor2.execute("""
+                SELECT * FROM direct_parameter_overlay_record_item_info
+                WHERE overlay_id = ?
+                ORDER BY order_index
+            """, (overlay['id'],))
+            record_item_info = cursor2.fetchall()
+
+            for rii in record_item_info:
+                rii_elem = ET.SubElement(overlay_elem, 'RecordItemInfo')
+                rii_elem.set('subindex', str(rii['subindex']))
+                if rii['default_value'] is not None:
+                    rii_elem.set('defaultValue', rii['default_value'])
+                if rii['modifies_other_variables']:
+                    rii_elem.set('modifiesOtherVariables', 'true' if rii['modifies_other_variables'] else 'false')
+
+            # Add Name child
+            if overlay['name_text_id']:
+                overlay_name = ET.SubElement(overlay_elem, 'Name')
+                overlay_name.set('textId', overlay['name_text_id'])
+
         return collection
 
     def _create_error_type_collection(self, conn: sqlite3.Connection,
