@@ -4,95 +4,110 @@ PQA RESULTS ANALYSIS - IMPORTED IODD DATASET
 
 ## 1. DATASET OVERVIEW
 
-Total Devices Imported: 6639
-Devices with PQA Analysis: 6639
+Total Devices Imported: 7423
+Devices with PQA Analysis: 7423
 Analysis Coverage: 100.0%
 
 ## 2. SCORE STATISTICS
 
-Total Analyzed: 6639
+Total Analyzed: 7423
 
-Overall Scores:
-  Average: 99.99%
-  Range: 99.05% - 100.0%
+Overall Scores (Full Precision):
+  Average: 99.9889%
+  Range: 95.4212% - 100.0000%
 
-Component Scores:
-  Structural (40%): 99.98%
-  Attribute (35%):  100.0%
-  Value (25%):      100.0%
+Component Scores (Full Precision):
+  Structural (40%): 99.9725%
+  Attribute (35%):  99.9997%
+  Value (25%):      100.0000%
 
 Quality Gates:
-  Passed Threshold (>=95%): 6554 (98.7%)
-  Failed Threshold (<95%): 85
+  Perfect Devices (100.0000%): 6991 (94.18%)
+  Near-Perfect (99.9-99.99%): 0 (0.00%)
+  Passed Threshold: 6991 (94.18%)
+  Failed Threshold: 432
   Critical Data Loss: 0
-  Avg Data Loss: 0.02%
+  Avg Data Loss: 0.0234%
+
+Active Threshold Configuration:
+  Min Overall Score: 100.0%
+  Max Data Loss: 0.0%
+
+Failure Breakdown:
+  Failed due to low score (<100.0%): 432
+  Failed due to data loss (>0.0%): 307
+  Failed ONLY data loss (good score!): 0
 
 ## 3. SCORE DISTRIBUTION
 
 Grade Distribution:
-  A+ (98-100%): 6639 devices (100.0%) ##################################################
+  A+ (98-100%): 7420 devices (100.0%) #################################################
+  A  (95-98%):   3 devices (  0.0%) 
 
 ## 4. WORST PERFORMING DEVICES (Bottom 10)
 
 ID    Product                                   Score Struct   Attr  Value  Loss%
 ------------------------------------------------------------------------------------------
-4292  SIG100_DID8389010                          99.0  100.0   97.3  100.0    0.0
-4098  deTec beam data HCSV 1_2_0                 99.1   99.9   97.6  100.0    0.0
-4087  MPB10                                      99.2  100.0   97.8  100.0    0.0
-4100  deTem A/P                                  99.4  100.0   98.2  100.0    0.0
-4099  deTem                                      99.4  100.0   98.2  100.0    0.0
-4451  X-NUCLEO-IOD02A1                           99.4   99.1   99.3  100.0    0.9
-4101  deTem A/P HCSV 1_1_0                       99.4  100.0   98.3  100.0    0.0
-4264  MPS-G                                      99.4  100.0   98.4  100.0    0.0
-4085  MPS-G                                      99.5  100.0   98.6  100.0    0.0
-4086  MPS-G                                      99.5  100.0   98.7  100.0    0.0
+864   0                                          95.4   88.6  100.0  100.0   11.4
+574   OBE-P3DRSERE6-A350                         97.8   94.5  100.0  100.0    2.6
+575   OBE-P3DRSERE6-A100                         97.8   94.5  100.0  100.0    2.6
+865   PX 29 (250...2000°C)                       98.7   96.8  100.0  100.0    3.2
+866   PX 30 (500...2500°C) with integrated las   98.8   96.9  100.0  100.0    3.1
+748   UIT520                                     98.8   97.0  100.0  100.0    3.0
+749   #171939                                    98.8   97.0  100.0  100.0    3.0
+754   VVB011 Status B                            99.1   97.7  100.0  100.0    2.3
+756   VVB010 Status B                            99.1   97.7  100.0  100.0    2.3
+130   41646100                                   99.2   98.0  100.0  100.0    2.0
 
 ## 5. MOST COMMON DIFF TYPES
 
 Diff Type                 Severity      Count
 --------------------------------------------------
-missing_attribute         HIGH            880
-missing_element           HIGH            412
-missing_attribute         MEDIUM           68
-extra_element             LOW              26
-incorrect_attribute       MEDIUM            6
+missing_element           HIGH           1358
+extra_element             LOW             287
+missing_attribute         MEDIUM           12
+incorrect_attribute       MEDIUM           11
 
 ## 6. MOST PROBLEMATIC ELEMENTS (Top 20)
 
 XPath (truncated)                                            Type                 Sev       Count
 ----------------------------------------------------------------------------------------------------
-/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_attribute    HIGH        611
-/IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_attribute    HIGH        249
-/IODevice/ProfileBody/DeviceFunction/EventCollection[unkno.. missing_element      HIGH        101
-/IODevice/ProfileBody/DeviceFunction/VariableCollection/St.. missing_element      HIGH         84
-/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_element      HIGH         74
+/IODevice/ProfileBody/DeviceFunction/VariableCollection/Va.. missing_element      HIGH        926
+/IODevice/ProfileBody/DeviceFunction/VariableCollection/St.. missing_element      HIGH         98
+/IODevice/CommNetworkProfile/TransportLayers/PhysicalLayer.. extra_element        LOW          96
+/IODevice/ProfileBody/DeviceFunction/Features[unknown]       extra_element        LOW          96
+/IODevice/ProfileBody/DeviceFunction/UserInterface/MenuCol.. missing_element      HIGH         76
 /IODevice/ProfileBody/DeviceFunction/VariableCollection/Di.. missing_element      HIGH         66
-/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_element      HIGH         25
-/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_attribute    MEDIUM       25
-/IODevice/ProfileBody/DeviceFunction/ErrorTypeCollection/E.. extra_element        LOW          23
-/IODevice/CommNetworkProfile/Test/Config7@{http://www.w3.o.. missing_attribute    MEDIUM       22
-/IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_attribute    HIGH         20
+/IODevice/ProfileBody/DeviceFunction/VariableCollection/Va.. extra_element        LOW          48
+/IODevice/ProfileBody/DeviceFunction/VariableCollection/Va.. missing_element      HIGH         48
+/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_element      HIGH         42
+/IODevice/ProfileBody/DeviceFunction/ErrorTypeCollection/E.. extra_element        LOW          31
+/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_element      HIGH         21
+/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_element      HIGH         18
+/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. missing_element      HIGH         18
+/IODevice/ProfileBody/DeviceFunction/UserInterface/Process.. missing_element      HIGH         11
 /IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_element      HIGH          8
+/IODevice/ProfileBody/DeviceFunction/ErrorTypeCollection[u.. extra_element        LOW           6
+/IODevice/ProfileBody/DeviceFunction/DatatypeCollection/Da.. incorrect_attribute  MEDIUM        5
 /IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_element      HIGH          5
-/IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_attribute    MEDIUM        5
 /IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_element      HIGH          5
-/IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_attribute    MEDIUM        5
-/IODevice/ProfileBody/DeviceFunction/ProcessDataCollection.. missing_element      HIGH          5
-/IODevice/ProfileBody/DeviceFunction/UserInterface/Process.. missing_element      HIGH          5
-/IODevice/CommNetworkProfile/TransportLayers/PhysicalLayer.. missing_element      HIGH          4
-/IODevice/CommNetworkProfile/TransportLayers/PhysicalLayer.. missing_element      HIGH          4
+/IODevice/ProfileBody/DeviceFunction/ErrorTypeCollection/E.. incorrect_attribute  MEDIUM        4
 
 ## 7. PHASE-SPECIFIC SCORES (IODD Features)
 
-Phase 1 (UI Rendering):          100.0%
-Phase 2 (Variants & Conditions): 99.86%
-Phase 3 (Menu Buttons):          99.98%
-Phase 4 (Wiring & Test Config):  100.0%
-Phase 5 (Custom Datatypes):      99.64%
+Phase 1 (UI Rendering):          100.0000%  ✓ Perfect
+Phase 2 (Variants & Conditions): 99.4908%  ⚠ 7211/7423 perfect
+Phase 3 (Menu Buttons):          99.9468%  ⚠ 7384/7423 perfect
+Phase 4 (Wiring & Test Config):  100.0000%  ✓ Perfect
+Phase 5 (Custom Datatypes):      99.4881%  ⚠ 7307/7423 perfect
 
 ## 8. PQA TICKETS GENERATED
 
-No PQA tickets generated.
+Total PQA Tickets: 432
+  Critical: 0
+  High:     0
+  Medium:   432
+  Open:     432
 
 ## 9. EXAMPLE CRITICAL ISSUES (Sample of 10)
 
@@ -102,15 +117,10 @@ No critical issues found!
 ## 10. SUMMARY ASSESSMENT
 ================================================================================
 
-Overall Grade: EXCELLENT (99.99%)
-Traceback (most recent call last):
-  File "F:\github\GreenStack\analyze_pqa_results.py", line 266, in <module>
-    analyze_pqa_results()
-    ~~~~~~~~~~~~~~~~~~~^^
-  File "F:\github\GreenStack\analyze_pqa_results.py", line 257, in analyze_pqa_results
-    print(f"Status: {status}")
-    ~~~~~^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python314\Lib\encodings\cp1252.py", line 19, in encode
-    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
-           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 8: character maps to <undefined>
+Overall Grade: EXCELLENT (99.98888905929645%)
+Status: ✅ Production Ready
+
+Key Metrics:
+  - 6991 of 7423 devices pass threshold (≥95%)
+  - 0 devices with critical data loss
+  - Average data loss: 0.023416554635584414%
