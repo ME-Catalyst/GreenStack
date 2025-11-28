@@ -426,11 +426,26 @@ class IODDParser:
                 parameters.append(param)
                 std_var_base_index += 1
 
+        # PQA Fix #127: Parse StdDirectParameterRef elements
+        # These are similar to Variable but with a different element name
+        # They should be reconstructed as StdDirectParameterRef, not Variable
+        for std_direct_elem in self.root.findall('.//iodd:VariableCollection/iodd:StdDirectParameterRef', self.NAMESPACES):
+            param = self._parse_variable_element(std_direct_elem, xml_order, is_std_direct_parameter_ref=True)
+            if param:
+                parameters.append(param)
+            xml_order += 1
+
         logger.info(f"Extracted {len(parameters)} parameters")
         return parameters
 
-    def _parse_variable_element(self, var_elem, xml_order: int = 0) -> Optional[Parameter]:
-        """Parse a Variable element into a Parameter object"""
+    def _parse_variable_element(self, var_elem, xml_order: int = 0, is_std_direct_parameter_ref: bool = False) -> Optional[Parameter]:
+        """Parse a Variable or StdDirectParameterRef element into a Parameter object
+
+        Args:
+            var_elem: The Variable or StdDirectParameterRef element
+            xml_order: Order in the XML for reconstruction
+            is_std_direct_parameter_ref: True if this is a StdDirectParameterRef element
+        """
         # Get basic attributes
         var_id = var_elem.get('id')
         if not var_id:
@@ -533,6 +548,8 @@ class IODDParser:
             value_range_name_text_id=datatype_info.get('value_range_name_text_id'),  # ValueRange Name textId
             xml_order=xml_order,  # Original order in XML document
             datatype_name_text_id=datatype_info.get('datatype_name_text_id'),  # PQA Fix #95: Datatype/Name textId
+            # PQA Fix #127: StdDirectParameterRef support
+            is_std_direct_parameter_ref=is_std_direct_parameter_ref,
         )
 
         # Store RecordItemInfo as an attribute (not in Parameter model, will be saved separately)

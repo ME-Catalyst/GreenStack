@@ -128,6 +128,8 @@ class Parameter:
     value_range_name_text_id: Optional[str] = None  # ValueRange Name textId
     xml_order: Optional[int] = None  # Original order in XML document for reconstruction
     datatype_name_text_id: Optional[str] = None  # Stores Datatype/Name textId (direct child) for reconstruction
+    # PQA Fix #127: StdDirectParameterRef support
+    is_std_direct_parameter_ref: bool = False  # True if this should be reconstructed as StdDirectParameterRef
 
 
 @dataclass

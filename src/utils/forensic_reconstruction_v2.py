@@ -1953,9 +1953,14 @@ class IODDReconstructor:
             var_id = param['variable_id'] if param['variable_id'] else \
                      'V_' + param['name'].replace(' ', '').replace('"', '').replace('-', '_').replace('/', '_')
 
-            variable = ET.SubElement(collection, 'Variable')
+            # PQA Fix #127: Create StdDirectParameterRef instead of Variable when flag is set
+            is_std_direct = param['is_std_direct_parameter_ref'] if 'is_std_direct_parameter_ref' in param.keys() else 0
+            element_name = 'StdDirectParameterRef' if is_std_direct else 'Variable'
+            variable = ET.SubElement(collection, element_name)
             variable.set('id', var_id)
-            variable.set('index', str(param['param_index']))
+            # PQA Fix #127: Only Variable elements have index attribute, not StdDirectParameterRef
+            if not is_std_direct:
+                variable.set('index', str(param['param_index']))
 
             # Access rights
             if param['access_rights']:

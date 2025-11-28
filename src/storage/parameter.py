@@ -68,8 +68,8 @@ class ParameterSaver(BaseSaver):
                     string_fixed_length, string_encoding,
                     array_element_min_value, array_element_max_value,
                     array_element_value_range_xsi_type, array_element_value_range_name_text_id,
-                    datatype_name_text_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    datatype_name_text_id, is_std_direct_parameter_ref
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
             self._execute(query, (
@@ -115,6 +115,8 @@ class ParameterSaver(BaseSaver):
                 getattr(param, 'array_element_value_range_xsi_type', None),
                 getattr(param, 'array_element_value_range_name_text_id', None),
                 getattr(param, 'datatype_name_text_id', None),  # PQA Fix #70
+                # PQA Fix #127: StdDirectParameterRef support
+                1 if getattr(param, 'is_std_direct_parameter_ref', False) else 0,
             ))
 
             parameter_id = self._get_lastrowid()
