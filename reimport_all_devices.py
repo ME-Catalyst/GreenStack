@@ -72,6 +72,9 @@ def delete_device_data(device_id: int) -> None:
     # Delete text entries
     cursor.execute('DELETE FROM iodd_text WHERE device_id = ?', (device_id,))
 
+    # Delete device_features (PQA Fix #128: Was missing, causing stale data for extra Features elements)
+    cursor.execute('DELETE FROM device_features WHERE device_id = ?', (device_id,))
+
     # Delete StdVariableRef data (PQA Fix: Was missing, causing stale data)
     cursor.execute('''
         DELETE FROM std_variable_ref_single_values
