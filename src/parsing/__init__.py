@@ -2121,6 +2121,27 @@ class IODDParser:
                 gradient = record_ref.get('gradient')
                 offset = record_ref.get('offset')
 
+                # PQA Fix #130: Extract button configurations for RecordItemRef (same as VariableRef)
+                buttons = []
+                for button_elem in record_ref.findall('iodd:Button', self.NAMESPACES):
+                    button_value = button_elem.get('buttonValue')
+                    desc_elem = button_elem.find('iodd:Description', self.NAMESPACES)
+                    desc_text_id = desc_elem.get('textId') if desc_elem is not None else None
+                    description = self._resolve_text(desc_text_id)
+
+                    action_msg_elem = button_elem.find('iodd:ActionStartedMessage', self.NAMESPACES)
+                    action_msg_text_id = action_msg_elem.get('textId') if action_msg_elem is not None else None
+                    action_started_message = self._resolve_text(action_msg_text_id)
+
+                    if button_value:
+                        buttons.append(MenuButton(
+                            button_value=button_value,
+                            description=description,
+                            action_started_message=action_started_message,
+                            description_text_id=desc_text_id,  # PQA reconstruction
+                            action_started_message_text_id=action_msg_text_id,  # PQA reconstruction
+                        ))
+
                 items.append(MenuItem(
                     record_item_ref=record_ref.get('variableId'),
                     subindex=int(record_ref.get('subindex')) if record_ref.get('subindex') else None,
@@ -2130,7 +2151,8 @@ class IODDParser:
                     gradient=float(gradient) if gradient else None,
                     offset=float(offset) if offset else None,
                     gradient_str=gradient,  # PQA: preserve original string format
-                    offset_str=offset  # PQA: preserve original string format
+                    offset_str=offset,  # PQA: preserve original string format
+                    buttons=buttons  # PQA Fix #130: Include buttons
                 ))
 
             # Extract menu references (sub-menus) with optional Condition (direct children only)

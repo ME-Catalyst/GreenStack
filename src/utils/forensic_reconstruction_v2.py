@@ -1503,6 +1503,27 @@ class IODDReconstructor:
                     if item['offset'] is not None:
                         offset_str = item['offset_str'] if 'offset_str' in item.keys() and item['offset_str'] else None
                         record_ref.set('offset', offset_str if offset_str else self._format_number(item['offset']))
+                    # PQA Fix #129: Add Button children for RecordItemRef if any
+                    cursor2 = conn.cursor()
+                    cursor2.execute("""
+                        SELECT * FROM ui_menu_buttons
+                        WHERE menu_item_id = ?
+                        ORDER BY id
+                    """, (item['id'],))
+                    button_rows = cursor2.fetchall()
+                    for btn in button_rows:
+                        button_elem = ET.SubElement(record_ref, 'Button')
+                        button_elem.set('buttonValue', str(btn['button_value']))
+                        # Use description_text_id for PQA reconstruction
+                        desc_text_id = btn['description_text_id'] if 'description_text_id' in btn.keys() else None
+                        if desc_text_id:
+                            desc_elem = ET.SubElement(button_elem, 'Description')
+                            desc_elem.set('textId', desc_text_id)
+                        # Use action_started_message_text_id for PQA reconstruction
+                        action_text_id = btn['action_started_message_text_id'] if 'action_started_message_text_id' in btn.keys() else None
+                        if action_text_id:
+                            action_elem = ET.SubElement(button_elem, 'ActionStartedMessage')
+                            action_elem.set('textId', action_text_id)
                 elif item['menu_ref']:
                     # MenuRef
                     menu_ref = ET.SubElement(menu_elem, 'MenuRef')
