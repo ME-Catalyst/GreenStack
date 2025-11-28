@@ -696,9 +696,10 @@ class IODDParser:
                 result['datatype_name_text_id'] = dt_name_elem.get('textId')
 
             # Extract single value enumerations (inline)
+            # PQA Fix: Use direct children only (not .// which finds descendants including RecordItem SingleValues)
             enumeration_values = {}
             single_values = []
-            for idx, single_val in enumerate(datatype_elem.findall('.//iodd:SingleValue', self.NAMESPACES)):
+            for idx, single_val in enumerate(datatype_elem.findall('iodd:SingleValue', self.NAMESPACES)):
                 value = single_val.get('value')
                 xsi_type = single_val.get('{http://www.w3.org/2001/XMLSchema-instance}type')
                 name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
