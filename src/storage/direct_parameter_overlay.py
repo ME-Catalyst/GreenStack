@@ -113,12 +113,16 @@ class DirectParameterOverlaySaver(BaseSaver):
         """
         for idx, ri in enumerate(record_items):
             # Insert RecordItem
+            # PQA Fix #137: Added ValueRange and SimpleDatatype attribute columns
             query = """
                 INSERT INTO direct_parameter_overlay_record_items (
                     overlay_id, subindex, bit_offset, bit_length,
                     datatype_ref, simple_datatype, simple_datatype_id, name, name_text_id,
-                    description, description_text_id, access_right_restriction, order_index
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    description, description_text_id, access_right_restriction,
+                    min_value, max_value, value_range_xsi_type, value_range_name_text_id,
+                    default_value, fixed_length, encoding, datatype_id,
+                    order_index
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
             self._execute(query, (
                 overlay_id,
@@ -133,6 +137,16 @@ class DirectParameterOverlaySaver(BaseSaver):
                 getattr(ri, 'description', None),
                 getattr(ri, 'description_text_id', None),
                 getattr(ri, 'access_right_restriction', None),
+                # PQA Fix #137: ValueRange columns
+                getattr(ri, 'min_value', None),
+                getattr(ri, 'max_value', None),
+                getattr(ri, 'value_range_xsi_type', None),
+                getattr(ri, 'value_range_name_text_id', None),
+                # PQA Fix #137: Other SimpleDatatype attribute columns
+                getattr(ri, 'default_value', None),
+                getattr(ri, 'fixed_length', None),
+                getattr(ri, 'encoding', None),
+                getattr(ri, 'datatype_id', None),
                 idx  # order_index
             ))
 

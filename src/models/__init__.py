@@ -558,6 +558,11 @@ class DirectParameterOverlayRecordItem:
     description_text_id: Optional[str] = None
     access_right_restriction: Optional[str] = None
     single_values: List[DirectParameterOverlayRecordItemSingleValue] = field(default_factory=list)
+    # PQA Fix #137: ValueRange support
+    min_value: Optional[str] = None
+    max_value: Optional[str] = None
+    value_range_xsi_type: Optional[str] = None
+    value_range_name_text_id: Optional[str] = None
 
 
 @dataclass
