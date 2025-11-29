@@ -435,10 +435,15 @@ class IODDParser:
         # PQA Fix #127: Parse StdDirectParameterRef elements
         # These are similar to Variable but with a different element name
         # They should be reconstructed as StdDirectParameterRef, not Variable
-        for std_direct_elem in self.root.findall('.//iodd:VariableCollection/iodd:StdDirectParameterRef', self.NAMESPACES):
+        std_direct_elements = self.root.findall('.//iodd:VariableCollection/iodd:StdDirectParameterRef', self.NAMESPACES)
+        logger.info(f"Found {len(std_direct_elements)} StdDirectParameterRef elements")
+        for std_direct_elem in std_direct_elements:
             param = self._parse_variable_element(std_direct_elem, xml_order, is_std_direct_parameter_ref=True)
             if param:
                 parameters.append(param)
+                logger.info(f"Successfully parsed StdDirectParameterRef: {param.id}")
+            else:
+                logger.warning(f"Failed to parse StdDirectParameterRef element")
             xml_order += 1
 
         logger.info(f"Extracted {len(parameters)} parameters")
@@ -545,6 +550,7 @@ class IODDParser:
 
             datatype_ref = None
             simple_datatype = None
+            simple_datatype_id = None  # PQA Fix #132
             bit_length = None
             single_values = []
 
@@ -552,6 +558,7 @@ class IODDParser:
                 datatype_ref = datatype_ref_elem.get('datatypeId')
             elif simple_dt_elem is not None:
                 simple_datatype = simple_dt_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                simple_datatype_id = simple_dt_elem.get('id')  # PQA Fix #132: Capture SimpleDatatype@id
                 bit_length_str = simple_dt_elem.get('bitLength')
                 bit_length = int(bit_length_str) if bit_length_str else None
 
@@ -575,6 +582,7 @@ class IODDParser:
                 bit_length=bit_length,
                 datatype_ref=datatype_ref,
                 simple_datatype=simple_datatype,
+                simple_datatype_id=simple_datatype_id,  # PQA Fix #132
                 name=name,
                 name_text_id=name_text_id,
                 description=description,

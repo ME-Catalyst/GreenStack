@@ -942,13 +942,14 @@ class IODDReconstructor:
 
         for item in items:
             record_elem = ET.SubElement(datatype_elem, 'RecordItem')
-            record_elem.set('subindex', str(item['subindex']))
-            if item['bit_offset'] is not None:
-                record_elem.set('bitOffset', str(item['bit_offset']))
-            # PQA: Add accessRightRestriction attribute if present
+            # PQA Fix #127b: Set RecordItem attributes in correct order (accessRightRestriction, bitOffset, subindex)
+            # to match original IODD files and avoid incorrect_attribute errors
             access_right = item['access_right_restriction'] if 'access_right_restriction' in item.keys() else None
             if access_right:
                 record_elem.set('accessRightRestriction', access_right)
+            if item['bit_offset'] is not None:
+                record_elem.set('bitOffset', str(item['bit_offset']))
+            record_elem.set('subindex', str(item['subindex']))
 
             # Add SimpleDatatype or DatatypeRef based on stored data
             if item['datatype_ref']:
@@ -2203,6 +2204,9 @@ class IODDReconstructor:
                     if ri['simple_datatype']:
                         simple_dt = ET.SubElement(ri_elem, 'SimpleDatatype')
                         simple_dt.set('{http://www.w3.org/2001/XMLSchema-instance}type', ri['simple_datatype'])
+                        # PQA Fix #132: Add SimpleDatatype@id attribute
+                        if ri['simple_datatype_id']:
+                            simple_dt.set('id', ri['simple_datatype_id'])
                         if ri['bit_length'] is not None:
                             simple_dt.set('bitLength', str(ri['bit_length']))
 

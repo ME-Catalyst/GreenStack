@@ -551,6 +551,7 @@ class DirectParameterOverlayRecordItem:
     bit_length: Optional[int] = None
     datatype_ref: Optional[str] = None  # DatatypeRef@datatypeId
     simple_datatype: Optional[str] = None  # SimpleDatatype xsi:type
+    simple_datatype_id: Optional[str] = None  # PQA Fix #132: SimpleDatatype@id
     name: Optional[str] = None
     name_text_id: Optional[str] = None
     description: Optional[str] = None

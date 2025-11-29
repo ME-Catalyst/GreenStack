@@ -116,9 +116,9 @@ class DirectParameterOverlaySaver(BaseSaver):
             query = """
                 INSERT INTO direct_parameter_overlay_record_items (
                     overlay_id, subindex, bit_offset, bit_length,
-                    datatype_ref, simple_datatype, name, name_text_id,
+                    datatype_ref, simple_datatype, simple_datatype_id, name, name_text_id,
                     description, description_text_id, access_right_restriction, order_index
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
             self._execute(query, (
                 overlay_id,
@@ -127,6 +127,7 @@ class DirectParameterOverlaySaver(BaseSaver):
                 getattr(ri, 'bit_length', None),
                 getattr(ri, 'datatype_ref', None),
                 getattr(ri, 'simple_datatype', None),
+                getattr(ri, 'simple_datatype_id', None),  # PQA Fix #132
                 getattr(ri, 'name', None),
                 getattr(ri, 'name_text_id', None),
                 getattr(ri, 'description', None),
