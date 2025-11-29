@@ -1141,6 +1141,7 @@ class IODDReconstructor:
                 datatype_elem.set('encoding', dt['string_encoding'])
 
             # PQA Fix #96: Add SimpleDatatype child element for ArrayT types
+            # PQA Fix #138: Add SingleValue elements to SimpleDatatype child for ArrayT
             if dt['datatype_xsi_type'] == 'ArrayT':
                 array_elem_type = dt['array_element_type'] if 'array_element_type' in dt.keys() else None
                 array_elem_bit_length = dt['array_element_bit_length'] if 'array_element_bit_length' in dt.keys() else None
@@ -1149,9 +1150,11 @@ class IODDReconstructor:
                     simple_dt_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', array_elem_type)
                     if array_elem_bit_length:
                         simple_dt_elem.set('bitLength', str(array_elem_bit_length))
-
-            # Add SingleValue enumerations
-            self._add_single_values(conn, datatype_elem, dt['id'])
+                    # Add SingleValue elements to SimpleDatatype child, not Datatype parent
+                    self._add_single_values(conn, simple_dt_elem, dt['id'])
+            else:
+                # Add SingleValue enumerations as direct children for non-ArrayT types
+                self._add_single_values(conn, datatype_elem, dt['id'])
 
             # PQA Fix #30b: Add ValueRange at Datatype level if present
             dt_min_value = dt['min_value'] if 'min_value' in dt.keys() else None
@@ -2209,6 +2212,20 @@ class IODDReconstructor:
                             simple_dt.set('id', ri['simple_datatype_id'])
                         if ri['bit_length'] is not None:
                             simple_dt.set('bitLength', str(ri['bit_length']))
+
+                        # PQA Fix #137: Add ValueRange child
+                        if ri['min_value'] is not None or ri['max_value'] is not None:
+                            vr_elem = ET.SubElement(simple_dt, 'ValueRange')
+                            if ri['value_range_xsi_type']:
+                                vr_elem.set('{http://www.w3.org/2001/XMLSchema-instance}type', ri['value_range_xsi_type'])
+                            if ri['min_value'] is not None:
+                                vr_elem.set('lowerValue', ri['min_value'])
+                            if ri['max_value'] is not None:
+                                vr_elem.set('upperValue', ri['max_value'])
+                            # Add ValueRange/Name child
+                            if ri['value_range_name_text_id']:
+                                vr_name = ET.SubElement(vr_elem, 'Name')
+                                vr_name.set('textId', ri['value_range_name_text_id'])
 
                         # Add SingleValue children
                         cursor3 = conn.cursor()

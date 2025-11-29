@@ -554,6 +554,12 @@ class IODDParser:
             bit_length = None
             single_values = []
 
+            # PQA Fix #137: Initialize ValueRange attributes
+            min_value = None
+            max_value = None
+            value_range_xsi_type = None
+            value_range_name_text_id = None
+
             if datatype_ref_elem is not None:
                 datatype_ref = datatype_ref_elem.get('datatypeId')
             elif simple_dt_elem is not None:
@@ -561,6 +567,16 @@ class IODDParser:
                 simple_datatype_id = simple_dt_elem.get('id')  # PQA Fix #132: Capture SimpleDatatype@id
                 bit_length_str = simple_dt_elem.get('bitLength')
                 bit_length = int(bit_length_str) if bit_length_str else None
+
+                # PQA Fix #137: Extract ValueRange element
+                value_range_elem = simple_dt_elem.find('iodd:ValueRange', self.NAMESPACES)
+                if value_range_elem is not None:
+                    min_value = value_range_elem.get('lowerValue')
+                    max_value = value_range_elem.get('upperValue')
+                    value_range_xsi_type = value_range_elem.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                    # Extract ValueRange/Name textId
+                    vr_name_elem = value_range_elem.find('iodd:Name', self.NAMESPACES)
+                    value_range_name_text_id = vr_name_elem.get('textId') if vr_name_elem is not None else None
 
                 # Extract SingleValue elements
                 for sv_elem in simple_dt_elem.findall('iodd:SingleValue', self.NAMESPACES):
@@ -588,7 +604,12 @@ class IODDParser:
                 description=description,
                 description_text_id=description_text_id,
                 access_right_restriction=access_right_restriction,
-                single_values=single_values
+                single_values=single_values,
+                # PQA Fix #137: Add ValueRange attributes
+                min_value=min_value,
+                max_value=max_value,
+                value_range_xsi_type=value_range_xsi_type,
+                value_range_name_text_id=value_range_name_text_id
             ))
 
         return record_items
@@ -2774,6 +2795,30 @@ class IODDParser:
                     array_element_type = simple_dt_child.get('{http://www.w3.org/2001/XMLSchema-instance}type')
                     array_bit_length_attr = simple_dt_child.get('bitLength')
                     array_element_bit_length = int(array_bit_length_attr) if array_bit_length_attr else None
+
+                    # PQA Fix #138: Extract SingleValue elements from ArrayT SimpleDatatype child
+                    # SingleValues are nested inside Datatype[ArrayT]/SimpleDatatype, not direct children
+                    # Example: Datatype[@xsi:type="ArrayT"]/SimpleDatatype[@xsi:type="UIntegerT"]/SingleValue
+                    array_single_values = []
+                    for sv_idx, single_val in enumerate(simple_dt_child.findall('iodd:SingleValue', self.NAMESPACES)):
+                        value = single_val.get('value')
+                        if value is not None:
+                            name_elem = single_val.find('.//iodd:Name', self.NAMESPACES)
+                            text_id = name_elem.get('textId') if name_elem is not None else None
+                            text_value = self._resolve_text(text_id) if text_id else None
+                            # Get xsi:type attribute for PQA reconstruction (e.g., BooleanValueT)
+                            sv_xsi_type = single_val.get('{http://www.w3.org/2001/XMLSchema-instance}type')
+                            array_single_values.append(SingleValue(
+                                value=value,
+                                name=text_value or '',  # Empty string if no Name element
+                                text_id=text_id,  # None if no Name element
+                                xsi_type=sv_xsi_type,  # Preserve xsi:type for PQA
+                                xml_order=sv_idx  # Preserve original order
+                            ))
+
+                    # Override single_values from direct children with ArrayT's nested SingleValues
+                    if array_single_values:
+                        single_values = array_single_values
 
             datatypes.append(CustomDatatype(
                 datatype_id=datatype_id,
