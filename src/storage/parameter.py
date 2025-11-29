@@ -157,8 +157,9 @@ class ParameterSaver(BaseSaver):
 
             # Simple types end in 'T' (e.g., UIntegerT, BooleanT, StringT)
             # Custom datatype IDs typically start with 'D_' or 'DT_'
+            # PQA Fix #136: Added TimeSpanT to simple_types set
             simple_types = {'UIntegerT', 'IntegerT', 'StringT', 'BooleanT', 'Float32T',
-                           'OctetStringT', 'TimeT', 'RecordT', 'ArrayT'}
+                           'OctetStringT', 'TimeT', 'TimeSpanT', 'RecordT', 'ArrayT'}
 
             if data_type and data_type in simple_types:
                 simple_datatype = data_type
